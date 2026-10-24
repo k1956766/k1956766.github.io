@@ -32,7 +32,7 @@ description: "강의 연구보고서 · 2023.9 – 2023.12"
 
 <figure class="research-figure">
   <img data-zoomable src="/assets/img/research/vacant/fig1.png" alt="환경·사회·거버넌스 세 관점에서 빈집 활용을 평가하는 조작적 정의(영문)" loading="lazy">
-  <figcaption><strong>그림 1. ESG 분석틀의 조작적 정의</strong> 기업 평가에 쓰던 ESG를 빈집에 맞게 바꿨어요. 훼손된 경관과 인프라는 환경(E), 공동 공간·취약계층 주거 활용은 사회(S), 소유권·관리 체계는 거버넌스(G)로 평가해요. 각 줄의 회색 글씨는 원래 ESG가 다루는 범위이고, 주황 화살표 뒤가 빈집에 맞게 바꾼 기준이에요. 보고서 그림을 바탕으로 영문으로 다시 그렸어요.</figcaption>
+  <figcaption><strong>그림 1. ESG 분석틀의 조작적 정의</strong> 기업 평가에 쓰던 ESG를 빈집에 맞게 바꿨어요. 훼손된 경관과 인프라는 환경(E), 공동 공간·취약계층 주거 활용은 사회(S), 소유권·관리 체계는 거버넌스(G)로 평가해요. 각 줄의 회색 글씨는 원래 ESG가 다루는 범위이고, 주황 화살표 뒤가 빈집에 맞게 바꾼 기준이에요.</figcaption>
 </figure>
 
 #### 주요 결과

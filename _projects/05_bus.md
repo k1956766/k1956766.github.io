@@ -34,7 +34,7 @@ description: "BK 융복합 세미나 · 2024.4 – 2024.8"
 
 <figure class="research-figure">
   <img data-zoomable src="/assets/img/research/bus/fig1.png" alt="변수 구축, 파일럿 테스트, 공간오차모형, 결과 도출의 네 단계로 이어지는 영문 연구 흐름도" loading="lazy">
-  <figcaption><strong>그림 1. 연구 흐름</strong> 행정동 단위로 변수를 구축하고, T-test와 Moran's I로 변화와 공간 패턴을 먼저 확인한 뒤 SEM으로 요인을 분석했어요. 파일럿 테스트 결과가 모형 선택의 근거가 되도록 단계를 짰어요. 발표 자료의 흐름도를 영문으로 다시 그렸어요.</figcaption>
+  <figcaption><strong>그림 1. 연구 흐름</strong> 행정동 단위로 변수를 구축하고, T-test와 Moran's I로 변화와 공간 패턴을 먼저 확인한 뒤 SEM으로 요인을 분석했어요. 파일럿 테스트 결과가 모형 선택의 근거가 되도록 단계를 짰어요.</figcaption>
 </figure>
 
 #### 주요 결과

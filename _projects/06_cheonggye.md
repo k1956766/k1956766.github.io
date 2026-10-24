@@ -67,7 +67,7 @@ description: "공동연구 · 청계천 복원과 민간 개발"
 
 <figure class="research-figure">
   <img data-zoomable src="/assets/img/research/cheonggye/fig3.jpg" alt="K-means 군집 5개 유형의 필지 분포 지도와 군집별 특성을 정리한 영문 표" loading="lazy">
-  <figcaption><strong>그림 3. K-means 군집 결과</strong> 필지를 다섯 유형으로 나눈 지도와 유형별 평균 필지 크기·용도지역·공시지가·지하철 접근성이에요. 공시지가가 가장 높은 '중심상업'(K=2)과 대형 필지 위주의 '오피스'(K=3)에서 청계천 효과가 뚜렷했어요(표에서 주황으로 강조). 지도는 원본을 그대로 쓰고, 아래 특성표만 영문으로 다시 정리했어요.</figcaption>
+  <figcaption><strong>그림 3. K-means 군집 결과</strong> 필지를 다섯 유형으로 나눈 지도와 유형별 평균 필지 크기·용도지역·공시지가·지하철 접근성이에요. 공시지가가 가장 높은 '중심상업'(K=2)과 대형 필지 위주의 '오피스'(K=3)에서 청계천 효과가 뚜렷했어요(표에서 주황으로 강조).</figcaption>
 </figure>
 
 #### 시사점
