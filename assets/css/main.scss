@@ -364,3 +364,55 @@ html[data-theme="dark"] {
   color: var(--global-text-color);
   background: linear-gradient(transparent 62%, color-mix(in srgb, var(--gri-accent) 28%, transparent) 0);
 }
+
+// 연구 본문 속 그림·표
+.research-figure {
+  margin: 1.25rem 0 1.5rem;
+  padding: 0.75rem;
+  border: 1px solid var(--gri-line);
+  border-radius: 6px;
+  background: var(--global-card-bg-color);
+}
+.research-figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 3px;
+  background: #fff; // 투명 배경 그래프가 다크 모드에서도 읽히도록
+  cursor: zoom-in;
+}
+.research-figure figcaption,
+.research-body .figure-note {
+  font-size: 0.88rem;
+  line-height: 1.7;
+  color: var(--global-text-color);
+  margin-top: 0.7rem;
+}
+.research-figure figcaption strong,
+.research-body .figure-note strong {
+  display: block;
+  color: var(--global-theme-color);
+  margin-bottom: 0.15rem;
+  background: none;
+}
+.research-body table:not(.research-facts) {
+  width: 100%;
+  font-size: 0.86rem;
+  margin: 0.5rem 0 0.25rem;
+  border-collapse: collapse;
+}
+.research-body table:not(.research-facts) th,
+.research-body table:not(.research-facts) td {
+  border-bottom: 1px solid var(--gri-line);
+  padding: 0.4rem 0.5rem;
+  vertical-align: top;
+}
+.research-body table:not(.research-facts) thead th {
+  background: var(--gri-tint);
+  color: var(--global-theme-color);
+  font-weight: 700;
+  border-bottom: 2px solid var(--global-theme-color);
+}
+.research-body .table-wrap {
+  overflow-x: auto;
+}

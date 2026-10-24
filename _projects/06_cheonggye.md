@@ -11,6 +11,7 @@ description: "공동연구 · 청계천 복원과 민간 개발"
 <table class="table table-sm research-facts">
   <tbody>
     <tr><th scope="row">구분</th><td>공동연구 (4인, 공동저자)</td></tr>
+    <tr><th scope="row">역할</th><td>데이터 수집 및 전처리, 보고서 작성</td></tr>
     <tr><th scope="row">대상</th><td>청계천 복원 구간 주변 필지 (1993–2015)</td></tr>
     <tr><th scope="row">데이터</th><td>건축 인허가, 개별공시지가, 용도지역 등 79,830개 관측치</td></tr>
     <tr><th scope="row">방법</th><td>로지스틱 DID, K-means 군집분석</td></tr>

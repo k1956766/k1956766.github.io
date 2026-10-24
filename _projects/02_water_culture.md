@@ -13,7 +13,7 @@ description: "연구용역 · 케이워터운영관리 · 2024.9 – 2025.1"
     <tr><th scope="row">발주</th><td>케이워터운영관리(주)</td></tr>
     <tr><th scope="row">수행</th><td>서울대학교 산학협력단</td></tr>
     <tr><th scope="row">기간</th><td>2024.9 – 2025.1</td></tr>
-    <tr><th scope="row">역할</th><td>PM · 보조연구원 (연구 행정 전담, 문헌 연구, 설문 설계·분석, 보고서 작성)</td></tr>
+    <tr><th scope="row">역할</th><td>프로젝트 매니저 · 보조연구원 (연구 행정 전담, 문헌 연구, 설문 설계·분석, 보고서 작성)</td></tr>
   </tbody>
 </table>
 

@@ -5,12 +5,12 @@ toc_text: "모빌리티 전환과 탄소중립"
 group: "연구 프로젝트"
 group_order: 3
 importance: 4
-description: "수업 연구보고서 · 스마트도시와 사회혁신 · 2024.3 – 2024.6"
+description: "강의 연구보고서 · 스마트도시와 사회혁신 · 2024.3 – 2024.6"
 ---
 
 <table class="table table-sm research-facts">
   <tbody>
-    <tr><th scope="row">구분</th><td>수업 연구보고서 (팀)</td></tr>
+    <tr><th scope="row">구분</th><td>강의 연구보고서</td></tr>
     <tr><th scope="row">역할</th><td>문헌 연구, 국내외 정책·도시 사례 분석, 보고서 작성·발표</td></tr>
     <tr><th scope="row">방법</th><td>기술 · 제도 · 시민 참여 관점의 비교 사례분석</td></tr>
   </tbody>

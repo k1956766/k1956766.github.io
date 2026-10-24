@@ -10,7 +10,7 @@ description: "팀 프로젝트 · 도시·지역 분석 · 2024.9 – 2024.12"
 
 <table class="table table-sm research-facts">
   <tbody>
-    <tr><th scope="row">구분</th><td>수업 팀 프로젝트 (3인)</td></tr>
+    <tr><th scope="row">구분</th><td>강의 팀 프로젝트 (3인)</td></tr>
     <tr><th scope="row">역할</th><td>팀장 · 주제 제시, 선행연구 검토, 데이터 전처리·취합, 결과 해석</td></tr>
     <tr><th scope="row">데이터</th><td>전국 225개 시군구 특허 출원·지식기반산업 사업체 자료 (2022)</td></tr>
     <tr><th scope="row">방법</th><td>OLS, 지리가중회귀(GWR)</td></tr>
