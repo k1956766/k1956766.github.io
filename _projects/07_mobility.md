@@ -31,8 +31,8 @@ description: "강의 연구보고서 · 스마트도시와 사회혁신 · 2024.
 - 대중교통 전환 수단을 무상대중교통(탈린), 무제한 승차권(독일 9유로 티켓, 서울 기후동행카드), 교통비 인센티브(K-패스)로 나눠 분석했어요.
 
 <figure class="research-figure">
-  <img data-zoomable src="/assets/img/research/mobility/fig1.png" alt="탄소중립과 모빌리티 연계를 친환경 모빌리티 도입과 대중교통 이용률 제고 두 갈래로 정리한 도식" loading="lazy">
-  <figcaption><strong>그림 1. 탄소중립과 모빌리티 연계를 위한 정책 도식</strong> 스마트 도시계획과 교통 전략을 바탕으로, 전환 수단을 친환경차 보급(왼쪽)과 대중교통 수단전환(오른쪽) 두 갈래로 나눴어요. 이 보고서는 그동안 상대적으로 덜 다뤄진 오른쪽 갈래에 초점을 맞췄어요.</figcaption>
+  <img data-zoomable src="/assets/img/research/mobility/fig1.png" alt="탄소중립과 모빌리티 연계를 친환경 모빌리티 도입과 대중교통 수단전환 두 갈래로 정리한 영문 도식" loading="lazy">
+  <figcaption><strong>그림 1. 탄소중립과 모빌리티 연계를 위한 정책 도식</strong> 스마트 도시계획과 교통 전략을 바탕으로, 전환 수단을 친환경차 보급(왼쪽)과 대중교통 수단전환(오른쪽) 두 갈래로 나눴어요. 두 갈래 모두 공공이 이끄는 친환경 모빌리티 전환이라는 정책 목표(주황)로 모여요. 이 보고서는 그동안 상대적으로 덜 다뤄진 오른쪽 갈래에 초점을 맞췄어요. 보고서 도식을 바탕으로 영문으로 다시 그렸어요.</figcaption>
 </figure>
 
 #### 주요 결과
@@ -43,8 +43,8 @@ description: "강의 연구보고서 · 스마트도시와 사회혁신 · 2024.
 - 다만 늘어난 승객은 주로 도보·자전거 이용자에서 왔고, 차량 이용자의 전환 효과는 미미하다는 반론도 확인했어요.
 
 <figure class="research-figure">
-  <img data-zoomable src="/assets/img/research/mobility/fig2.png" alt="무상대중교통, 무제한 승차권, 대중교통 인센티브의 주체·유지방법·사례·효과·한계 비교 도식" loading="lazy">
-  <figcaption><strong>그림 2. 대중교통 전환 정책 분석</strong> 세 가지 전환 수단을 운영 주체, 재원 유지 방법, 사례, 효과, 한계로 비교했어요. 공통적으로 온실가스 감축과 혼잡 완화 효과가 있지만, 차량 이용자의 전환 효과는 약하다는 한계도 함께 보여 줘요.</figcaption>
+  <img data-zoomable src="/assets/img/research/mobility/fig2.png" alt="무상대중교통, 무제한 승차권, 대중교통 인센티브의 주체·재원·사례·효과·한계를 비교한 영문 도식" loading="lazy">
+  <figcaption><strong>그림 2. 대중교통 전환 정책 분석</strong> 세 가지 전환 수단을 열로 놓고 운영 주체, 재원, 사례, 정책 중점, 연계 정책, 효과, 한계를 행으로 비교했어요. 주황 테두리 안은 탈린, 독일 9유로 티켓·기후동행카드, K-패스의 사례 비교예요. 공통적으로 온실가스 감축과 혼잡 완화 효과가 있지만, 기존 차량 이용자의 전환 효과는 약하다는 한계도 함께 보여 줘요. 보고서 도식을 바탕으로 영문으로 다시 그렸어요.</figcaption>
 </figure>
 
 #### 시사점
