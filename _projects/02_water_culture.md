@@ -56,7 +56,7 @@ description: "연구용역 · 케이워터운영관리 · 2024.9 – 2025.1"
 
 <figure class="research-figure">
   <img data-zoomable src="/assets/img/research/water_culture/fig3.png" alt="물문화 비전, 3대 목표, 4대 전략과 전략별 세부 과제를 영문으로 정리한 체계도" loading="lazy">
-  <figcaption><strong>그림 3. 한국형 물문화 비전과 목표·전략</strong> 위에서 아래로 비전, 3대 목표, 4대 전략 순으로 읽으면 돼요. 각 전략 카드에는 거점시설 관리, 전담기관 지정, 디지털 홍보, 수변공간 복합화 같은 세부 과제가 달려 있어요. 보고서 체계도를 바탕으로 영문으로 다시 그렸어요.</figcaption>
+  <figcaption><strong>그림 3. 한국형 물문화 비전과 목표·전략</strong> 위에서 아래로 비전, 3대 목표, 4대 전략 순으로 읽으면 돼요. 각 전략 카드에는 거점시설 관리, 전담기관 지정, 디지털 홍보, 수변공간 복합화 같은 세부 과제가 달려 있어요.</figcaption>
 </figure>
 
 - 케이워터운영관리를 물문화 전담기관으로 보고, 4대 전략별 과제를 단기·중기·장기 로드맵으로 정리했어요.
