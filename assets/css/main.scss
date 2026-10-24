@@ -305,10 +305,31 @@ html[data-theme="dark"] {
 }
 
 // ---------- 연구 페이지 (CV처럼 왼쪽 목차 + 오른쪽 카드) ----------
+.research-group {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--global-text-color-light);
+  margin: 2.5rem 0 0.75rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--gri-line);
+}
+.research-list > .research-group:first-child { margin-top: 0.5rem; }
+.research-count {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--global-theme-color);
+  background: var(--gri-tint);
+  border-radius: 999px;
+  padding: 0.05rem 0.5rem;
+  margin-left: 0.25rem;
+  vertical-align: middle;
+}
 .research-card {
-  margin-bottom: 0.5rem;
+  padding: 1.25rem 1.4rem 1.4rem;
+  margin-bottom: 1rem;
 }
 .research-card .research-title {
+  font-size: 1.2rem;
   margin-bottom: 0.25rem;
 }
 .research-desc {
@@ -316,15 +337,30 @@ html[data-theme="dark"] {
   color: var(--global-text-color-light);
   margin-bottom: 1rem;
 }
+.research-facts {
+  font-size: 0.92rem;
+  margin-bottom: 0.5rem;
+}
+.research-facts th[scope="row"] {
+  width: 5.5rem;
+  white-space: nowrap;
+  font-weight: 600;
+}
 .research-body h4 {
   font-size: 1rem;
   font-weight: 700;
-  color: var(--global-text-color);
-  margin: 1.25rem 0 0.4rem;
+  color: var(--global-theme-color);
+  margin: 1.4rem 0 0.5rem;
 }
-.research-body table {
-  margin-bottom: 0.5rem;
-}
-.research-body p:last-child {
+.research-body ul {
+  padding-left: 1.1rem;
   margin-bottom: 0;
+}
+.research-body li {
+  line-height: 1.75;
+  margin-bottom: 0.3rem;
+}
+.research-body li strong {
+  color: var(--global-text-color);
+  background: linear-gradient(transparent 62%, color-mix(in srgb, var(--gri-accent) 28%, transparent) 0);
 }

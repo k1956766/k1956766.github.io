@@ -147,7 +147,7 @@
 
           <a class="anchor" id="{{ section_title | slugify }}"></a>
           <div class="card mt-3 p-3">
-            {% case section_title %}{% when 'Education' %}{% assign section_label = '학력' %}{% when 'Awards' %}{% assign section_label = '수상' %}{% when 'Certificates' %}{% assign section_label = '자격' %}{% else %}{% assign section_label = section_title %}{% endcase %}
+            {% case section_title %}{% when 'Education' %}{% assign section_label = '학력' %}{% when 'Awards' %}{% assign section_label = '수상' %}{% when 'Certificates' %}{% assign section_label = '자격·어학' %}{% else %}{% assign section_label = section_title %}{% endcase %}
             <h3 class="card-title font-weight-medium">{{ section_label }}</h3>
             <div>
               {% if section_title == 'Education' %}

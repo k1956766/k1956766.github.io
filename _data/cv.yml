@@ -51,26 +51,43 @@ cv:
       - title: 우수논문상
         date: 2025-04
         awarder: 대한국토도시계획학회 춘계산학학술대회
-        summary: 「인구감소지역 유출인구의 고용 및 소득특성」
+        summary: 국토 및 지역계획 II 세션, 「인구감소지역 유출인구의 고용 및 소득특성」
 
       - title: 졸업설계 우수상
         date: 2021-06
         awarder: 중앙대학교 도시시스템공학전공
-        summary: 화물차 공영주차장 설치기준 (용인시 처인구)
+        summary: 도시계획 세션, 「화물차 공영주차장 이용률에 따른 설치기준 제시 -용인시 처인구를 중심으로-」
 
     기타 경력:
-      - label: 2021 – 2023
-        details: 용인청년네트워크 일자리 분과장
-      - label: 2022
+      - label: 2021.7 – 2023.12
+        details: 용인청년네트워크 일자리 분과장 · 도시재생 분과원
+      - label: 2022.3 – 2022.10
         details: 용인시산업진흥원 소공인육성팀 인턴
 
     Certificates:
-      - name: 도시계획기사
-        issuer: 한국산업인력공단
+      - name: AIBT (AI 비즈니스 활용능력)
+        issuer: 한국생산성본부
+        date: 2026-07
+      - name: AI-POT 1급 (AI 프롬프트 활용능력)
+        issuer: 한국생산성본부
+        date: 2026-07
       - name: ADsP (데이터분석 준전문가)
         issuer: 한국데이터산업진흥원
+        date: 2023-03
+      - name: 도시계획기사
+        issuer: 한국산업인력공단
+        date: 2021-12
       - name: 컴퓨터활용능력 1급
         issuer: 대한상공회의소
-      - name: AIBT
-      - name: AI-POT 1급
-      - name: 토익스피킹 AL
+        date: 2021-10
+      - name: TOEIC Speaking AL (160)
+        issuer: YBM
+        date: 2026-01
+
+    교육 수료:
+      - label: 2025.1
+        details: ESG 교육 아카데미 (ESG Youth Forum, 24시간)
+      - label: 2022.2
+        details: 서울대학교 통계연구소 데이터사이언스 R 과정 (20시간)
+      - label: 2020.8
+        details: 비대면 실무형 교통사고분석 교육 (한국도로교통공단, 8시간)
