@@ -416,3 +416,10 @@ html[data-theme="dark"] {
 .research-body .table-wrap {
   overflow-x: auto;
 }
+@media (max-width: 640px) {
+  .research-body table:not(.research-facts) {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+}
