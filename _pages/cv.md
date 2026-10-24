@@ -5,7 +5,7 @@ title: CV
 nav: true
 nav_order: 3
 cv_format: rendercv
-description: 학력, 경력, 수상, 자격
+description: 걸어온 길과 역량을 한눈에 정리했어요.
 toc:
   sidebar: left
 ---
