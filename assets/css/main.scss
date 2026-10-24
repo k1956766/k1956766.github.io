@@ -155,3 +155,146 @@ html[data-theme="dark"] {
   border: 1px solid var(--gri-line);
   border-top: 3px solid var(--global-theme-color);
 }
+
+// ---------- 소개 페이지 ----------
+.intro {
+  margin: 0.5rem 0 2.5rem;
+}
+.intro-headline {
+  font-size: clamp(1.6rem, 3.6vw, 2.2rem);
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: -0.03em;
+  color: var(--global-theme-color);
+  margin-bottom: 1rem;
+}
+.intro-lead {
+  font-size: 1.05rem;
+  line-height: 1.75;
+  color: var(--global-text-color);
+  margin: 0;
+}
+
+.story {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 2.5rem;
+}
+.story-meta {
+  font-size: 0.85rem;
+  color: var(--global-text-color-light);
+  margin: 0 0 0.15rem;
+}
+.story-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin: 0 0 0.4rem;
+  color: var(--global-text-color);
+}
+.story-text {
+  font-size: 0.98rem;
+  line-height: 1.75;
+  margin: 0;
+}
+.story-num {
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--global-theme-color);
+}
+
+// 시안 A: 세로 타임라인
+.story-timeline .story-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 3.25rem 1fr;
+  padding-bottom: 2rem;
+}
+.story-timeline .story-item::before {
+  content: "";
+  position: absolute;
+  left: 1.05rem;
+  top: 2.4rem;
+  bottom: 0;
+  width: 2px;
+  background: var(--gri-line);
+}
+.story-timeline .story-item:last-child::before { display: none; }
+.story-timeline .story-num {
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 0.85rem;
+  background: var(--global-theme-color);
+  color: #fff;
+}
+.story-timeline .is-now .story-num { background: var(--gri-accent); }
+
+// 시안 B: 2x2 카드
+.story-cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+.story-cards .story-item {
+  border: 1px solid var(--gri-line);
+  border-radius: 8px;
+  padding: 1.25rem 1.25rem 1.4rem;
+  background: var(--global-card-bg-color);
+}
+.story-cards .story-num {
+  display: block;
+  font-size: 2rem;
+  line-height: 1;
+  margin-bottom: 0.75rem;
+  opacity: 0.9;
+}
+.story-cards .is-now {
+  background: var(--global-theme-color);
+  border-color: var(--global-theme-color);
+}
+.story-cards .is-now * { color: #fff !important; }
+.story-cards .is-now .story-num { color: var(--gri-accent) !important; }
+@media (max-width: 640px) { .story-cards { grid-template-columns: 1fr; } }
+
+// 시안 C: 큰 번호 + 가로 구분선 (매거진형)
+.story-steps .story-item {
+  display: grid;
+  grid-template-columns: 6rem 1fr;
+  gap: 1rem;
+  padding: 1.5rem 0;
+  border-top: 1px solid var(--gri-line);
+}
+.story-steps .story-item:last-child { border-bottom: 1px solid var(--gri-line); }
+.story-steps .story-num {
+  font-size: 3rem;
+  line-height: 1;
+  color: var(--gri-line);
+  transition: color 0.2s;
+}
+.story-steps .story-item:hover .story-num { color: var(--global-theme-color); }
+.story-steps .is-now .story-num { color: var(--global-theme-color); }
+.story-steps .is-now { background: var(--gri-tint); padding-left: 1rem; padding-right: 1rem; margin: 0 -1rem; }
+@media (max-width: 640px) {
+  .story-steps .story-item { grid-template-columns: 1fr; gap: 0.25rem; }
+  .story-steps .story-num { font-size: 2rem; }
+}
+
+// 키워드
+.keyword-chips {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 2rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.keyword-chips li {
+  font-size: 0.85rem;
+  padding: 0.3rem 0.8rem;
+  border-radius: 999px;
+  background: var(--gri-tint);
+  color: var(--global-theme-color);
+  font-weight: 600;
+}

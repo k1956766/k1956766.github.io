@@ -5,7 +5,7 @@ cv:
   label: 경기연구원 기후에너지환경부 연구원
   email: khim@gri.re.kr
   image: ""
-  summary: 도시·지역계획 전공. GIS와 공간데이터로 재생에너지 입지, 인구 이동, 물 관리 문제를 분석합니다.
+  summary: 도시·지역계획 전공. GIS와 공간데이터로 에너지 전환, 인구 이동, 물 관리 등 도시 문제를 분석합니다.
 
   sections:
     Education:
@@ -30,7 +30,7 @@ cv:
         position: 기후에너지환경부 연구원
         start_date: 2026-08
         highlights:
-          - 경기북부 재생에너지 보급 타당성 분석
+          - 탄소중립·에너지 전환 관련 도시 연구
 
       - company: 케이워터운영관리
         position: PM · 보조연구원
