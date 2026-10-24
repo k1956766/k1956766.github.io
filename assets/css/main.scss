@@ -1,38 +1,157 @@
 ---
+# Only the main Sass file needs front matter (the dashes are enough)
 ---
+@charset "utf-8";
+/* Pretendard 서체 (CDN). 이 파일은 al_folio_core 의 main.scss 를 복사해 맨 아래에 서체 설정을 추가한 로컬 수정본 */
 
-/*
- * This file controls what is imported from /_sass
- *
- * Note that the files are processed in the order they are imported, so they are partly
-   sorted by the dependencies. Also, the first two lines of the file are required by Jekyll.
- */
+/* Built-in Sass modules you’ll likely use across partials */
+@use "sass:math";
+@use "sass:string";
 
-@import
-    "vendor/breakpoint/breakpoint",
+/* Configure your design tokens BEFORE loading any of your partials.
+   Make sure `_sass/_variables.scss` declares `$max-content-width: 72rem !default;` */
+@use "variables" with (
+  $max-content-width: {{ site.max_width | default:  "930px" }}
+);
 
-    "themes",
-    "theme/{{ site.site_theme | default: 'default' | append: '_light' }}",
-    "theme/{{ site.site_theme | default: 'default' | append: '_dark' }}",
+/* Your project partials — convert these files to `@use "variables";`
+   (or `@use "variables" as *;`) inside each file and qualify variables if needed. */
+@use "themes";
+@use "layout";
 
-    "include/mixins",
-    "vendor/susy/susy",
+// Core styles organized by usage
+@use "typography";
+@use "navbar";
+@use "footer";
+@use "blog";
+@use "publications";
+@use "components";
+@use "utilities";
 
-    "layout/reset",
-    "layout/base",
+// Other specialized styles
+@use "tabs";
+@use "teachings";
+@use "typograms";
 
-    "include/utilities",
-    "layout/tables",
-    "layout/buttons",
-    "layout/notices",
-    "layout/masthead",
-    "layout/navigation",
-    "layout/footer",
-    "syntax",
+// Pretendard 서체 불러오기
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
 
-    "layout/forms",
+// ---------- 서체: Pretendard ----------
+$font-pretendard: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
 
-    "layout/page",
-    "layout/archive",
-    "layout/sidebar"
-;
+body,
+.navbar,
+.btn,
+input,
+button,
+textarea,
+.profile .more-info {
+  font-family: $font-pretendard;
+}
+
+body {
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  word-break: keep-all;
+}
+
+h1, h2, h3, h4, h5, h6,
+.post-title,
+.card-title {
+  font-family: $font-pretendard;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+// ---------- 경기연구원(GRI) 색상 ----------
+// 로고·홈페이지 기준: 남색 #004B8D, 보조 파랑 #395D9B, 로고 주황 #F69C1E
+$gri-navy: #004b8d;
+$gri-blue: #395d9b;
+$gri-orange: #f69c1e;
+$gri-tint: #f1f5ff;
+
+:root,
+html[data-theme="light"] {
+  --global-theme-color: #{$gri-navy};
+  --global-hover-color: #{$gri-blue};
+  --global-text-color: #1f2328;
+  --global-footer-bg-color: #00315c;
+  --global-footer-text-color: #c9d6e8;
+  --global-footer-link-color: #ffffff;
+  --gri-accent: #{$gri-orange};
+  --gri-tint: #{$gri-tint};
+  --gri-line: #d9e2ef;
+}
+
+html[data-theme="dark"] {
+  --global-theme-color: #7fb0e6;
+  --global-hover-color: #a9c8ef;
+  --global-footer-bg-color: #0b2440;
+  --global-footer-text-color: #9fb4cf;
+  --global-footer-link-color: #ffffff;
+  --gri-accent: #f6a93b;
+  --gri-tint: #17263a;
+  --gri-line: #2c3b50;
+}
+
+// 상단 메뉴: 위쪽에 남색 띠
+.navbar {
+  border-top: 4px solid var(--global-theme-color);
+}
+
+// 페이지 제목 아래 짧은 주황 선 (포인트는 이곳 하나만)
+.post-header .post-title::after {
+  content: "";
+  display: block;
+  width: 40px;
+  height: 3px;
+  margin-top: 12px;
+  background: var(--gri-accent);
+}
+
+// 카드: 그림자 대신 얇은 테두리 + 위쪽 남색 선
+.card {
+  border: 1px solid var(--gri-line);
+  border-top: 3px solid var(--global-theme-color);
+  border-radius: 4px;
+  box-shadow: none;
+}
+
+// CV·연구 카드 제목 크기 줄이기
+.cv .card .card-title,
+.card .card-title {
+  font-size: 1.2rem;
+  line-height: 1.4;
+  color: var(--global-theme-color);
+  margin-bottom: 0.75rem;
+}
+
+// 연구 카드: 마우스를 올리면 연한 남색 배경
+.projects .card {
+  transition: background-color 0.15s ease;
+}
+.projects a:hover .card {
+  background-color: var(--gri-tint);
+}
+
+// CV 날짜 배지
+.cv .card .list-group-item .badge {
+  background-color: var(--global-theme-color) !important;
+  font-weight: 600;
+}
+
+// 굵은 글씨·표 머리글은 남색
+.post strong,
+.post th {
+  color: var(--global-theme-color);
+}
+
+// 연구 상세 페이지 표: 왼쪽 칸 배경
+.post table.table th[scope="row"] {
+  background: var(--gri-tint);
+}
+
+.cv .card {
+  border: 1px solid var(--gri-line);
+  border-top: 3px solid var(--global-theme-color);
+}

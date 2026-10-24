@@ -1,0 +1,75 @@
+---
+# CV 페이지 데이터. 섹션 이름(Education, Experience, Awards, Certificates)은 화면에서 한국어로 표시됨.
+cv:
+  name: 임강혁
+  label: 경기연구원 기후에너지환경부 연구원
+  email: khim@gri.re.kr
+  image: ""
+  summary: 도시·지역계획 전공. GIS와 공간데이터로 재생에너지 입지, 인구 이동, 물 관리 문제를 분석합니다.
+
+  sections:
+    Education:
+      - institution: 서울대학교 환경대학원
+        area: 환경계획학과 도시및지역계획학전공
+        studyType: 석사
+        start_date: 2023-09
+        end_date: 2025-08
+        highlights:
+          - 학위논문 「인구감소지역 유출인구의 고용 및 소득특성」
+
+      - institution: 중앙대학교
+        area: 사회기반시스템공학부 도시시스템공학전공
+        studyType: 학사
+        start_date: 2020-03
+        end_date: 2023-02
+        highlights:
+          - 학과 수석 졸업
+
+    Experience:
+      - company: 경기연구원
+        position: 기후에너지환경부 연구원
+        start_date: 2026-08
+        highlights:
+          - 경기북부 재생에너지 보급 타당성 분석
+
+      - company: 케이워터운영관리
+        position: PM · 보조연구원
+        start_date: 2024-09
+        end_date: 2025-01
+        highlights:
+          - 한국형 물문화 연구용역
+
+      - company: 한국수자원공사
+        position: 보조연구원
+        start_date: 2023-12
+        end_date: 2024-08
+        highlights:
+          - 물 수요관리 종합계획 작성지침 개정용역
+
+    Awards:
+      - title: 우수논문상
+        date: 2025-04
+        awarder: 대한국토도시계획학회 춘계산학학술대회
+        summary: 「인구감소지역 유출인구의 고용 및 소득특성」
+
+      - title: 졸업설계 우수상
+        date: 2021-06
+        awarder: 중앙대학교 도시시스템공학전공
+        summary: 화물차 공영주차장 설치기준 (용인시 처인구)
+
+    기타 경력:
+      - label: 2021 – 2023
+        details: 용인청년네트워크 일자리 분과장
+      - label: 2022
+        details: 용인시산업진흥원 소공인육성팀 인턴
+
+    Certificates:
+      - name: 도시계획기사
+        issuer: 한국산업인력공단
+      - name: ADsP (데이터분석 준전문가)
+        issuer: 한국데이터산업진흥원
+      - name: 컴퓨터활용능력 1급
+        issuer: 대한상공회의소
+      - name: AIBT
+      - name: AI-POT 1급
+      - name: 토익스피킹 AL
