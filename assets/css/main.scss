@@ -298,3 +298,8 @@ html[data-theme="dark"] {
   color: var(--global-theme-color);
   font-weight: 600;
 }
+
+// 상단 메뉴를 불투명하게 (모바일에서 펼친 메뉴 뒤로 본문이 비치지 않게)
+.navbar {
+  opacity: 1;
+}
