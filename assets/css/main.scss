@@ -303,3 +303,28 @@ html[data-theme="dark"] {
 .navbar {
   opacity: 1;
 }
+
+// ---------- 연구 페이지 (CV처럼 왼쪽 목차 + 오른쪽 카드) ----------
+.research-card {
+  margin-bottom: 0.5rem;
+}
+.research-card .research-title {
+  margin-bottom: 0.25rem;
+}
+.research-desc {
+  font-size: 0.9rem;
+  color: var(--global-text-color-light);
+  margin-bottom: 1rem;
+}
+.research-body h4 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--global-text-color);
+  margin: 1.25rem 0 0.4rem;
+}
+.research-body table {
+  margin-bottom: 0.5rem;
+}
+.research-body p:last-child {
+  margin-bottom: 0;
+}

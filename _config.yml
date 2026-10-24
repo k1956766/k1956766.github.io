@@ -204,7 +204,7 @@ collections:
       layout: post
     output: true
   projects:
-    output: true
+    output: false # 연구 내용은 연구 페이지 한 곳에서 보여줌
   teachings:
     output: true
 
