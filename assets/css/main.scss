@@ -514,3 +514,8 @@ html[data-theme="dark"] {
   .cvx-item, .cvx-skill { grid-template-columns: 1fr; gap: 0.2rem; }
   .cvx-org-inline { display: block; margin-left: 0; }
 }
+
+// 다른 페이지에서 연구 카드로 바로 이동할 때 카드 맨 위가 화면 상단에 오도록
+html { scroll-padding-top: 0; }
+.research-card .research-title[id] { scroll-margin-top: 6.5rem; }
+.research-group[id] { scroll-margin-top: 5rem; }

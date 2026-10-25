@@ -38,7 +38,7 @@ description: "연구용역 · 케이워터운영관리 · 2024.9 – 2025.1"
 - 물문화를 **역사·전통, 사회·경제, 환경·생태, 예술·레저의 4대 축**으로 정의했어요. 이 네 관점에서 물과 사람이 상호작용하며 만든 가치와 생활양식을 모두 물문화로 봤어요.
 
 <figure class="research-figure">
-  <img data-zoomable src="/assets/img/research/water_culture/fig1.png" alt="역사·전통, 사회·경제, 환경·생태, 예술·레저로 구성된 물문화 4대 축을 영문으로 정리한 개념도" loading="lazy">
+  <img data-zoomable width="1400" height="824" src="/assets/img/research/water_culture/fig1.png" alt="역사·전통, 사회·경제, 환경·생태, 예술·레저로 구성된 물문화 4대 축을 영문으로 정리한 개념도" loading="lazy">
   <figcaption><strong>그림 1. 물문화 4대 축</strong> 연구에서 정의한 물문화의 네 축과 각 축이 담는 가치를 정리했어요. 가운데 물문화를 중심으로 네 축이 맞물리는 구조이고, 아래에 연구의 물문화 정의를 함께 적었어요. 이 네 축이 이후 설문 문항, 이해관계자 지도, 전략 수립의 공통 틀이 됐어요.</figcaption>
 </figure>
 
@@ -47,7 +47,7 @@ description: "연구용역 · 케이워터운영관리 · 2024.9 – 2025.1"
 - 물의 중요한 가치(다중응답)로는 환경·생태(97.5%)와 사회·경제(83.5%)를 꼽았고, 역사·전통(9.0%)과 레저·예술(10.0%)은 낮았어요. 30대는 레저·예술 가치 응답이 17.8%로 상대적으로 높았어요.
 
 <figure class="research-figure">
-  <img data-zoomable src="/assets/img/research/water_culture/fig2.png" alt="400명 중 77명(19.3%)만 물문화라는 말을 들어봤다는 결과를 칸 그림으로, 보존·발전이 중요하다는 응답 92.5%를 누적 막대로 보여주는 그래프" loading="lazy">
+  <img data-zoomable width="1400" height="679" src="/assets/img/research/water_culture/fig2.png" alt="400명 중 77명(19.3%)만 물문화라는 말을 들어봤다는 결과를 칸 그림으로, 보존·발전이 중요하다는 응답 92.5%를 누적 막대로 보여주는 그래프" loading="lazy">
   <figcaption><strong>그림 2. 물문화 인지도와 보존·발전의 중요도</strong> 왼쪽의 칸 하나는 응답자 한 명이에요. 400칸 가운데 남색으로 칠해진 77칸이 "물문화"라는 말을 들어본 사람이에요. 오른쪽 막대는 같은 응답자들이 물문화 보존·발전을 얼마나 중요하게 보는지를 나타내요. "매우 중요"와 "중요"를 합치면 92.5%예요. 말은 낯설어도 필요성에는 대부분 공감한다는 간극이 한눈에 보여요.</figcaption>
 </figure>
 
@@ -55,14 +55,14 @@ description: "연구용역 · 케이워터운영관리 · 2024.9 – 2025.1"
 - 비전을 **"물문화 기반 지속가능 친수국가"**로 세우고, 3대 목표(물 인식 제고·수요 관리, 풍요로운 물문화 육성, 지속가능한 물 이용)와 4대 전략(공간 관리, 네트워크 강화, 콘텐츠 개발, 산업 육성)을 제시했어요.
 
 <figure class="research-figure">
-  <img data-zoomable src="/assets/img/research/water_culture/fig3.png" alt="물문화 비전, 3대 목표, 4대 전략과 전략별 세부 과제를 영문으로 정리한 체계도" loading="lazy">
+  <img data-zoomable width="1400" height="669" src="/assets/img/research/water_culture/fig3.png" alt="물문화 비전, 3대 목표, 4대 전략과 전략별 세부 과제를 영문으로 정리한 체계도" loading="lazy">
   <figcaption><strong>그림 3. 한국형 물문화 비전과 목표·전략</strong> 위에서 아래로 비전, 3대 목표, 4대 전략 순으로 읽으면 돼요. 각 전략 카드에는 거점시설 관리, 전담기관 지정, 디지털 홍보, 수변공간 복합화 같은 세부 과제가 달려 있어요.</figcaption>
 </figure>
 
 - 케이워터운영관리를 물문화 전담기관으로 보고, 4대 전략별 과제를 단기·중기·장기 로드맵으로 정리했어요.
 
 <figure class="research-figure">
-  <img data-zoomable src="/assets/img/research/water_culture/fig4.png" alt="물문화 4대 전략별 단기·중기·장기 세부과제를 영문으로 정리한 로드맵" loading="lazy">
+  <img data-zoomable width="1400" height="831" src="/assets/img/research/water_culture/fig4.png" alt="물문화 4대 전략별 단기·중기·장기 세부과제를 영문으로 정리한 로드맵" loading="lazy">
   <figcaption><strong>그림 4. 케이워터운영관리 세부과제 로드맵</strong> 행은 4대 전략, 열은 단기·중기·장기 추진 시기예요. 단기에는 직원 교육과 온라인 홍보처럼 바로 실행할 수 있는 일을 두었어요. 중기에는 전담기관 지정과 시범사업처럼 제도를 다지는 일을, 장기에는 한국형 물문화 브랜드와 국제 네트워크 확대를 배치했어요.</figcaption>
 </figure>
 

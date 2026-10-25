@@ -33,7 +33,7 @@ description: "BK 융복합 세미나 · 2024.4 – 2024.8"
 - 잔차의 공간적 자기상관과 라그랑주 승수(LM) 검정 결과를 바탕으로 OLS·공간시차모형 대신 **공간오차모형(SEM)**을 골랐어요. 대분류 변수의 기본모델과 소분류 변수의 확장모델을 각각 추정했어요.
 
 <figure class="research-figure">
-  <img data-zoomable src="/assets/img/research/bus/fig1.png" alt="변수 구축, 파일럿 테스트, 공간오차모형, 결과 도출의 네 단계로 이어지는 영문 연구 흐름도" loading="lazy">
+  <img data-zoomable width="1400" height="434" src="/assets/img/research/bus/fig1.png" alt="변수 구축, 파일럿 테스트, 공간오차모형, 결과 도출의 네 단계로 이어지는 영문 연구 흐름도" loading="lazy">
   <figcaption><strong>그림 1. 연구 흐름</strong> 행정동 단위로 변수를 구축하고, T-test와 Moran's I로 변화와 공간 패턴을 먼저 확인한 뒤 SEM으로 요인을 분석했어요. 파일럿 테스트 결과가 모형 선택의 근거가 되도록 단계를 짰어요.</figcaption>
 </figure>
 
@@ -42,7 +42,7 @@ description: "BK 융복합 세미나 · 2024.4 – 2024.8"
 - 변화량의 Moran's I는 2018~2019년 0.156~0.200, 2023~2024년 0.147~0.175로, 크지는 않지만 **양(+)의 공간적 자기상관**이 있었어요. 한 동네의 이용이 변하면 이웃 동네도 비슷하게 변하는 경향이에요.
 
 <figure class="research-figure">
-  <img data-zoomable src="/assets/img/research/bus/fig2.png" alt="2018-2019년과 2023-2024년 6월 버스 승하차 변화량의 LISA 군집 지도 비교" loading="lazy">
+  <img data-zoomable width="1285" height="702" src="/assets/img/research/bus/fig2.png" alt="2018-2019년과 2023-2024년 6월 버스 승하차 변화량의 LISA 군집 지도 비교" loading="lazy">
   <figcaption><strong>그림 2. 버스 승하차 변화량의 공간 군집 (6월)</strong> 빨강(High-High)은 변화량이 큰 동네끼리, 파랑(Low-Low)은 작은 동네끼리 모인 곳이에요. 정책 이전에는 군집이 남부와 주요 교통 거점에 흩어져 있었다면, 이후에는 도심을 중심으로 모이는 패턴으로 바뀌었어요.</figcaption>
 </figure>
 

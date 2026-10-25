@@ -26,3 +26,4 @@ toc:
   {% endfor %}
 {% endfor %}
 </div>
+<script src="{{ "/assets/js/anchor-fix.js" | relative_url }}"></script>

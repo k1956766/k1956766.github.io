@@ -37,7 +37,7 @@ description: "팀 프로젝트 · 도시·지역 분석 · 2024.9 – 2024.12"
 - 특허 출원은 평균 811건이었지만 최소 4건에서 최대 15,645건(수원시)까지 격차가 매우 컸어요. 수도권·천안·아산과 울산·포항·구미·창원 같은 제조업 도시에 출원이 몰려 있었어요.
 
 <figure class="research-figure">
-  <img data-zoomable src="/assets/img/research/innovation/fig1.jpg" alt="전국 시군구별 2022년 특허 출원 건수를 4분위로 나타낸 지도" loading="lazy">
+  <img data-zoomable width="900" height="999" src="/assets/img/research/innovation/fig1.jpg" alt="전국 시군구별 2022년 특허 출원 건수를 4분위로 나타낸 지도" loading="lazy">
   <figcaption><strong>그림 1. 시군구별 특허 출원 건수 (2022)</strong> 특허 출원 건수를 4분위로 나눠 색이 진할수록 출원이 많은 지역이에요. 수도권과 충청 북부, 영남 제조업 도시에 출원이 집중돼 있어 제조업도 혁신에 큰 몫을 한다는 걸 보여줘요.</figcaption>
 </figure>
 
@@ -61,7 +61,7 @@ description: "팀 프로젝트 · 도시·지역 분석 · 2024.9 – 2024.12"
 - 제조업 사업체 규모는 대부분 지역에서 유의하지 않았어요. 다만 대전·전주 등 충남·전북 일부와 강원 인제·양양·평창·홍천에서는 양(+)의 방향으로 유의했어요.
 
 <figure class="research-figure">
-  <img data-zoomable src="/assets/img/research/innovation/fig2.jpg" alt="GWR로 추정한 서비스업·제조업 사업체 규모 계수와 통계적 유의성 지도 4개" loading="lazy">
+  <img data-zoomable width="1400" height="1400" src="/assets/img/research/innovation/fig2.jpg" alt="GWR로 추정한 서비스업·제조업 사업체 규모 계수와 통계적 유의성 지도 4개" loading="lazy">
   <figcaption><strong>그림 2. GWR 사업체 규모 계수와 유의성</strong> 위는 사업체 규모가 1명 커질 때 특허 출원 증가율, 아래는 그 계수의 유의성이에요(왼쪽 서비스업, 오른쪽 제조업). 서비스업은 수도권만 유의하지 않고 남쪽으로 갈수록 효과가 커지며, 제조업은 일부 지역에서만 유의해요.</figcaption>
 </figure>
 

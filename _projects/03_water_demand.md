@@ -50,7 +50,7 @@ description: "연구용역 · 한국수자원공사 · 2023.12 – 2024.8"
 - 수요관리 단계를 공급·재이용·사용에 **'물 문화 개선단계'**를 더한 네 단계로 재구성했어요. 절감량을 계산할 수 있는 정량적 수단과 교육·홍보 같은 정성적 수단을 나눠 다루도록 했어요.
 
 <figure class="research-figure">
-  <img data-zoomable src="/assets/img/research/water_demand/fig1.png" alt="공급·재이용·사용·물 문화 개선단계별 목표량을 합산해 총괄 물 수요관리 목표량을 산정하는 흐름도(영문)" loading="lazy">
+  <img data-zoomable width="1400" height="649" src="/assets/img/research/water_demand/fig1.png" alt="공급·재이용·사용·물 문화 개선단계별 목표량을 합산해 총괄 물 수요관리 목표량을 산정하는 흐름도(영문)" loading="lazy">
   <figcaption><strong>그림 1. 총괄 물 수요관리 목표량 산정 흐름도</strong> 네 단계마다 목표량을 따로 산정한 뒤 하나로 합산하는 구조예요. 공급·재이용·사용 단계는 산정식으로 계산하는 정량적 수단이에요. 새로 넣은 물 문화 개선단계(주황)는 교육·홍보, 수도요금 현실화처럼 수치로 산정하기 어려운 수단을 정성적으로 평가해요.</figcaption>
 </figure>
 

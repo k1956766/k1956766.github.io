@@ -35,7 +35,7 @@ description: "공동연구 · 청계천 복원과 민간 개발"
 - 필지 크기·용도지역·공시지가·지하철 접근성으로 **K-means 군집분석(K=5)**을 한 뒤, 군집별로 DID 모형을 따로 추정했어요.
 
 <figure class="research-figure">
-  <img data-zoomable src="/assets/img/research/cheonggye/fig1.jpg" alt="청계천 도심하천 구간과 주변 연구 대상지 필지 지도" loading="lazy">
+  <img data-zoomable width="1400" height="717" src="/assets/img/research/cheonggye/fig1.jpg" alt="청계천 도심하천 구간과 주변 연구 대상지 필지 지도" loading="lazy">
   <figcaption><strong>그림 1. 연구 대상지</strong> 왼쪽은 청계천 도심하천 구간(파란 선)을 둘러싼 대상지 필지, 오른쪽 위는 청계천 복원 구간 가운데 선정한 1.7km 구간이에요. 서울 도심 한가운데의 구도심 상업지가 분석 대상이에요.</figcaption>
 </figure>
 
@@ -43,7 +43,7 @@ description: "공동연구 · 청계천 복원과 민간 개발"
 - 5년 단위로 보면 민간 개발이 일어난 필지 비율은 Phase I 0.51%, Phase II 2.54%에서 **복원 직후 Phase III 5.69%로 크게 늘었어요.** Phase IV에도 4.69%로 사업 전보다 여전히 높았어요.
 
 <figure class="research-figure">
-  <img data-zoomable src="/assets/img/research/cheonggye/fig2.png" alt="사업 전후 네 시기의 민간 개발 발생 필지 지도와 비율" loading="lazy">
+  <img data-zoomable width="1238" height="868" src="/assets/img/research/cheonggye/fig2.png" alt="사업 전후 네 시기의 민간 개발 발생 필지 지도와 비율" loading="lazy">
   <figcaption><strong>그림 2. 시기별 민간 개발 발생 필지</strong> 각 시기(5년)에 한 번이라도 민간 개발이 일어난 필지를 진한 녹색으로 표시했어요. 왼쪽 사업 전보다 오른쪽 사업 후에 개발 필지가 눈에 띄게 많아졌고, 그 효과가 10년 뒤에도 이어졌어요.</figcaption>
 </figure>
 
@@ -66,7 +66,7 @@ description: "공동연구 · 청계천 복원과 민간 개발"
 - 군집분석으로 주거·반주변부·중심상업·오피스·주변부 다섯 유형을 찾았어요. 모든 유형에서 사업 후 개발이 늘었지만, **거리 효과는 '중심상업'(0.996***)과 '오피스'(0.998**)에서만 유의했어요.**
 
 <figure class="research-figure">
-  <img data-zoomable src="/assets/img/research/cheonggye/fig3.jpg" alt="K-means 군집 5개 유형의 필지 분포 지도와 군집별 특성을 정리한 영문 표" loading="lazy">
+  <img data-zoomable width="1400" height="1202" src="/assets/img/research/cheonggye/fig3.jpg" alt="K-means 군집 5개 유형의 필지 분포 지도와 군집별 특성을 정리한 영문 표" loading="lazy">
   <figcaption><strong>그림 3. K-means 군집 결과</strong> 필지를 다섯 유형으로 나눈 지도와 유형별 평균 필지 크기·용도지역·공시지가·지하철 접근성이에요. 공시지가가 가장 높은 '중심상업'(K=2)과 대형 필지 위주의 '오피스'(K=3)에서 청계천 효과가 뚜렷했어요(표에서 주황으로 강조).</figcaption>
 </figure>
 
