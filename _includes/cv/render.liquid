@@ -8,10 +8,6 @@
   <header class="post-header">
     <h1 class="post-title">{{ page.title }}</h1>
     {% if page.description %}<p class="post-description">{{ page.description }}</p>{% endif %}
-    <div class="cvx-actions">
-      {% if cv.pdf %}<a class="home-btn is-primary cvx-pdf" href="{{ cv.pdf | relative_url }}" download>{% if page.lang == 'en' %}Download PDF{% else %}PDF로 내려받기{% endif %}</a>{% endif %}
-      {% if cv.updated %}<span class="cvx-updated">{% if page.lang == 'en' %}Last updated {% else %}마지막 수정 {% endif %}{{ cv.updated }}</span>{% endif %}
-    </div>
   </header>
 
   <section class="cvx-intro" data-toc-skip>
@@ -22,6 +18,37 @@
     </div>
     <p class="cvx-summary">{{ cv.summary }}</p>
   </section>
+
+  {% if cv.highlights %}
+    <ul class="cvx-highlights" data-toc-skip>
+      {% for h in cv.highlights %}
+        <li><span class="cvx-hl-num">{{ h.num }}{% if h.unit %}<small>{{ h.unit }}</small>{% endif %}</span><span class="cvx-hl-label">{{ h.label }}</span></li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  {% if cv.pdf %}
+    {% comment %} PDF 내려받기 카드: 큰 화면에서는 왼쪽 목차 아래로 옮겨짐 {% endcomment %}
+    <aside class="cvx-download" id="cvx-download">
+      <p class="cvx-dl-title">{% if page.lang == 'en' %}CV in PDF{% else %}CV 파일{% endif %}</p>
+      <p class="cvx-dl-meta">A4 PDF{% if cv.updated %} · {% if page.lang == 'en' %}Updated {% else %}{% endif %}{{ cv.updated }}{% endif %}</p>
+      <a class="home-btn is-primary cvx-pdf" href="{{ cv.pdf | relative_url }}" download>{% if page.lang == 'en' %}Download PDF{% else %}PDF로 내려받기{% endif %}</a>
+    </aside>
+    <script>
+      (function () {
+        var box = document.getElementById('cvx-download');
+        var nav = document.getElementById('toc-sidebar');
+        if (!box || !nav || !nav.parentNode || window.innerWidth < 576) return;
+        var wrap = document.createElement('div');
+        wrap.className = 'sticky-top cvx-side';
+        nav.classList.remove('sticky-top');
+        nav.parentNode.insertBefore(wrap, nav);
+        wrap.appendChild(nav);
+        wrap.appendChild(box);
+        box.classList.add('is-side');
+      })();
+    </script>
+  {% endif %}
 
   {% for sec in cv.sections %}
     <section class="card cvx-sec">
@@ -53,6 +80,7 @@
                     {% for b in e.bullets %}<li>{{ b }}</li>{% endfor %}
                   </ul>
                 {% endif %}
+                {% if e.tags %}<p class="cvx-tags">{% for t in e.tags %}<span>{{ t }}</span>{% endfor %}</p>{% endif %}
                 {% if e.note %}<p class="cvx-note">{{ e.note }}</p>{% endif %}
               </div>
             </li>

@@ -8,7 +8,17 @@ cv:
   email: khim@gri.re.kr
   updated: 'Oct 25, 2026'   # last updated (change together with the CV)
   pdf: /assets/pdf/cv_kanghyeok_im_en.pdf
-  summary: I studied urban and regional planning, and I analyze urban issues with GIS and spatial data. After working on population migration, transportation, industry, and water management, I now study cities in the era of carbon neutrality and the energy transition.
+  summary: I studied urban and regional planning, and I analyze urban issues with GIS and spatial data. After working on population migration, transportation, industry, and water management, I now study cities in the era of carbon neutrality and the energy transition. As a team leader and project manager on commissioned and joint research, I have taken projects from planning through to the final report.
+  highlights:
+    - num: '4.27'
+      unit: / 4.5
+      label: M.S. GPA
+    - num: '1st'
+      label: Ranked in B.S. department
+    - num: '450M'
+      label: Administrative records processed
+    - num: '9'
+      label: Research works
 
   sections:
     - title: Experience
@@ -19,6 +29,7 @@ cv:
           role: Researcher
           bullets:
             - Urban research on carbon neutrality and the energy transition
+            - Reviewing conditions for renewable energy deployment through GIS-based spatial analysis
         - date: '2022.3 – 2022.10'
           title: Small Manufacturers Support Team, Yongin Industry Promotion Agency
           role: Intern
@@ -26,6 +37,7 @@ cv:
             - Identified new industrial clusters through ICT industry statistics and QGIS visualization, helping expand the supported industries and areas
             - Helped develop 3 new support programs and supported over 100 prototype productions
             - Prepared program guides and public notices, and operated facilities in the urban small manufacturers cluster
+          tags: [QGIS, Industry statistics]
 
     - title: Research Experience
       id: research-experience
@@ -39,6 +51,8 @@ cv:
             - Managed all research administration, including contracts, budget, and project completion, in line with the client's internal rules
             - Reviewed cases from 5 countries and Korean institutions to map stakeholders and governance structures
             - Designed and analyzed a survey of 400 citizens, and wrote the report
+            - Defined water culture along four pillars (history & tradition, society & economy, environment & ecology, arts & leisure) and set directions for cultural facilities
+          tags: [Case study, Survey, Research administration]
         - date: '2023.12 – 2024.8'
           title: Revision of the Guidelines for Comprehensive Water Demand Management Plans
           link: /en/projects/#water_demand
@@ -47,7 +61,9 @@ cv:
           bullets:
             - Reviewed the current state and problems of Korea's water demand management planning and evaluation system
             - Reviewed systems in the US, Australia, the UK, and Singapore to derive implications for the Korean guidelines
-            - Wrote the proposal and reports
+            - Drafted revised guidelines that make target setting, savings estimates, and performance evaluation more consistent
+            - Proposed an improved evaluation system for provinces and metropolitan cities, and wrote the proposal and reports
+          tags: [Policy comparison, Policy evaluation]
 
     - title: Education
       id: education
@@ -57,12 +73,14 @@ cv:
           org: Department of Environmental Planning, Urban & Regional Planning major · M.S. in City Planning
           bullets:
             - GPA 4.27 / 4.5
+            - Focused on urban big data research, analyzing population, transportation, and industry data with GIS and econometric models
             - 'Thesis: <a href="/en/projects/#thesis">"Employment and Income Characteristics of Out-Migrants from Depopulating Areas"</a>'
         - date: '2020.3 – 2023.2'
           title: Chung-Ang University
           org: School of Civil and Environmental Engineering, Urban Systems Engineering major · B.S. in Engineering
           bullets:
             - GPA 4.21 / 4.5 · Ranked 1st in Department
+            - Transferred from electronic engineering to study urban planning, transportation, and urban design
             - 'Excellence Award for the capstone design project "Installation Standards for Public Truck Parking Lots Based on Utilization Rates"'
 
     - title: Research Projects
@@ -73,29 +91,42 @@ cv:
           link: /en/projects/#innovation
           org: Team project, Urban and Regional Analysis course
           role: Team Leader
-          note: OLS · Geographically Weighted Regression (GWR)
+          bullets:
+            - Analyzed drivers of innovation output using patent applications and knowledge-based industry data by city and county
+            - Mapped how the link between service-firm size and innovation varies across regions
+          tags: [OLS, Geographically Weighted Regression (GWR), Python]
         - date: '2024.4 – 2024.8'
           title: Factors Behind Changes in Bus Boardings and Alightings after a New Public Transit Policy
           link: /en/projects/#bus
           org: Joint research, BK Interdisciplinary Seminar
           role: Team Leader
-          note: "T-test · Moran's I · Spatial Error Model (SEM)"
+          bullets:
+            - Analyzed changes in bus boardings by Seoul neighborhood before and after the Climate Card and K-Pass
+            - Found floor areas of apartments, offices, neighborhood facilities, and retail significantly related to ridership change
+          tags: [T-test, "Moran's I", Spatial Error Model (SEM)]
         - date: '2024.3 – 2024.6'
           title: Contributing to Carbon Neutrality through the Mobility Transition
           link: /en/projects/#mobility
           org: Research report, Smart Cities and Social Innovation course
-          note: Comparative analysis of Korean and international policies and city cases
+          bullets:
+            - Compared cases including Zurich, Copenhagen, Tallinn's free public transit, Germany's 9-euro ticket, and Seoul's Climate Card and K-Pass
+            - Proposed a transition combining transit access, walking, cycling, and car demand management
+          tags: [Policy case comparison]
         - date: '2023.9 – 2023.12'
           title: Sustainable Regional Innovation through Reuse of Vacant Houses
           link: /en/projects/#vacant
           org: Course research report
-          note: Case analysis from an ESG perspective
+          bullets:
+            - Compared Korean and international vacant-house cases by operator, revenue model, and resident participation
+          tags: [ESG framework, Case study]
         - date: 'Co-authored'
           title: Green Infrastructure as a Catalyst for Urban Regeneration
           link: /en/projects/#cheonggye
           org: Cheonggyecheon Stream restoration and private development (4 co-authors)
           role: Data collection and preprocessing, report writing
-          note: Logistic DID · K-means clustering
+          bullets:
+            - Tracked how much, and for how long, the stream restoration drew private development to nearby parcels
+          tags: [Logistic DID, K-means clustering]
 
     - title: Awards
       id: awards
@@ -201,4 +232,5 @@ cv:
           role: Head of Jobs Subcommittee · Member of Urban Regeneration Subcommittee
           bullets:
             - Helped shift a youth suit-rental program from businesses outside the city to businesses within Yongin
+            - Helped prepare a software support program for young people
             - Took part in the Jungang-dong urban regeneration plan and proposed additional public transit routes
