@@ -195,6 +195,8 @@ collections:
     output: true
   projects:
     output: false # 연구 내용은 연구 페이지 한 곳에서 보여줌
+  projects_en:
+    output: false # 영문판 연구 내용
   teachings:
     output: true
 

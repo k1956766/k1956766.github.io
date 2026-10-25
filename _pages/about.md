@@ -2,6 +2,7 @@
 layout: about
 title: 소개
 permalink: /
+alt_url: /en/
 description: 경기연구원 기후에너지환경부 연구원. 데이터로 도시를 읽고, 더 나은 내일을 그려요.
 subtitle: 경기연구원 기후에너지환경부 연구원
 selected_papers: false

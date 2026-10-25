@@ -1,6 +1,7 @@
 ---
 layout: cv
 permalink: /cv/
+alt_url: /en/cv/
 title: CV
 nav: true
 nav_order: 3

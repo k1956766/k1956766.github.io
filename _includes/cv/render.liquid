@@ -3,14 +3,14 @@
   _data/cv.yml 의 cv.sections 를 위에서부터 순서대로 그림.
   섹션 type: entries(기본) / skills / compact
 {% endcomment %}
-{% assign cv = site.data.cv.cv %}
+{% if page.lang == 'en' %}{% assign cv = site.data.cv_en.cv %}{% else %}{% assign cv = site.data.cv.cv %}{% endif %}
 <div class="post cvx">
   <header class="post-header">
     <h1 class="post-title">{{ page.title }}</h1>
     {% if page.description %}<p class="post-description">{{ page.description }}</p>{% endif %}
     <div class="cvx-actions">
-      {% if cv.pdf %}<a class="home-btn is-primary cvx-pdf" href="{{ cv.pdf | relative_url }}" download>PDF로 내려받기</a>{% endif %}
-      {% if cv.updated %}<span class="cvx-updated">마지막 수정 {{ cv.updated }}</span>{% endif %}
+      {% if cv.pdf %}<a class="home-btn is-primary cvx-pdf" href="{{ cv.pdf | relative_url }}" download>{% if page.lang == 'en' %}Download PDF{% else %}PDF로 내려받기{% endif %}</a>{% endif %}
+      {% if cv.updated %}<span class="cvx-updated">{% if page.lang == 'en' %}Last updated {% else %}마지막 수정 {% endif %}{{ cv.updated }}</span>{% endif %}
     </div>
   </header>
 

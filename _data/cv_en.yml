@@ -1,0 +1,204 @@
+# English CV page data (same structure as cv.yml)
+# - sections are displayed top to bottom
+# - type: entries (default) / skills / compact
+# - entry fields: date, title, link (optional), org, role, bullets, note
+cv:
+  name: Kanghyeok Im
+  label: Researcher, Department of Climate, Energy & Environment, Gyeonggi Research Institute
+  email: khim@gri.re.kr
+  updated: 'Oct 25, 2026'   # last updated (change together with the CV)
+  pdf: /assets/pdf/cv_kanghyeok_im_en.pdf
+  summary: I studied urban and regional planning, and I analyze urban issues with GIS and spatial data. After working on population migration, transportation, industry, and water management, I now study cities in the era of carbon neutrality and the energy transition.
+
+  sections:
+    - title: Experience
+      id: experience
+      entries:
+        - date: '2026.8 – Present'
+          title: Department of Climate, Energy & Environment, Gyeonggi Research Institute
+          role: Researcher
+          bullets:
+            - Urban research on carbon neutrality and the energy transition
+        - date: '2022.3 – 2022.10'
+          title: Small Manufacturers Support Team, Yongin Industry Promotion Agency
+          role: Intern
+          bullets:
+            - Identified new industrial clusters through ICT industry statistics and QGIS visualization, helping expand the supported industries and areas
+            - Helped develop 3 new support programs and supported over 100 prototype productions
+            - Prepared program guides and public notices, and operated facilities in the urban small manufacturers cluster
+
+    - title: Research Experience
+      id: research-experience
+      entries:
+        - date: '2024.9 – 2025.1'
+          title: Establishing a Korean Water Culture
+          link: /en/projects/#water_culture
+          org: 'Seoul National University R&DB Foundation · Client: K-water Operation & Management Co.'
+          role: Project Manager · Research Assistant
+          bullets:
+            - Managed all research administration, including contracts, budget, and project completion, in line with the client's internal rules
+            - Reviewed cases from 5 countries and Korean institutions to map stakeholders and governance structures
+            - Designed and analyzed a survey of 400 citizens, and wrote the report
+        - date: '2023.12 – 2024.8'
+          title: Revision of the Guidelines for Comprehensive Water Demand Management Plans
+          link: /en/projects/#water_demand
+          org: 'Seoul National University R&DB Foundation · Client: Korea Water Resources Corporation (K-water)'
+          role: Research Assistant
+          bullets:
+            - Reviewed the current state and problems of Korea's water demand management planning and evaluation system
+            - Reviewed systems in the US, Australia, the UK, and Singapore to derive implications for the Korean guidelines
+            - Wrote the proposal and reports
+
+    - title: Education
+      id: education
+      entries:
+        - date: '2023.9 – 2025.8'
+          title: Graduate School of Environmental Studies, Seoul National University
+          org: Department of Environmental Planning, Urban & Regional Planning major · M.S. in City Planning
+          bullets:
+            - GPA 4.27 / 4.5
+            - 'Thesis: <a href="/en/projects/#thesis">"Employment and Income Characteristics of Out-Migrants from Depopulating Areas"</a>'
+        - date: '2020.3 – 2023.2'
+          title: Chung-Ang University
+          org: School of Civil and Environmental Engineering, Urban Systems Engineering major · B.S. in Engineering
+          bullets:
+            - GPA 4.21 / 4.5 · Ranked 1st in Department
+            - 'Excellence Award for the capstone design project "Installation Standards for Public Truck Parking Lots Based on Utilization Rates"'
+
+    - title: Research Projects
+      id: projects
+      entries:
+        - date: '2024.9 – 2024.12'
+          title: Effects of Firm Size and Regional Characteristics on Innovation Output
+          link: /en/projects/#innovation
+          org: Team project, Urban and Regional Analysis course
+          role: Team Leader
+          note: OLS · Geographically Weighted Regression (GWR)
+        - date: '2024.4 – 2024.8'
+          title: Factors Behind Changes in Bus Boardings and Alightings after a New Public Transit Policy
+          link: /en/projects/#bus
+          org: Joint research, BK Interdisciplinary Seminar
+          role: Team Leader
+          note: "T-test · Moran's I · Spatial Error Model (SEM)"
+        - date: '2024.3 – 2024.6'
+          title: Contributing to Carbon Neutrality through the Mobility Transition
+          link: /en/projects/#mobility
+          org: Research report, Smart Cities and Social Innovation course
+          note: Comparative analysis of Korean and international policies and city cases
+        - date: '2023.9 – 2023.12'
+          title: Sustainable Regional Innovation through Reuse of Vacant Houses
+          link: /en/projects/#vacant
+          org: Course research report
+          note: Case analysis from an ESG perspective
+        - date: 'Co-authored'
+          title: Green Infrastructure as a Catalyst for Urban Regeneration
+          link: /en/projects/#cheonggye
+          org: Cheonggyecheon Stream restoration and private development (4 co-authors)
+          role: Data collection and preprocessing, report writing
+          note: Logistic DID · K-means clustering
+
+    - title: Awards
+      id: awards
+      entries:
+        - date: '2025.4'
+          title: Best Paper Award
+          org: Korean Planning Association Spring Conference · National and Regional Planning II session
+          bullets:
+            - '"Employment and Income Characteristics of Out-Migrants from Depopulating Areas"'
+        - date: '2021.6'
+          title: Capstone Design Excellence Award
+          org: Urban Systems Engineering, Chung-Ang University · Urban Planning session
+          bullets:
+            - '"Installation Standards for Public Truck Parking Lots Based on Utilization Rates: The Case of Cheoin-gu, Yongin-si"'
+
+    - title: Presentations
+      id: talks
+      entries:
+        - date: '2025.4'
+          title: Employment and Income Characteristics of Out-Migrants from Depopulating Areas
+          link: /en/projects/#thesis
+          org: Korean Planning Association Spring Conference · National and Regional Planning II session
+          note: Best Paper Award
+        - date: '2024.8'
+          title: Factors Behind Changes in Bus Boardings and Alightings after a New Public Transit Policy
+          link: /en/projects/#bus
+          org: BK Interdisciplinary Seminar final presentation · Graduate School of Environmental Studies, Seoul National University
+
+    - title: Skills
+      id: skills
+      type: skills
+      entries:
+        - name: Tools
+          items: [Python, R, Stata, SPSS, QGIS, ArcGIS Pro, Excel]
+        - name: Quantitative & Spatial Analysis
+          items: [Logistic Regression, Multiple Regression, CEM Matching, Staggered Difference-in-Differences (DID), Geographically Weighted Regression (GWR), Spatial Error Model (SEM), "Spatial Autocorrelation (Moran's I)", K-means Clustering]
+        - name: Regional Economic Analysis
+          items: [Input-Output Analysis, Social Accounting Matrix (SAM) Model, Shift-Share Analysis, Rank Mobility Index]
+        - name: Data
+          items: [Large-scale administrative panel construction (~450 million records), API & Web Scraping, Survey Design & Analysis]
+
+    - title: Selected Coursework
+      id: courses
+      entries:
+        - date: 'Fall 2024'
+          title: Urban and Regional Analysis
+          note: Rank mobility index, shift-share analysis, spatial autocorrelation, and GWR using Python and GIS
+        - date: 'Fall 2024'
+          title: Land and Housing Policy
+          note: Presented papers on the effects of real estate policy on migration and regional economies
+        - date: 'Spring 2024'
+          title: Research Methods and Statistics
+          note: Surveys, data preprocessing and visualization, regression models, and statistical tests in R
+        - date: 'Fall 2023'
+          title: Urban Big Data Analytics
+          note: Python, API & web scraping, K-means, treatment–control matching, and difference-in-differences
+        - date: 'Fall 2023'
+          title: Urban and Regional Economics
+          note: Regional economic ripple effects of industrial change using input-output analysis and SAM models
+
+    - title: Certifications & Languages
+      id: certificates
+      type: compact
+      entries:
+        - date: '2026.7'
+          title: AIBT (AI Business Literacy Test)
+          org: Korea Productivity Center
+        - date: '2026.7'
+          title: AI-POT Level 1 (AI Prompt Proficiency Test)
+          org: Korea Productivity Center
+        - date: '2026.1'
+          title: TOEIC Speaking AL (160)
+          org: YBM
+        - date: '2023.3'
+          title: ADsP (Advanced Data Analytics Semi-Professional)
+          org: Korea Data Agency
+        - date: '2021.12'
+          title: Engineer Certificate in City Planning (Korea)
+          org: HRD Korea
+        - date: '2021.10'
+          title: Computer Specialist in Spreadsheet & Database, Level 1
+          org: Korea Chamber of Commerce & Industry
+
+    - title: Training
+      id: training
+      type: compact
+      entries:
+        - date: '2025.1'
+          title: ESG Education Academy
+          org: ESG Youth Forum · 24 hours
+        - date: '2022.2'
+          title: Data Science with R
+          org: Statistics Research Institute, Seoul National University · 20 hours
+        - date: '2020.8'
+          title: Online Practical Training in Traffic Accident Analysis
+          org: Korea Road Traffic Authority · 8 hours
+
+    - title: Activities
+      id: activities
+      entries:
+        - date: '2021.7 – 2023.12'
+          title: Yongin Youth Network
+          role: Head of Jobs Subcommittee · Member of Urban Regeneration Subcommittee
+          bullets:
+            - Helped shift a youth suit-rental program from businesses outside the city to businesses within Yongin
+            - Took part in the Jungang-dong urban regeneration plan and proposed additional public transit routes

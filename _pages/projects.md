@@ -2,6 +2,7 @@
 layout: page
 title: 연구
 permalink: /projects/
+alt_url: /en/projects/
 description: 데이터로 도시에 던진 질문들과 그 답을 정리했어요.
 nav: true
 nav_order: 2
