@@ -4,6 +4,7 @@ title: "빈집 재활용을 통한 지속가능한 지역혁신"
 toc_text: "빈집 재활용과 지역혁신"
 group: "연구 프로젝트"
 group_order: 3
+oneliner: "방치된 빈집을 도시의 자원으로 바꾼 국내외 사례를 ESG 관점에서 분석했어요."
 importance: 5
 description: "강의 연구보고서 · 2023.9 – 2023.12"
 ---

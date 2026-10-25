@@ -4,6 +4,7 @@ title: "화물차 공영주차장 이용률에 따른 설치기준 제시"
 toc_text: "화물차 공영주차장 설치기준"
 group: "학부 졸업설계"
 group_order: 4
+oneliner: "용인시 처인구 화물차 공영주차장의 이용률을 바탕으로 설치기준을 제시했어요."
 importance: 1
 description: "학부 졸업설계 · 중앙대학교 · 2021"
 ---

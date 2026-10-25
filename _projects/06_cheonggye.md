@@ -4,6 +4,7 @@ title: "Green Infrastructure as a Catalyst for Urban Regeneration"
 toc_text: "그린 인프라와 도시재생 (청계천)"
 group: "연구 프로젝트"
 group_order: 3
+oneliner: "청계천 복원이 주변 민간 개발을 얼마나 많이, 얼마나 오래 끌어냈는지 필지 단위로 추적했어요."
 importance: 3
 description: "공동연구 · 청계천 복원과 민간 개발"
 ---

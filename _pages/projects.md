@@ -9,7 +9,21 @@ toc:
   sidebar: left
 ---
 
-{% assign groups = site.projects | group_by: "group" | sort: "name" %}
+{% assign ordered_all = site.projects | sort: "importance" | sort: "group_order" %}
+<nav class="research-overview" aria-label="연구 한눈에 보기" data-toc-skip>
+  <p class="research-overview-label">한눈에 보기</p>
+  <ol>
+  {% for project in ordered_all %}
+    <li>
+      <a href="#{{ project.slug | slice: 3, 30 }}">
+        <span class="ro-group">{{ project.group }}</span>
+        <span class="ro-title">{{ project.toc_text }}</span>
+        <span class="ro-line">{{ project.oneliner }}</span>
+      </a>
+    </li>
+  {% endfor %}
+  </ol>
+</nav>
 {% assign ordered = site.projects | sort: "group_order" | map: "group" | uniq %}
 <div class="research-list">
 {% for gname in ordered %}

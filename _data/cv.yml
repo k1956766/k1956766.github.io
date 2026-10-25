@@ -6,6 +6,8 @@ cv:
   name: 임강혁
   label: 경기연구원 기후에너지환경부 연구원
   email: khim@gri.re.kr
+  updated: 2026.10.25   # 마지막 수정일 (CV를 고치면 같이 바꾸기)
+  pdf: /assets/pdf/cv_lim_kanghyuk.pdf
   summary: 도시·지역계획을 전공했고, GIS와 공간데이터로 도시 문제를 분석해요. 인구 이동, 교통, 산업, 물 관리를 거쳐 지금은 탄소중립과 에너지 전환 시대의 도시를 연구하고 있어요.
 
   sections:
@@ -108,6 +110,19 @@ cv:
           org: 중앙대학교 도시시스템공학전공 · 도시계획 세션
           bullets:
             - 「화물차 공영주차장 이용률에 따른 설치기준 제시 -용인시 처인구를 중심으로-」
+
+    - title: 발표
+      id: talks
+      entries:
+        - date: '2025.4'
+          title: 인구감소지역 유출인구의 고용 및 소득 특성
+          link: /projects/#thesis
+          org: 대한국토도시계획학회 춘계산학학술대회 · 국토 및 지역계획 II 세션
+          note: 우수논문상 수상
+        - date: '2024.8'
+          title: 신규 대중교통 정책 도입 이후 버스 승하차 이용 변화 요인 분석
+          link: /projects/#bus
+          org: BK 융복합 세미나 최종발표 · 서울대학교 환경대학원
 
     - title: 분석 역량
       id: skills

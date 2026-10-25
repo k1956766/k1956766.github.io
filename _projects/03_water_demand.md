@@ -4,6 +4,7 @@ title: "물 수요관리 종합계획 작성지침 개정"
 toc_text: "물 수요관리 지침 개정"
 group: "연구용역"
 group_order: 2
+oneliner: "시·도마다 달랐던 물 절감 목표·산정 방식을 통일하는 작성지침 개정안을 마련했어요."
 importance: 2
 description: "연구용역 · 한국수자원공사 · 2023.12 – 2024.8"
 ---

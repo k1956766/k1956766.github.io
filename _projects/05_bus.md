@@ -4,6 +4,7 @@ title: "신규 대중교통 정책 도입 이후 버스 승하차 이용 변화 
 toc_text: "대중교통 정책과 버스 이용 변화"
 group: "연구 프로젝트"
 group_order: 3
+oneliner: "기후동행카드·K-패스 이후 버스 이용 변화를 동네의 건축물 용도로 설명했어요."
 importance: 2
 description: "BK 융복합 세미나 · 2024.4 – 2024.8"
 ---
