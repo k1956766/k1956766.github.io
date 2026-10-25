@@ -8,6 +8,7 @@
   <header class="post-header">
     <h1 class="post-title">{{ page.title }}</h1>
     {% if page.description %}<p class="post-description">{{ page.description }}</p>{% endif %}
+    {% if cv.updated and cv.pdf == nil %}<p class="cvx-updated">{% if page.lang == 'en' %}Last updated {% else %}마지막 수정 {% endif %}{{ cv.updated }}</p>{% endif %}
   </header>
 
   <section class="cvx-intro" data-toc-skip>

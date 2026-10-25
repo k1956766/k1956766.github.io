@@ -220,6 +220,7 @@ kramdown:
 # Includes & excludes
 include: ["_pages"]
 exclude:
+  - tools/
   - AGENTS.md
   - al-folio-upgrade-report.md
   - bin/
