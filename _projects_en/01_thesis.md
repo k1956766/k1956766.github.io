@@ -60,10 +60,10 @@ description: "Master's Thesis · Graduate School of Environmental Studies, Seoul
 
 <figure class="research-figure">
   <img data-zoomable width="1400" height="956" src="/assets/img/research/thesis/fig1.png" alt="Graph of income change rates for migrants and matched stayers from 2 years before to 3 years after the move in the balanced panel, with bars for the migration effect (ATT) at each time point" loading="lazy">
-  <figcaption><strong>Figure 1. Effect of migration on the income change rate (balanced panel)</strong> In the upper panel, the solid navy line is migrants and the dashed gray line is matched stayers. The lower bars show the difference between them (ATT), and the lines on the bars are 95% confidence intervals. To the right of the dashed orange line (after migration), the bars turn dark navy and grow. The gap widens to 5.4%p one year after migration and remains at 2.9%p after 3 years.</figcaption>
+  <figcaption><strong>Figure 1. Effect of migration on the income change rate (balanced panel)</strong> In the upper panel, the solid navy line is migrants and the dashed gray line is matched stayers. The lower bars show the difference between them (ATT), and the lines on the bars are 95% confidence intervals. To the right of the dashed orange line (after migration), the bars turn dark navy and grow. The gap widens to 5.4%p 1 year after migration and remains at 2.9%p after 3 years.</figcaption>
 </figure>
 
-- There was no effect in the year of migration (−1.1%p). But **from one year later, migrants' income change rate was 5.4%p higher than that of stayers**, and a gap of about 2.8–2.9%p persisted after 2–3 years.
+- There was no effect in the year of migration (−1.1%p). But **from 1 year later, migrants' income change rate was 5.4%p higher than that of stayers**, and a gap of about 2.8–2.9%p persisted after 2–3 years.
 - In the unbalanced panel up to 6 years later, the gap was 2.7%p after 1 year and then narrowed to 1.1–1.4%p, but it was significant at every time point. The gap is not temporary; it accumulates.
 
 <figure class="research-figure">
