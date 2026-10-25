@@ -645,7 +645,7 @@ html[data-theme="dark"] .home-btn.is-primary { color: #0b1a2c !important; }
 .intro-photo {
   grid-column: 2; grid-row: 1 / span 2;
   margin: -5.5rem 0 0;
-  width: 200px; height: 236px;
+  width: 200px; aspect-ratio: 354 / 472;
   border-radius: 14px;
   overflow: hidden;
   background: linear-gradient(180deg, var(--gri-tint) 0%, #dfe8f6 100%);
@@ -655,12 +655,12 @@ html[data-theme="dark"] .home-btn.is-primary { color: #0b1a2c !important; }
 html[data-theme="dark"] .intro-photo { background: linear-gradient(180deg, #1c2d44 0%, #15253a 100%); }
 .intro-photo img {
   position: absolute; left: 50%; bottom: 0;
-  width: 108%; height: auto; max-width: none;
+  width: 100%; height: auto; max-width: none;
   transform: translateX(-50%);
 }
 @media (max-width: 760px) {
   .intro.has-photo { grid-template-columns: 1fr 120px; column-gap: 1rem; }
-  .intro-photo { width: 120px; height: 142px; margin-top: 0; grid-row: 1; }
+  .intro-photo { width: 120px; margin-top: 0; grid-row: 1; }
   .intro.has-photo .intro-lead { grid-column: 1 / span 2; }
 }
 
