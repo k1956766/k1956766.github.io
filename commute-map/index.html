@@ -88,10 +88,6 @@
     <button type="button" id="apt-more" class="more" hidden>더 보기</button>
   </section>
 
-  <section class="legend" aria-label="색 범례">
-    <div class="ramp" id="ramp"></div>
-    <div class="ramp-labels" id="ramp-labels"></div>
-  </section>
 
   <footer class="basis">
     <p id="basis"></p>
@@ -99,6 +95,17 @@
     <p>"보통"은 아무 때나 집을 나섰을 때의 중앙값, "최적"은 열차 시각에 맞춰 나섰을 때의 값입니다. 실제 지연·혼잡은 반영되지 않습니다.</p>
   </footer>
 </aside>
+
+<div class="legend" id="legend" aria-label="지도 범례">
+  <div class="lg-row">
+    <span class="lg-title">통근시간 (보통)</span>
+    <div class="lg-scale">
+      <div class="ramp" id="ramp"></div>
+      <div class="ramp-labels" id="ramp-labels"></div>
+    </div>
+    <span class="lg-apt"><i aria-hidden="true"></i>조건에 맞는 단지</span>
+  </div>
+</div>
 
 <div class="toast" id="toast" role="status" hidden></div>
 
