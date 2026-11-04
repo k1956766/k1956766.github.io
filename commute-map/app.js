@@ -6,7 +6,7 @@
   const DEBUG_MASK = /(^|&)dbg=1/.test(location.hash.slice(1));
   const RAMP = ['#0E5E58', '#1F8A70', '#5DB37E', '#A9D48F', '#E2EDA2'];
   // 가격 색: 파랑(싼 곳) → 보라 → 자홍 → 빨강(비싼 곳). 구간 수에 맞춰 보간.
-  const PRICE_STOPS = ['#1D4ED8', '#3B82F6', '#7C3AED', '#C026D3', '#E11D48', '#B91C1C'];
+  const PRICE_STOPS = ['#3D65EE', '#627DEF', '#74B2E9', '#91B7E5', '#ABCEEE', '#B3D0F1', '#D4D5DF', '#DDD9DD', '#F9C7A9', '#F4C398', '#F3A47D', '#EA836B', '#DA5C58', '#CF4B4C', '#AD0D1D']; // 사용자 지정 파랑→회색→빨강
   const range = (a, b, s) => { const o = []; for (let v = a; v <= b + 1e-9; v += s) o.push(Math.round(v)); return o; };
   // pi/ni: apts.json types 안 가격·건수 위치. 금액 단위는 만원.
   const KINDS = {
@@ -104,7 +104,7 @@
         const p = m.latLngToContainerPoint([a.lat, a.lon]);
         ctx.beginPath(); ctx.arc(p.x, p.y, a === state.sel ? r + 3 : r, 0, 7);
         ctx.fillStyle = state.priceColors[a.cls]; ctx.fill();
-        ctx.strokeStyle = a === state.sel ? '#1F2B3D' : '#fff'; ctx.lineWidth = a === state.sel ? 2.5 : (z >= 12 ? 1.5 : 1); ctx.stroke();
+        ctx.strokeStyle = a === state.sel ? '#1F2B3D' : 'rgba(31,43,61,0.55)'; ctx.lineWidth = a === state.sel ? 2.5 : (z >= 12 ? 1.2 : 0.8); ctx.stroke();
       }
       if (state.hover >= 0) {
         const i = state.hover;
@@ -329,7 +329,15 @@
     bandColors = rampN(nb10);
     $('ramp').innerHTML = bandColors.map((c, k) => `<span style="background:${c};flex:${Math.min(10, L - k * 10)}"></span>`).join('');
     const ticks = []; for (let m = 0; m < L; m += 10) ticks.push(m);
-    if (window.innerWidth <= 720 && L - ticks[ticks.length - 1] <= 5 && ticks.length > 1) ticks.pop(); // 좁은 화면에서 끝 눈금 겹침 방지
+    // 끝 눈금(오른쪽 정렬)과 그 앞 눈금(가운데 정렬)이 겹치면 앞 눈금 생략 — 글자 폭을 실제로 재서 판단
+    const W = (window.innerWidth <= 720 ? 200 - 18 : 280 - 28);
+    const mctx = (renderLegend._c ||= document.createElement('canvas').getContext('2d'));
+    mctx.font = `${window.innerWidth <= 720 ? 10 : 11}px ${getComputedStyle(document.body).fontFamily}`;
+    const tw = (s) => mctx.measureText(String(s)).width;
+    if (ticks.length > 1) {
+      const p = ticks[ticks.length - 1], xp = (p / L) * W;
+      if (xp + tw(p) / 2 + 4 > W - tw(L)) ticks.pop();
+    }
     ticks.push(L);
     $('ramp-labels').innerHTML = ticks.map((m) => `<span style="left:${(m / L) * 100}%">${m}</span>`).join('');
     $('lim-out').textContent = `${state.limit}분`;
