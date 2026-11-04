@@ -317,7 +317,7 @@ jekyll-minifier:
   # breaking every spacing/positioning utility (e.g. .fixed-top -> broken navbar). Disable it.
   compress_css: false
   # JS minification is delegated to jekyll-terser (compress_javascript above is false).
-  exclude: ["robots.txt", "commute-map/**/*"]
+  exclude: ["robots.txt", "commute-map/**/*", "commute-map-beta/**/*"]
 
 # -----------------------------------------------------------------------------
 # Terser
