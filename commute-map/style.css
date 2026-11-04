@@ -139,3 +139,14 @@ body.picking #map{cursor:crosshair}
 #extra-wrap label{display:flex;justify-content:space-between;align-items:baseline;font-weight:700}
 #extra-wrap output{font-size:18px;font-weight:800;font-variant-numeric:tabular-nums}
 #extra-wrap input{width:100%;accent-color:var(--ink)}
+
+/* 직장 검색 제안 목록 */
+.stop-body{position:relative}
+.sugg{list-style:none;margin:4px 0 0;padding:4px;background:#fff;border:1px solid var(--rule);border-radius:10px;
+  box-shadow:0 6px 18px rgba(31,43,61,.14);max-height:300px;overflow-y:auto;position:absolute;left:0;right:0;z-index:20}
+.sg{display:grid;grid-template-columns:auto 1fr;gap:0 8px;padding:7px 8px;border-radius:7px;cursor:pointer}
+.sg.on,.sg:hover{background:#E6EBE8}
+.sg-k{grid-row:span 2;align-self:center;font-size:11px;font-weight:700;color:var(--ink-2);border:1px solid var(--rule);border-radius:5px;padding:1px 5px}
+.sg-n{font-size:14px;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sg-s{grid-column:2;font-size:12px;color:var(--ink-2);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sg-none{font-size:13px;color:var(--ink-2);padding:8px}

@@ -23,9 +23,10 @@
       <div class="stop-body">
         <label for="q-a">직장 A</label>
         <div class="row">
-          <input id="q-a" list="stations" placeholder="역 이름으로 찾기" autocomplete="off">
+          <input id="q-a" placeholder="역·주소·회사 이름" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="sugg-a" aria-autocomplete="list">
           <button type="button" class="pick" data-key="a" aria-pressed="false">지도에서 고르기</button>
         </div>
+        <ul class="sugg" id="sugg-a" role="listbox" hidden></ul>
         <p class="where" id="where-a">아직 정하지 않았어요</p>
       </div>
     </li>
@@ -34,15 +35,15 @@
       <div class="stop-body">
         <label for="q-b">직장 B <span class="opt">맞벌이라면</span></label>
         <div class="row">
-          <input id="q-b" list="stations" placeholder="역 이름으로 찾기" autocomplete="off">
+          <input id="q-b" placeholder="역·주소·회사 이름" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="sugg-b" aria-autocomplete="list">
           <button type="button" class="pick" data-key="b" aria-pressed="false">지도에서 고르기</button>
         </div>
+        <ul class="sugg" id="sugg-b" role="listbox" hidden></ul>
         <p class="where" id="where-b">비워 두면 A만 기준으로 봅니다</p>
         <button type="button" class="clear" id="clear-b" hidden>B 지우기</button>
       </div>
     </li>
   </ol>
-  <datalist id="stations"></datalist>
 
   <section class="prio" id="prio-wrap" hidden>
     <span class="prio-l" id="prio-label">누구 통근이 더 중요한가요?</span>
@@ -123,6 +124,7 @@
 <div class="toast" id="toast" role="status" hidden></div>
 
 <script src="lib/leaflet.js"></script>
+<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=d53351b0408eb626357bfa70d31f1363&libraries=services&autoload=false"></script>
 <script src="app.js"></script>
 </body>
 </html>
