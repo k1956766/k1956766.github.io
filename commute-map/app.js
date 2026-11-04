@@ -37,7 +37,7 @@
   const $ = (id) => document.getElementById(id);
 
   const state = { grid: null, a: null, b: null, limit: 50, picking: null, hover: -1,
-    opacity: 0.55, priceMode: 'fixed', pick: new Set(), all: [], open: null, apts: [], kind: 'sale', budget: Infinity, minArea: 59, minN: 2, prio: 'eq', extra: 15, matches: [], showN: 30, sel: null };
+    opacity: 0.55, priceMode: 'fixed', pick: null, all: [], open: null, apts: [], kind: 'sale', budget: Infinity, minArea: 59, minN: 2, prio: 'eq', extra: 15, matches: [], showN: 30, sel: null };
 
   let buckets = new Map();
 
@@ -166,9 +166,9 @@
     state.priceColors = interp(PRICE_STOPS, state.breaks.length + 1);
     for (const a of state.matches) { let c = 0; while (c < state.breaks.length && a.price >= state.breaks[c]) c++; a.cls = c; }
     // 범례에서 고른 가격 구간만 남김(아무것도 안 골랐으면 전체)
-    for (const k of [...state.pick]) if (k > state.breaks.length) state.pick.delete(k);
+    if (state.pick) for (const k of [...state.pick]) if (k > state.breaks.length) state.pick.delete(k);
     state.all = state.matches;
-    if (state.pick.size) state.matches = state.matches.filter((a) => state.pick.has(a.cls));
+    if (state.pick) state.matches = state.matches.filter((a) => state.pick.has(a.cls));
     if (state.sel && !state.matches.includes(state.sel)) state.sel = state.matches.find((a) => a.seq === state.sel.seq) || null;
   }
   // Jenks 자연 구간: 정렬된 값에서 k개 구간의 경계(상한값 k-1개)를 구함. 1,500개 넘으면 등간격 표본 사용.
@@ -203,12 +203,13 @@
     const K = KINDS[state.kind];
     $('lg-price-title').textContent = `단지 ${K.name}${state.kind === 'rent' ? '(월)' : '가'}`;
     $('pmode').setAttribute('aria-pressed', String(state.priceMode === 'jenks'));
+    $('pick-all').disabled = !state.pick; $('pick-none').disabled = !!state.pick && state.pick.size === 0;
     if (!state.all.length) { el.innerHTML = '<span class="pz-none">조건에 맞는 단지가 없습니다</span>'; return; }
-    const n = cols.length, on = state.pick.size > 0, lab = (v) => won(v);
+    const n = cols.length, on = !!state.pick, lab = (v) => won(v);
     const segs = cols.map((c, k) => {
       const lo = k === 0 ? null : br[k - 1], hi = k < br.length ? br[k] : null;
       const tip = lo == null ? `${won(hi)} 미만` : hi == null ? `${won(lo)} 이상` : `${won(lo)}~${won(hi)}`;
-      const cnt = state.all.filter((a) => a.cls === k).length, sel = state.pick.has(k);
+      const cnt = state.all.filter((a) => a.cls === k).length, sel = on && state.pick.has(k);
       return `<button type="button" class="${on && !sel ? 'off' : ''}${sel ? ' sel' : ''}" data-c="${k}" style="background:${c}" aria-pressed="${sel}" title="${tip} · ${cnt}곳 (눌러서 이 구간만 보기)" aria-label="${tip} ${cnt}곳"></button>`;
     }).join('');
     // 눈금: 경계값을 최대 6개까지 간격을 두고 표시
@@ -216,13 +217,13 @@
     const ticks = br.map((v, i) => ({ v, i })).filter(({ i }) => (br.length - 1 - i) % stride === 0) // 마지막 경계부터 고르게
       .map(({ v, i }) => { const pos = ((i + 1) / n) * 100; return `<span class="${pos > 94 ? 'edge-r' : ''}" style="left:${pos}%">${lab(v)}</span>`; }).join('');
     el.innerHTML = `<div class="pbar">${segs}</div><div class="pticks">${ticks}</div>
-      <div class="pnote"><span>싼 곳</span><span>${on ? `${state.pick.size}개 선택 · <button type="button" class="pick-all">전체 보기</button>` : '칸을 눌러 골라 보기'}</span><span>비싼 곳</span></div>`;
+      <div class="pnote"><span>싼 곳</span><span>${on ? `${n}개 중 ${state.pick.size}개 선택` : '칸을 눌러 켜고 끄기'}</span><span>비싼 곳</span></div>`;
   }
   function renderList() {
     const ol = $('apt-list'), kindName = KINDS[state.kind].name;
     if (!state.a) { $('apt-count').textContent = '단지 목록'; ol.innerHTML = '<li class="none">직장을 정하면 통근시간 안에 있는 아파트 단지가 여기에 나옵니다.</li>'; $('apt-more').hidden = true; return; }
     $('apt-count').textContent = `조건에 맞는 단지 ${state.matches.length.toLocaleString()}곳`;
-    if (!state.matches.length) { ol.innerHTML = '<li class="none">조건에 맞는 단지가 없습니다. 최대 통근시간이나 예산을 늘려 보세요.</li>'; $('apt-more').hidden = true; return; }
+    if (!state.matches.length) { ol.innerHTML = state.all.length ? '<li class="none">고른 가격 구간이 없습니다. 오른쪽 아래 가격 범례의 칸을 눌러 보고 싶은 구간을 켜 주세요.</li>' : '<li class="none">조건에 맞는 단지가 없습니다. 최대 통근시간이나 예산을 늘려 보세요.</li>'; $('apt-more').hidden = true; return; }
     ol.innerHTML = state.matches.slice(0, state.showN).map((a, k) => {
       const tb = state.b?.data ? t(state.b, a.cell, false) : null, ta = t(state.a, a.cell, false);
       const tm = tb == null ? `${ta}분` : `A ${ta} / B ${tb}분`;
@@ -363,7 +364,7 @@
     const p = new URLSearchParams();
     if (state.a) p.set('a', `${state.a.lat.toFixed(5)},${state.a.lon.toFixed(5)}`);
     if (state.b) p.set('b', `${state.b.lat.toFixed(5)},${state.b.lon.toFixed(5)}`);
-    p.set('t', state.limit); p.set('k', state.kind); if (state.priceMode === 'jenks') p.set('pb', 'j'); if (state.pick.size) p.set('pc', [...state.pick].sort((a, b) => a - b).join('.')); p.set('m', state.minArea); p.set('n', state.minN); if (state.b) { p.set('pr', state.prio); p.set('x', state.extra); }
+    p.set('t', state.limit); p.set('k', state.kind); if (state.priceMode === 'jenks') p.set('pb', 'j'); if (state.pick) p.set('pc', [...state.pick].sort((a, b) => a - b).join('.') || 'none'); p.set('m', state.minArea); p.set('n', state.minN); if (state.b) { p.set('pr', state.prio); p.set('x', state.extra); }
     if (state.budget !== Infinity) p.set('p', state.budget);
     history.replaceState(null, '', '#' + p.toString());
     renderLegend();
@@ -416,16 +417,20 @@
     if (!KINDS[k]) return;
     const changed = state.kind !== k; state.kind = k;
     document.querySelectorAll('#kind button').forEach((x) => x.setAttribute('aria-checked', String(x.dataset.kind === k)));
-    if (changed) { state.budget = Infinity; state.pick.clear(); } // 단위가 달라서 예산은 초기화
+    if (changed) { state.budget = Infinity; state.pick = null; } // 단위가 달라서 예산은 초기화
     setBudgetUI();
   }
   document.querySelectorAll('#kind button').forEach((b) => b.addEventListener('click', () => { setKind(b.dataset.kind); syncHash(); refresh(); }));
-  $('pmode').addEventListener('click', () => { state.priceMode = state.priceMode === 'jenks' ? 'fixed' : 'jenks'; state.pick.clear(); syncHash(); refresh(); });
+  $('pmode').addEventListener('click', () => { state.priceMode = state.priceMode === 'jenks' ? 'fixed' : 'jenks'; state.pick = null; syncHash(); refresh(); });
   // 가격 범례 칸 누르기: 구간 고르기/해제(여러 개 가능)
   $('to-top').addEventListener('click', () => { document.querySelector('.panel').scrollTo({ top: 0, behavior: 'smooth' }); });
+  $('pick-all').addEventListener('click', () => { state.pick = null; state.showN = 30; syncHash(); refresh(); });
+  $('pick-none').addEventListener('click', () => { state.pick = new Set(); state.showN = 30; syncHash(); refresh(); });
   $('lg-price-body').addEventListener('click', (e) => {
-    if (e.target.closest('.pick-all')) { state.pick.clear(); }
-    else { const b = e.target.closest('.pbar button'); if (!b) return; const k = +b.dataset.c; state.pick.has(k) ? state.pick.delete(k) : state.pick.add(k); }
+    const b = e.target.closest('.pbar button'); if (!b) return; const k = +b.dataset.c;
+    if (!state.pick) state.pick = new Set(state.priceColors.map((_, i) => i)); // 전체 켜진 상태에서 누르면 그 칸만 끔
+    state.pick.has(k) ? state.pick.delete(k) : state.pick.add(k);
+    if (state.pick.size === state.priceColors.length) state.pick = null;
     state.showN = 30; syncHash(); refresh();
   });
   $('area').addEventListener('change', (e) => { state.minArea = +e.target.value; syncHash(); refresh(); });
@@ -537,7 +542,7 @@
     if (p.get('t')) { state.limit = Math.min(90, Math.max(15, +p.get('t') || 50)); $('lim').value = state.limit; }
     if (KINDS[p.get('k')]) setKind(p.get('k'));
     if (p.get('pb') === 'j') state.priceMode = 'jenks';
-    if (p.get('pc')) p.get('pc').split('.').map(Number).filter((k) => k >= 0 && k < 40).forEach((k) => state.pick.add(k));
+    if (p.get('pc')) state.pick = new Set(p.get('pc') === 'none' ? [] : p.get('pc').split('.').map(Number).filter((k) => k >= 0 && k < 40));
     if (p.get('m') != null) { state.minArea = +p.get('m') || 0; $('area').value = String(state.minArea); }
     if (p.get('p')) state.budget = +p.get('p') || Infinity;
     if (p.get('n')) { state.minN = Math.max(1, +p.get('n') || 2); $('minn').value = String(state.minN); }
