@@ -203,7 +203,10 @@
     const K = KINDS[state.kind];
     $('lg-price-title').textContent = `단지 ${K.name}${state.kind === 'rent' ? '(월)' : '가'}`;
     $('pmode').setAttribute('aria-pressed', String(state.priceMode === 'jenks'));
-    $('pick-all').disabled = !state.pick; $('pick-none').disabled = !!state.pick && state.pick.size === 0;
+    // 하나도 안 켜졌으면 '전체 선택', 하나라도 켜져 있으면 '전체 해제'
+    const none = !!state.pick && state.pick.size === 0, tg = $('pick-toggle');
+    tg.textContent = none ? '전체 선택' : '전체 해제';
+    tg.title = none ? '모든 가격 구간을 켭니다' : '모든 가격 구간을 끕니다 — 칸을 눌러 원하는 구간만 켜세요';
     if (!state.all.length) { el.innerHTML = '<span class="pz-none">조건에 맞는 단지가 없습니다</span>'; return; }
     const n = cols.length, on = !!state.pick, lab = (v) => won(v);
     const segs = cols.map((c, k) => {
@@ -424,8 +427,7 @@
   $('pmode').addEventListener('click', () => { state.priceMode = state.priceMode === 'jenks' ? 'fixed' : 'jenks'; state.pick = null; syncHash(); refresh(); });
   // 가격 범례 칸 누르기: 구간 고르기/해제(여러 개 가능)
   $('to-top').addEventListener('click', () => { document.querySelector('.panel').scrollTo({ top: 0, behavior: 'smooth' }); });
-  $('pick-all').addEventListener('click', () => { state.pick = null; state.showN = 30; syncHash(); refresh(); });
-  $('pick-none').addEventListener('click', () => { state.pick = new Set(); state.showN = 30; syncHash(); refresh(); });
+  $('pick-toggle').addEventListener('click', () => { state.pick = state.pick && state.pick.size === 0 ? null : new Set(); state.showN = 30; syncHash(); refresh(); });
   $('lg-price-body').addEventListener('click', (e) => {
     const b = e.target.closest('.pbar button'); if (!b) return; const k = +b.dataset.c;
     if (!state.pick) state.pick = new Set(state.priceColors.map((_, i) => i)); // 전체 켜진 상태에서 누르면 그 칸만 끔
