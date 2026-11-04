@@ -65,7 +65,7 @@ body.picking #map{cursor:crosshair}
 
 /* 지도 오른쪽 아래 범례 */
 .legend{position:fixed;z-index:900;right:12px;bottom:26px;
-  background:rgba(255,255,255,.95);border-radius:10px;padding:10px 12px 9px;width:236px;
+  background:rgba(255,255,255,.95);border-radius:10px;padding:10px 14px 9px;width:280px;
   box-shadow:0 1px 2px rgba(31,43,61,.12),0 4px 14px rgba(31,43,61,.10)}
 .lg-row{display:flex;flex-direction:column;gap:5px}
 .lg-title{font-size:12px;font-weight:700;white-space:nowrap}
@@ -169,7 +169,7 @@ body.picking #map{cursor:crosshair}
 .pbar span{flex:1}
 .pticks{position:relative;height:14px;font-size:10.5px;color:var(--ink-2);margin-top:3px;font-variant-numeric:tabular-nums}
 .pticks span{position:absolute;transform:translateX(-50%);white-space:nowrap}
-.pticks span:last-child{transform:translateX(-100%)}
+.pticks span.edge-r{transform:translateX(-100%)}
 .pnote{display:flex;justify-content:space-between;font-size:10.5px;color:var(--ink-2);margin-top:2px}
 .pz-none{font-size:12px;color:var(--ink-2)}
 /* 단지 세부정보 */

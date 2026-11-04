@@ -210,7 +210,7 @@
     // 눈금: 경계값을 최대 6개까지 간격을 두고 표시
     const stride = Math.max(1, Math.ceil(br.length / (window.innerWidth <= 720 ? 4 : 6)));
     const ticks = br.map((v, i) => ({ v, i })).filter(({ i }) => (br.length - 1 - i) % stride === 0) // 마지막 경계부터 고르게
-      .map(({ v, i }) => `<span style="left:${((i + 1) / n) * 100}%">${lab(v)}</span>`).join('');
+      .map(({ v, i }) => { const pos = ((i + 1) / n) * 100; return `<span class="${pos > 94 ? 'edge-r' : ''}" style="left:${pos}%">${lab(v)}</span>`; }).join('');
     el.innerHTML = `<div class="pbar">${segs}</div><div class="pticks">${ticks}</div>
       <div class="pnote"><span>싼 곳</span><span>${state.priceMode === 'jenks' ? '자연 구간 ' + n + '단계' : '고정 구간 ' + n + '단계'}</span><span>비싼 곳</span></div>`;
   }
