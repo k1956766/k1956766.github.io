@@ -68,8 +68,9 @@
     <div class="seg" id="kind" role="radiogroup" aria-label="거래 방식">
       <button type="button" role="radio" aria-checked="true" data-kind="sale">매매</button>
       <button type="button" role="radio" aria-checked="false" data-kind="jeonse">전세</button>
+      <button type="button" role="radio" aria-checked="false" data-kind="rent">월세</button>
     </div>
-    <label for="bud">예산 <output id="bud-out" for="bud">제한 없음</output></label>
+    <label for="bud"><span id="bud-label">예산</span> <output id="bud-out" for="bud">제한 없음</output></label>
     <input id="bud" type="range" min="1" max="40" step="0.5" value="40">
     <label for="area" class="area-l">전용면적</label>
     <select id="area">
@@ -105,7 +106,7 @@
 
   <footer class="basis">
     <p id="basis"></p>
-    <p>가격은 국토교통부 실거래가(2025년 11월~2026년 10월) 중위값입니다. 해제된 거래는 뺐고, 전세는 월세 없는 계약만 셉니다. 거래가 적은 면적형은 가격이 들쭉날쭉할 수 있어 기본으로 2건 이상만 보여줍니다.</p>
+    <p>가격은 국토교통부 실거래가(2025년 11월~2026년 10월) 중위값입니다. 해제된 거래는 뺐고, 전세는 월세 없는 계약만, 월세는 월세가 있는 계약만 셉니다. 거래가 적은 면적형은 가격이 들쭉날쭉할 수 있어 기본으로 2건 이상만 보여줍니다.</p>
     <p>"보통"은 아무 때나 집을 나섰을 때의 중앙값, "최적"은 열차 시각에 맞춰 나섰을 때의 값입니다. 실제 지연·혼잡은 반영되지 않습니다.</p>
   </footer>
 </aside>
@@ -118,7 +119,15 @@
       <div class="ramp-labels" id="ramp-labels"></div>
     </div>
   </div>
-  <div class="lg-row lg-price" id="lg-price"></div>
+  <div class="lg-row lg-price" id="lg-price">
+    <div class="lg-ph"><span class="lg-title" id="lg-price-title">단지 매매가</span>
+      <button type="button" class="pmode" id="pmode" aria-pressed="false" title="지금 조건에 맞는 단지 가격으로 자연 구간(Jenks) 10분위를 나눕니다">자연 구간 10분위</button></div>
+    <div id="lg-price-body"></div>
+  </div>
+  <div class="lg-op">
+    <label for="op">지도 색 진하기 <output id="op-out" for="op">55%</output></label>
+    <input id="op" type="range" min="20" max="90" step="5" value="55">
+  </div>
 </div>
 
 <div class="toast" id="toast" role="status" hidden></div>
