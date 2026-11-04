@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>통근 지도 — 직장에서 몇 분 거리에 살 수 있을까</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="lib/leaflet.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="map" aria-label="서울 지도"></div>
+
+<aside class="panel" aria-label="조건 설정">
+  <header class="brand">
+    <h1>통근 지도</h1>
+    <p>직장을 찍으면, 대중교통으로 몇 분 안에 닿는 동네가 칠해집니다.</p>
+  </header>
+
+  <ol class="line" aria-label="직장 위치">
+    <li class="stop a" data-key="a">
+      <span class="dot" aria-hidden="true"></span>
+      <div class="stop-body">
+        <label for="q-a">직장 A</label>
+        <div class="row">
+          <input id="q-a" placeholder="역·주소·회사 이름" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="sugg-a" aria-autocomplete="list">
+          <button type="button" class="pick" data-key="a" aria-pressed="false">지도에서 고르기</button>
+        </div>
+        <ul class="sugg" id="sugg-a" role="listbox" hidden></ul>
+        <p class="where" id="where-a">아직 정하지 않았어요</p>
+      </div>
+    </li>
+    <li class="stop b" data-key="b">
+      <span class="dot" aria-hidden="true"></span>
+      <div class="stop-body">
+        <label for="q-b">직장 B <span class="opt">맞벌이라면</span></label>
+        <div class="row">
+          <input id="q-b" placeholder="역·주소·회사 이름" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="sugg-b" aria-autocomplete="list">
+          <button type="button" class="pick" data-key="b" aria-pressed="false">지도에서 고르기</button>
+        </div>
+        <ul class="sugg" id="sugg-b" role="listbox" hidden></ul>
+        <p class="where" id="where-b">비워 두면 A만 기준으로 봅니다</p>
+        <button type="button" class="clear" id="clear-b" hidden>B 지우기</button>
+      </div>
+    </li>
+  </ol>
+
+  <section class="prio" id="prio-wrap" hidden>
+    <span class="prio-l" id="prio-label">누구 통근이 더 중요한가요?</span>
+    <div class="seg seg3" id="prio" role="radiogroup" aria-labelledby="prio-label">
+      <button type="button" role="radio" aria-checked="true" data-p="eq">둘 다 같게</button>
+      <button type="button" role="radio" aria-checked="false" data-p="a">A 우선</button>
+      <button type="button" role="radio" aria-checked="false" data-p="b">B 우선</button>
+    </div>
+  </section>
+
+  <section class="limit">
+    <label for="lim"><span id="lim-label">최대 통근시간</span> <output id="lim-out" for="lim">50분</output></label>
+    <input id="lim" type="range" min="15" max="90" step="5" value="50">
+    <div id="extra-wrap" hidden>
+      <label for="extra">다른 사람은 더 걸려도 됨 <output id="extra-out" for="extra">+15분</output></label>
+      <input id="extra" type="range" min="0" max="60" step="5" value="15">
+    </div>
+    <p class="hint" id="lim-hint">출근 시간대 보통 걸리는 시간 기준입니다.</p>
+  </section>
+
+  <section class="home" aria-label="집 조건">
+    <div class="seg" id="kind" role="radiogroup" aria-label="거래 방식">
+      <button type="button" role="radio" aria-checked="true" data-kind="sale">매매</button>
+      <button type="button" role="radio" aria-checked="false" data-kind="jeonse">전세</button>
+      <button type="button" role="radio" aria-checked="false" data-kind="rent">월세</button>
+    </div>
+    <label for="bud"><span id="bud-label">예산</span> <output id="bud-out" for="bud">제한 없음</output></label>
+    <input id="bud" type="range" min="1" max="40" step="0.5" value="40">
+    <label for="area" class="area-l">전용면적</label>
+    <select id="area">
+      <option value="0">전체</option>
+      <option value="49">49㎡ 이상 (약 20평형)</option>
+      <option value="59" selected>59㎡ 이상 (약 25평형)</option>
+      <option value="84">84㎡ 이상 (약 34평형)</option>
+      <option value="114">114㎡ 이상 (약 45평형)</option>
+    </select>
+    <label for="minn" class="area-l">가격 기준</label>
+    <select id="minn">
+      <option value="1">거래 1건 이상 (전부)</option>
+      <option value="2" selected>거래 2건 이상</option>
+      <option value="3">거래 3건 이상</option>
+      <option value="5">거래 5건 이상</option>
+    </select>
+  </section>
+
+  <section class="readout" aria-live="polite">
+    <p class="ro-empty" id="ro-empty">지도 위 아무 곳에 커서를 올리거나 눌러 보세요.</p>
+    <div class="ro" id="ro" hidden>
+      <div class="ro-item a"><span class="ro-k">A까지</span><span class="ro-v" id="ro-a">–</span><span class="ro-s" id="ro-a-best"></span></div>
+      <div class="ro-item b" id="ro-b-wrap"><span class="ro-k">B까지</span><span class="ro-v" id="ro-b">–</span><span class="ro-s" id="ro-b-best"></span></div>
+    </div>
+  </section>
+
+  <section class="apts" aria-label="조건에 맞는 단지">
+    <h2 id="apt-count">단지 목록</h2>
+    <ol id="apt-list"></ol>
+    <button type="button" id="apt-more" class="more" hidden>더 보기</button>
+  </section>
+
+
+  <footer class="basis">
+    <p id="basis"></p>
+    <p>가격은 국토교통부 실거래가(2025년 11월~2026년 10월) 중위값입니다. 해제된 거래는 뺐고, 전세는 월세 없는 계약만, 월세는 월세가 있는 계약만 셉니다. 거래가 적은 면적형은 가격이 들쭉날쭉할 수 있어 기본으로 2건 이상만 보여줍니다.</p>
+    <p>"보통"은 아무 때나 집을 나섰을 때의 중앙값, "최적"은 열차 시각에 맞춰 나섰을 때의 값입니다. 실제 지연·혼잡은 반영되지 않습니다.</p>
+  </footer>
+</aside>
+
+<div class="legend" id="legend" aria-label="지도 범례">
+  <div class="lg-row">
+    <span class="lg-title" id="lg-time-title">통근시간(분)</span>
+    <div class="lg-scale">
+      <div class="ramp" id="ramp"></div>
+      <div class="ramp-labels" id="ramp-labels"></div>
+    </div>
+  </div>
+  <div class="lg-row lg-price" id="lg-price">
+    <div class="lg-ph"><span class="lg-title" id="lg-price-title">단지 매매가</span>
+      <button type="button" class="pmode" id="pmode" aria-pressed="false" title="지금 조건에 맞는 단지 가격으로 자연 구간(Jenks) 10분위를 나눕니다">자연 구간 10분위</button></div>
+    <div id="lg-price-body"></div>
+  </div>
+  <div class="lg-op">
+    <label for="op">지도 색 진하기 <output id="op-out" for="op">55%</output></label>
+    <input id="op" type="range" min="20" max="90" step="5" value="55">
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script src="lib/leaflet.js"></script>
+<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=d53351b0408eb626357bfa70d31f1363&libraries=services&autoload=false"></script>
+<script src="app.js"></script>
+</body>
+</html>

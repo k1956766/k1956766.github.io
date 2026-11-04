@@ -1,0 +1,183 @@
+:root{
+  --ink:#1F2B3D;
+  --ink-2:#5A6676;
+  --paper:#F2F4F3;
+  --rule:#D5DBD8;
+  --a:#00A84D;      /* 2호선 */
+  --b:#996CAC;      /* 5호선 */
+  --focus:#0B63CE;
+  --font:"Pretendard Variable",Pretendard,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;height:100%}
+body{font-family:var(--font);color:var(--ink);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+#map{position:fixed;inset:0;background:#E9ECEA}
+.leaflet-container{font-family:var(--font)}
+.basemap{filter:grayscale(1) contrast(.9) brightness(1.06)}
+body.picking #map{cursor:crosshair}
+
+.panel{
+  position:fixed;top:16px;left:16px;bottom:16px;width:340px;z-index:1000;
+  background:var(--paper);border-radius:14px;
+  box-shadow:0 1px 2px rgba(31,43,61,.12),0 8px 24px rgba(31,43,61,.10);
+  padding:22px 22px 18px;overflow-y:auto;display:flex;flex-direction:column;gap:20px;
+}
+.brand h1{font-size:26px;line-height:1.15;font-weight:800;letter-spacing:-.02em;margin:0 0 6px}
+.brand p{margin:0;color:var(--ink-2);font-size:14px}
+
+/* 노선도처럼 A–B를 잇는 세로선 */
+.line{list-style:none;margin:0;padding:0;position:relative}
+.line::before{content:"";position:absolute;left:8px;top:14px;bottom:30px;width:4px;border-radius:2px;
+  background:linear-gradient(var(--a) 0 50%,var(--b) 50% 100%)}
+.stop{display:grid;grid-template-columns:20px 1fr;gap:12px;padding-bottom:16px;position:relative}
+.dot{width:20px;height:20px;border-radius:50%;background:#fff;border:4px solid var(--a);margin-top:2px;z-index:1}
+.stop.b .dot{border-color:var(--b)}
+.stop.set .dot{background:var(--a)}
+.stop.b.set .dot{background:var(--b)}
+.stop-body{min-width:0}
+.stop label{display:block;font-weight:700;font-size:15px;margin-bottom:6px}
+.opt{font-weight:500;color:var(--ink-2);font-size:13px;margin-left:4px}
+.row{display:flex;gap:6px}
+.row input{flex:1;min-width:0;font:inherit;font-size:14px;padding:8px 10px;border:1px solid var(--rule);border-radius:8px;background:#fff;color:var(--ink)}
+.pick,.clear{font:inherit;font-size:13px;font-weight:600;border:1px solid var(--rule);background:#fff;color:var(--ink);border-radius:8px;padding:0 10px;cursor:pointer;white-space:nowrap}
+.pick[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.clear{margin-top:6px;padding:4px 10px;color:var(--ink-2)}
+.where{margin:6px 0 0;font-size:13px;color:var(--ink-2)}
+.stop.set .where{color:var(--ink)}
+
+.limit label{display:flex;justify-content:space-between;align-items:baseline;font-weight:700}
+.limit output{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.limit input{width:100%;accent-color:var(--ink);margin:8px 0 2px}
+.hint{margin:0;font-size:13px;color:var(--ink-2)}
+
+/* 판독창: 이 페이지에서 유일하게 큰 숫자 */
+.readout{border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);padding:14px 0;min-height:104px}
+.ro-empty{margin:0;color:var(--ink-2);font-size:14px}
+.ro{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ro-item{display:flex;flex-direction:column;border-left:4px solid var(--a);padding-left:10px}
+.ro-item.b{border-color:var(--b)}
+.ro-k{font-size:13px;color:var(--ink-2);font-weight:600}
+.ro-v{font-size:44px;line-height:1;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums;margin:4px 0}
+.ro-v small{font-size:18px;font-weight:700;margin-left:2px;letter-spacing:0}
+.ro-s{font-size:13px;color:var(--ink-2)}
+.ro-item.off .ro-v{color:#A3ACB6}
+
+/* 지도 오른쪽 아래 범례 */
+.legend{position:fixed;z-index:900;right:12px;bottom:26px;
+  background:rgba(255,255,255,.95);border-radius:10px;padding:10px 12px 9px;width:236px;
+  box-shadow:0 1px 2px rgba(31,43,61,.12),0 4px 14px rgba(31,43,61,.10)}
+.lg-row{display:flex;flex-direction:column;gap:5px}
+.lg-title{font-size:12px;font-weight:700;white-space:nowrap}
+.lg-scale{width:100%}
+.ramp{display:flex;height:10px;border-radius:5px;overflow:hidden}
+.ramp span{flex:1}
+.ramp-labels{position:relative;height:14px;font-size:11px;color:var(--ink-2);margin-top:3px;font-variant-numeric:tabular-nums}
+.ramp-labels span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.ramp-labels span:first-child{transform:none}
+.ramp-labels span:last-child{transform:translateX(-100%)}
+.lg-price{margin-top:10px;padding-top:8px;border-top:1px solid var(--rule);gap:4px}
+.lg-price:empty{display:none}
+.pz{display:flex;align-items:center;gap:6px;font-size:12px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.pz i{width:10px;height:10px;border-radius:50%;flex:none;box-shadow:0 0 0 1.5px #fff,0 0 0 2.5px rgba(31,43,61,.2)}
+.legend.empty{display:none}
+.basis{margin-top:auto;font-size:12px;color:var(--ink-2)}
+.basis p{margin:0 0 4px}
+
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:1100;background:var(--ink);color:#fff;padding:10px 16px;border-radius:10px;font-size:14px}
+
+.wp-marker{width:26px;height:26px;border-radius:50%;border:4px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35);color:#fff;font-weight:800;font-size:12px;display:grid;place-items:center}
+.wp-marker.a{background:var(--a)} .wp-marker.b{background:var(--b)}
+
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+
+@media (max-width:720px){
+  .panel{top:auto;left:0;right:0;bottom:0;width:auto;max-height:52vh;border-radius:16px 16px 0 0;padding:16px 16px 12px;gap:14px}
+  .brand p{display:none}
+  .brand h1{font-size:20px;margin:0}
+  .ro-v{font-size:34px}
+  .readout{min-height:84px;order:-1}
+  .legend{right:8px;bottom:calc(52vh + 8px);width:176px;padding:7px 9px 6px}
+  .lg-title{font-size:11px}
+  .legend{width:200px}
+  .lg-price{margin-top:6px;padding-top:6px}
+  .pmode{font-size:10px;padding:1px 5px}
+  .pbar{height:10px;margin-top:4px}
+  .pticks,.pnote{font-size:10px}
+  .pnote span:nth-child(2){display:none}
+  .pz{font-size:10.5px}
+  .brand{order:-2}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* 집 조건 */
+.home{display:grid;gap:6px}
+.home label{display:flex;justify-content:space-between;align-items:baseline;font-weight:700}
+.home output{font-size:18px;font-weight:800;font-variant-numeric:tabular-nums}
+.home input[type=range]{width:100%;accent-color:var(--ink)}
+.home select{font:inherit;font-size:14px;padding:7px 8px;border:1px solid var(--rule);border-radius:8px;background:#fff;color:var(--ink)}
+.area-l{margin-top:4px}
+.seg{display:inline-grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--ink);border-radius:8px;overflow:hidden;width:max-content;margin-bottom:6px}
+.seg button{font:inherit;font-size:14px;font-weight:700;padding:6px 18px;background:#fff;color:var(--ink);border:0;cursor:pointer}
+.seg button[aria-checked="true"]{background:var(--ink);color:#fff}
+
+/* 단지 목록: 정차역 목록처럼 */
+.apts h2{font-size:15px;font-weight:800;margin:0 0 8px}
+.apts ol{list-style:none;margin:0;padding:0}
+.apt{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:9px 0;border-top:1px solid var(--rule);cursor:pointer}
+.apt:hover,.apt.sel{background:#E6EBE8}
+.apt .nm{font-weight:700;font-size:14px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.apt .tm{font-weight:800;font-size:14px;font-variant-numeric:tabular-nums;text-align:right}
+.apt .sub{font-size:12px;color:var(--ink-2)}
+.apt .pr{font-size:12px;color:var(--ink);text-align:right;font-variant-numeric:tabular-nums}
+.more{font:inherit;font-size:13px;font-weight:600;margin-top:8px;border:1px solid var(--rule);background:#fff;border-radius:8px;padding:6px 12px;cursor:pointer}
+.apts .none{font-size:13px;color:var(--ink-2);margin:0}
+
+/* 우선순위 */
+.prio{display:grid;gap:6px}
+.prio-l{font-weight:700}
+.seg3{grid-template-columns:repeat(3,auto)}
+.seg3 button{padding:6px 12px}
+#extra-wrap{margin-top:10px}
+#extra-wrap label{display:flex;justify-content:space-between;align-items:baseline;font-weight:700}
+#extra-wrap output{font-size:18px;font-weight:800;font-variant-numeric:tabular-nums}
+#extra-wrap input{width:100%;accent-color:var(--ink)}
+
+/* 직장 검색 제안 목록 */
+.stop-body{position:relative}
+.sugg{list-style:none;margin:4px 0 0;padding:4px;background:#fff;border:1px solid var(--rule);border-radius:10px;
+  box-shadow:0 6px 18px rgba(31,43,61,.14);max-height:300px;overflow-y:auto;position:absolute;left:0;right:0;z-index:20}
+.sg{display:grid;grid-template-columns:auto 1fr;gap:0 8px;padding:7px 8px;border-radius:7px;cursor:pointer}
+.sg.on,.sg:hover{background:#E6EBE8}
+.sg-k{grid-row:span 2;align-self:center;font-size:11px;font-weight:700;color:var(--ink-2);border:1px solid var(--rule);border-radius:5px;padding:1px 5px}
+.sg-n{font-size:14px;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sg-s{grid-column:2;font-size:12px;color:var(--ink-2);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sg-none{font-size:13px;color:var(--ink-2);padding:8px}
+
+/* 지도 색 진하기 */
+.lg-op{margin-top:10px;padding-top:8px;border-top:1px solid var(--rule)}
+.lg-op label{display:flex;justify-content:space-between;font-size:12px;font-weight:700}
+.lg-op output{font-variant-numeric:tabular-nums}
+.lg-op input{width:100%;accent-color:var(--ink);margin:4px 0 0}
+@media (max-width:720px){ .lg-op{margin-top:6px;padding-top:6px} .lg-op label{font-size:11px} }
+
+/* 가격 범례: 색 막대 */
+.lg-ph{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.pmode{font:inherit;font-size:11px;font-weight:700;border:1px solid var(--ink);background:#fff;color:var(--ink);border-radius:6px;padding:2px 7px;cursor:pointer;white-space:nowrap}
+.pmode[aria-pressed="true"]{background:var(--ink);color:#fff}
+.pbar{display:flex;height:12px;border-radius:6px;overflow:hidden;margin-top:6px}
+.pbar span{flex:1}
+.pticks{position:relative;height:14px;font-size:10.5px;color:var(--ink-2);margin-top:3px;font-variant-numeric:tabular-nums}
+.pticks span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.pticks span:last-child{transform:translateX(-100%)}
+.pnote{display:flex;justify-content:space-between;font-size:10.5px;color:var(--ink-2);margin-top:2px}
+.pz-none{font-size:12px;color:var(--ink-2)}
+/* 단지 세부정보 */
+.more-d{grid-column:1/-1;justify-self:start;font:inherit;font-size:11px;font-weight:700;border:1px solid var(--rule);background:#fff;border-radius:6px;padding:2px 8px;margin-top:4px;cursor:pointer;color:var(--ink)}
+.detail{grid-column:1/-1;margin-top:6px;background:#fff;border:1px solid var(--rule);border-radius:8px;padding:8px}
+.detail table{width:100%;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}
+.detail th{font-weight:700;color:var(--ink-2);text-align:right;padding:2px 4px;border-bottom:1px solid var(--rule)}
+.detail td{text-align:right;padding:3px 4px}
+.detail th:first-child,.detail td:first-child{text-align:left}
+.detail tr.dim td{color:#A3ACB6}
+.detail p{margin:6px 0 0;font-size:11px;color:var(--ink-2)}

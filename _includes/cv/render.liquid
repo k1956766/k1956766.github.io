@@ -1,0 +1,93 @@
+{% comment %}
+  로컬 CV 렌더러 (al_folio_cv 1.0.2 의 render.liquid 를 대체)
+  _data/cv.yml 의 cv.sections 를 위에서부터 순서대로 그림.
+  섹션 type: entries(기본) / skills / compact
+{% endcomment %}
+{% if page.lang == 'en' %}{% assign cv = site.data.cv_en.cv %}{% else %}{% assign cv = site.data.cv.cv %}{% endif %}
+<div class="post cvx">
+  <header class="post-header">
+    <h1 class="post-title">{{ page.title }}</h1>
+    {% if page.description %}<p class="post-description">{{ page.description }}</p>{% endif %}
+    {% if cv.updated and cv.pdf == nil %}<p class="cvx-updated">{% if page.lang == 'en' %}Last updated {% else %}마지막 수정 {% endif %}{{ cv.updated }}</p>{% endif %}
+  </header>
+
+  <section class="cvx-intro" data-toc-skip>
+    <div class="cvx-id">
+      <p class="cvx-name">{{ cv.name }}</p>
+      <p class="cvx-label">{{ cv.label }}</p>
+      <p class="cvx-email"><a href="mailto:{{ cv.email }}">{{ cv.email }}</a></p>
+    </div>
+    <p class="cvx-summary">{{ cv.summary }}</p>
+  </section>
+
+  {% if cv.highlights %}
+    <ul class="cvx-highlights" data-toc-skip>
+      {% for h in cv.highlights %}
+        <li><span class="cvx-hl-num">{{ h.num }}{% if h.unit %}<small>{{ h.unit }}</small>{% endif %}</span><span class="cvx-hl-label">{{ h.label }}</span></li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  {% if cv.pdf %}
+    {% comment %} PDF 내려받기 카드: 큰 화면에서는 왼쪽 목차 아래로 옮겨짐 {% endcomment %}
+    <aside class="cvx-download" id="cvx-download">
+      <p class="cvx-dl-title">{% if page.lang == 'en' %}CV in PDF{% else %}CV 파일{% endif %}</p>
+      <p class="cvx-dl-meta">A4 PDF{% if cv.updated %} · {% if page.lang == 'en' %}Updated {% else %}{% endif %}{{ cv.updated }}{% endif %}</p>
+      <a class="home-btn is-primary cvx-pdf" href="{{ cv.pdf | relative_url }}" download>{% if page.lang == 'en' %}Download PDF{% else %}PDF로 내려받기{% endif %}</a>
+    </aside>
+    <script>
+      (function () {
+        var box = document.getElementById('cvx-download');
+        var nav = document.getElementById('toc-sidebar');
+        if (!box || !nav || !nav.parentNode || window.innerWidth < 576) return;
+        var wrap = document.createElement('div');
+        wrap.className = 'sticky-top cvx-side';
+        nav.classList.remove('sticky-top');
+        nav.parentNode.insertBefore(wrap, nav);
+        wrap.appendChild(nav);
+        wrap.appendChild(box);
+        box.classList.add('is-side');
+      })();
+    </script>
+  {% endif %}
+
+  {% for sec in cv.sections %}
+    <section class="card cvx-sec">
+      <h2 class="card-title cvx-title" id="{{ sec.id }}">{{ sec.title }}</h2>
+
+      {% if sec.type == 'skills' %}
+        <div class="cvx-skills">
+          {% for e in sec.entries %}
+            <div class="cvx-skill">
+              <span class="cvx-skill-name">{{ e.name }}</span>
+              <span class="cvx-chips">{% for it in e.items %}<span>{{ it }}</span>{% endfor %}</span>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <ul class="cvx-list{% if sec.type == 'compact' %} is-compact{% endif %}">
+          {% for e in sec.entries %}
+            <li class="cvx-item">
+              <span class="cvx-date">{{ e.date }}</span>
+              <div class="cvx-body">
+                <p class="cvx-head">
+                  {% if e.link %}<a href="{{ e.link | relative_url }}">{{ e.title }}</a>{% else %}{{ e.title }}{% endif %}
+                  {% if sec.type == 'compact' and e.org %}<span class="cvx-org-inline">{{ e.org }}</span>{% endif %}
+                </p>
+                {% if e.org and sec.type != 'compact' %}<p class="cvx-org">{{ e.org }}</p>{% endif %}
+                {% if e.role %}<p class="cvx-role">{{ e.role }}</p>{% endif %}
+                {% if e.bullets %}
+                  <ul class="cvx-bullets">
+                    {% for b in e.bullets %}<li>{{ b }}</li>{% endfor %}
+                  </ul>
+                {% endif %}
+                {% if e.tags %}<p class="cvx-tags">{% for t in e.tags %}<span>{{ t }}</span>{% endfor %}</p>{% endif %}
+                {% if e.note %}<p class="cvx-note">{{ e.note }}</p>{% endif %}
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </section>
+  {% endfor %}
+</div>
