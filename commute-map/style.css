@@ -63,18 +63,23 @@ body.picking #map{cursor:crosshair}
 .ro-s{font-size:13px;color:var(--ink-2)}
 .ro-item.off .ro-v{color:#A3ACB6}
 
-/* 지도 아래 범례 */
-.legend{position:fixed;z-index:900;left:calc(50% + 186px);bottom:26px;transform:translateX(-50%);
-  background:rgba(255,255,255,.94);border-radius:10px;padding:8px 14px 7px;
+/* 지도 오른쪽 아래 범례 */
+.legend{position:fixed;z-index:900;right:12px;bottom:26px;
+  background:rgba(255,255,255,.95);border-radius:10px;padding:10px 12px 9px;width:236px;
   box-shadow:0 1px 2px rgba(31,43,61,.12),0 4px 14px rgba(31,43,61,.10)}
-.lg-row{display:flex;align-items:center;gap:14px}
+.lg-row{display:flex;flex-direction:column;gap:5px}
 .lg-title{font-size:12px;font-weight:700;white-space:nowrap}
-.lg-scale{width:220px}
+.lg-scale{width:100%}
 .ramp{opacity:.72;display:flex;height:10px;border-radius:5px;overflow:hidden}
 .ramp span{flex:1}
-.ramp-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--ink-2);margin-top:3px;font-variant-numeric:tabular-nums}
-.lg-apt{font-size:12px;white-space:nowrap;display:flex;align-items:center;gap:6px;color:var(--ink)}
-.lg-apt i{width:9px;height:9px;border-radius:50%;background:var(--ink);box-shadow:0 0 0 1.5px #fff,0 0 0 2.5px rgba(31,43,61,.25)}
+.ramp-labels{position:relative;height:14px;font-size:11px;color:var(--ink-2);margin-top:3px;font-variant-numeric:tabular-nums}
+.ramp-labels span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.ramp-labels span:first-child{transform:none}
+.ramp-labels span:last-child{transform:translateX(-100%)}
+.lg-price{margin-top:10px;padding-top:8px;border-top:1px solid var(--rule);gap:4px}
+.lg-price:empty{display:none}
+.pz{display:flex;align-items:center;gap:6px;font-size:12px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.pz i{width:10px;height:10px;border-radius:50%;flex:none;box-shadow:0 0 0 1.5px #fff,0 0 0 2.5px rgba(31,43,61,.2)}
 .legend.empty{display:none}
 .basis{margin-top:auto;font-size:12px;color:var(--ink-2)}
 .basis p{margin:0 0 4px}
@@ -92,11 +97,12 @@ body.picking #map{cursor:crosshair}
   .brand h1{font-size:20px;margin:0}
   .ro-v{font-size:34px}
   .readout{min-height:84px;order:-1}
-  .legend{left:50%;bottom:calc(52vh + 10px);padding:6px 10px 5px;max-width:calc(100% - 16px)}
-  .lg-row{gap:10px}
+  .legend{right:8px;bottom:calc(52vh + 8px);width:176px;padding:7px 9px 6px}
   .lg-title{font-size:11px}
-  .lg-scale{width:150px}
-  .lg-apt{font-size:11px}
+  .legend{width:200px}
+  .lg-price{margin-top:6px;padding-top:6px;display:grid;grid-template-columns:1fr 1fr;gap:2px 6px}
+  .lg-price .lg-title{grid-column:1/-1}
+  .pz{font-size:10.5px}
   .brand{order:-2}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
