@@ -129,3 +129,13 @@ body.picking #map{cursor:crosshair}
 .apt .pr{font-size:12px;color:var(--ink);text-align:right;font-variant-numeric:tabular-nums}
 .more{font:inherit;font-size:13px;font-weight:600;margin-top:8px;border:1px solid var(--rule);background:#fff;border-radius:8px;padding:6px 12px;cursor:pointer}
 .apts .none{font-size:13px;color:var(--ink-2);margin:0}
+
+/* 우선순위 */
+.prio{display:grid;gap:6px}
+.prio-l{font-weight:700}
+.seg3{grid-template-columns:repeat(3,auto)}
+.seg3 button{padding:6px 12px}
+#extra-wrap{margin-top:10px}
+#extra-wrap label{display:flex;justify-content:space-between;align-items:baseline;font-weight:700}
+#extra-wrap output{font-size:18px;font-weight:800;font-variant-numeric:tabular-nums}
+#extra-wrap input{width:100%;accent-color:var(--ink)}

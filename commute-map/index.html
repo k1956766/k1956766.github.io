@@ -44,14 +44,27 @@
   </ol>
   <datalist id="stations"></datalist>
 
+  <section class="prio" id="prio-wrap" hidden>
+    <span class="prio-l" id="prio-label">누구 통근이 더 중요한가요?</span>
+    <div class="seg seg3" id="prio" role="radiogroup" aria-labelledby="prio-label">
+      <button type="button" role="radio" aria-checked="true" data-p="eq">둘 다 같게</button>
+      <button type="button" role="radio" aria-checked="false" data-p="a">A 우선</button>
+      <button type="button" role="radio" aria-checked="false" data-p="b">B 우선</button>
+    </div>
+  </section>
+
   <section class="limit">
-    <label for="lim">최대 통근시간 <output id="lim-out" for="lim">50분</output></label>
+    <label for="lim"><span id="lim-label">최대 통근시간</span> <output id="lim-out" for="lim">50분</output></label>
     <input id="lim" type="range" min="15" max="90" step="5" value="50">
+    <div id="extra-wrap" hidden>
+      <label for="extra">다른 사람은 더 걸려도 됨 <output id="extra-out" for="extra">+15분</output></label>
+      <input id="extra" type="range" min="0" max="60" step="5" value="15">
+    </div>
     <p class="hint" id="lim-hint">출근 시간대 보통 걸리는 시간 기준입니다.</p>
   </section>
 
   <section class="home" aria-label="집 조건">
-    <div class="seg" role="radiogroup" aria-label="거래 방식">
+    <div class="seg" id="kind" role="radiogroup" aria-label="거래 방식">
       <button type="button" role="radio" aria-checked="true" data-kind="sale">매매</button>
       <button type="button" role="radio" aria-checked="false" data-kind="jeonse">전세</button>
     </div>
@@ -98,7 +111,7 @@
 
 <div class="legend" id="legend" aria-label="지도 범례">
   <div class="lg-row">
-    <span class="lg-title">통근시간(분)</span>
+    <span class="lg-title" id="lg-time-title">통근시간(분)</span>
     <div class="lg-scale">
       <div class="ramp" id="ramp"></div>
       <div class="ramp-labels" id="ramp-labels"></div>
