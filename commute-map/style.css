@@ -79,7 +79,7 @@ body.picking #map{cursor:crosshair}
 .lg-price{margin-top:10px;padding-top:8px;border-top:1px solid var(--rule);gap:4px}
 .lg-price:empty{display:none}
 .pz{display:flex;align-items:center;gap:6px;font-size:12px;white-space:nowrap;font-variant-numeric:tabular-nums}
-.pz i{width:10px;height:10px;border-radius:50%;flex:none;box-shadow:0 0 0 1.5px #fff,0 0 0 2.5px rgba(31,43,61,.2)}
+.pz i{width:10px;height:10px;border-radius:50%;flex:none;box-shadow:0 0 0 1px rgba(31,43,61,.55)}
 .legend.empty{display:none}
 .basis{margin-top:auto;font-size:12px;color:var(--ink-2)}
 .basis p{margin:0 0 4px}
