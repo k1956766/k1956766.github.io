@@ -21,26 +21,26 @@
     <li class="stop a" data-key="a">
       <span class="dot" aria-hidden="true"></span>
       <div class="stop-body">
-        <label for="q-a">직장 A</label>
         <div class="row">
-          <input id="q-a" placeholder="역·주소·회사 이름" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="sugg-a" aria-autocomplete="list">
+          <label for="q-a">직장 A</label>
+          <input id="q-a" placeholder="역·주소·회사" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="sugg-a" aria-autocomplete="list">
           <button type="button" class="pick" data-key="a" aria-pressed="false">지도에서 고르기</button>
         </div>
         <ul class="sugg" id="sugg-a" role="listbox" hidden></ul>
-        <p class="where" id="where-a">아직 정하지 않았어요</p>
+        <p class="where" id="where-a" hidden></p>
       </div>
     </li>
     <li class="stop b" data-key="b">
       <span class="dot" aria-hidden="true"></span>
       <div class="stop-body">
-        <label for="q-b">직장 B <span class="opt">맞벌이라면</span></label>
         <div class="row">
-          <input id="q-b" placeholder="역·주소·회사 이름" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="sugg-b" aria-autocomplete="list">
+          <label for="q-b">직장 B</label>
+          <input id="q-b" placeholder="맞벌이라면 (선택)" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="sugg-b" aria-autocomplete="list">
           <button type="button" class="pick" data-key="b" aria-pressed="false">지도에서 고르기</button>
+          <button type="button" class="clear" id="clear-b" hidden aria-label="직장 B 지우기" title="직장 B 지우기">×</button>
         </div>
         <ul class="sugg" id="sugg-b" role="listbox" hidden></ul>
-        <p class="where" id="where-b">비워 두면 A만 기준으로 봅니다</p>
-        <button type="button" class="clear" id="clear-b" hidden>B 지우기</button>
+        <p class="where" id="where-b" hidden></p>
       </div>
     </li>
   </ol>
@@ -64,23 +64,6 @@
     <p class="hint" id="lim-hint">출근 시간대 보통 걸리는 시간 기준입니다.</p>
   </section>
 
-  <section class="mode" aria-label="이동수단">
-    <span class="mode-l" id="modes-label">이동수단</span>
-    <div class="chips" id="modes" role="group" aria-labelledby="modes-label">
-      <button type="button" data-i="0" aria-pressed="true">지하철·전철</button>
-      <button type="button" data-i="1" aria-pressed="true">기차</button>
-      <button type="button" data-i="2" aria-pressed="true">광역·시외버스</button>
-      <button type="button" data-i="3" aria-pressed="true">시내·마을버스</button>
-    </div>
-    <label class="tr-l" for="trmax">환승
-      <select id="trmax">
-        <option value="-1">제한 없음</option>
-        <option value="0">환승 없이</option>
-        <option value="1">1회까지</option>
-        <option value="2">2회까지</option>
-      </select>
-    </label>
-  </section>
 
   <section class="home" aria-label="집 조건">
     <div class="seg" id="kind" role="radiogroup" aria-label="거래 방식">
@@ -90,24 +73,43 @@
     </div>
     <label for="bud"><span id="bud-label">예산</span> <output id="bud-out" for="bud">제한 없음</output></label>
     <input id="bud" type="range" min="1" max="40" step="0.5" value="40">
-    <label for="area" class="area-l">전용면적</label>
-    <select id="area">
-      <option value="0">전체</option>
-      <option value="49">49㎡ 이상 (약 20평형)</option>
-      <option value="59" selected>59㎡ 이상 (약 25평형)</option>
-      <option value="84">84㎡ 이상 (약 34평형)</option>
-      <option value="114">114㎡ 이상 (약 45평형)</option>
-    </select>
-    <label for="minn" class="area-l">가격 기준</label>
-    <select id="minn">
-      <option value="1">거래 1건 이상 (전부)</option>
-      <option value="2" selected>거래 2건 이상</option>
-      <option value="3">거래 3건 이상</option>
-      <option value="5">거래 5건 이상</option>
-    </select>
+    <div class="mode" role="group" aria-label="이동수단">
+      <span class="mode-l" id="modes-label">이동수단</span>
+      <div class="chips" id="modes" role="group" aria-labelledby="modes-label">
+        <button type="button" data-i="0" aria-pressed="true">지하철·전철</button>
+        <button type="button" data-i="1" aria-pressed="true">기차</button>
+        <button type="button" data-i="2" aria-pressed="true">광역·시외버스</button>
+        <button type="button" data-i="3" aria-pressed="true">시내·마을버스</button>
+      </div>
+      <label class="tr-l" for="trmax">환승
+        <select id="trmax">
+          <option value="-1">제한 없음</option>
+          <option value="0">환승 없이</option>
+          <option value="1">1회까지</option>
+          <option value="2">2회까지</option>
+        </select>
+      </label>
+    </div>
+    <div class="two">
+      <div><label for="area" class="area-l">전용면적</label>
+      <select id="area">
+        <option value="0">전체</option>
+        <option value="49">49㎡ 이상 (20평형)</option>
+        <option value="59" selected>59㎡ 이상 (25평형)</option>
+        <option value="84">84㎡ 이상 (34평형)</option>
+        <option value="114">114㎡ 이상 (45평형)</option>
+      </select></div>
+      <div><label for="minn" class="area-l">가격 기준</label>
+      <select id="minn">
+        <option value="1">거래 1건 이상</option>
+        <option value="2" selected>거래 2건 이상</option>
+        <option value="3">거래 3건 이상</option>
+        <option value="5">거래 5건 이상</option>
+      </select></div>
+    </div>
   </section>
 
-  <section class="readout" aria-live="polite">
+  <section class="readout" id="ro-sec" aria-live="polite">
     <p class="ro-empty" id="ro-empty">지도 위 아무 곳에 커서를 올리거나 눌러 보세요.</p>
     <div class="ro" id="ro" hidden>
       <div class="ro-item a"><span class="ro-k">A까지</span><span class="ro-v" id="ro-a">–</span><span class="ro-s" id="ro-a-best"></span></div>
