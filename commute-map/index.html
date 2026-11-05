@@ -74,21 +74,22 @@
     <label for="bud"><span id="bud-label">예산</span> <output id="bud-out" for="bud">제한 없음</output></label>
     <input id="bud" type="range" min="1" max="40" step="0.5" value="40">
     <div class="mode" role="group" aria-label="이동수단">
-      <span class="mode-l" id="modes-label">이동수단</span>
-      <div class="chips" id="modes" role="group" aria-labelledby="modes-label">
-        <button type="button" data-i="0" aria-pressed="true">지하철·전철</button>
-        <button type="button" data-i="1" aria-pressed="true">기차</button>
-        <button type="button" data-i="2" aria-pressed="true">광역·시외버스</button>
-        <button type="button" data-i="3" aria-pressed="true">시내·마을버스</button>
+      <div class="mode-h">
+        <span class="mode-l" id="modes-label">이동수단</span>
+        <label class="tr-l" for="trmax">환승
+          <select id="trmax">
+            <option value="-1">제한 없음</option>
+            <option value="0">환승 없이</option>
+            <option value="1">1회까지</option>
+            <option value="2">2회까지</option>
+          </select>
+        </label>
       </div>
-      <label class="tr-l" for="trmax">환승
-        <select id="trmax">
-          <option value="-1">제한 없음</option>
-          <option value="0">환승 없이</option>
-          <option value="1">1회까지</option>
-          <option value="2">2회까지</option>
-        </select>
-      </label>
+      <div class="chips" id="modes" role="group" aria-labelledby="modes-label">
+        <button type="button" data-bits="23" aria-pressed="true" title="광역·시내·시외·마을버스">버스</button>
+        <button type="button" data-bits="0" aria-pressed="true" title="지하철·전철">지하철</button>
+        <button type="button" data-bits="1" aria-pressed="true" title="KTX·일반열차">기차</button>
+      </div>
     </div>
     <div class="two">
       <div><label for="area" class="area-l">전용면적</label>

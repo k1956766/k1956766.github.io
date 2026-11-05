@@ -501,13 +501,15 @@
   $('pmode').addEventListener('click', () => { state.priceMode = state.priceMode === 'jenks' ? 'fixed' : 'jenks'; state.pick = null; syncHash(); refresh(); });
   // 가격 범례 칸 누르기: 구간 고르기/해제(여러 개 가능)
   $('to-top').addEventListener('click', () => { document.querySelector('.panel').scrollTo({ top: 0, behavior: 'smooth' }); });
+  // 버튼 3개(버스·지하철·기차) ↔ 내부 수단 4가지 [지하철·전철, 기차, 광역·시외버스, 시내·마을버스]
   function setModesUI() {
-    document.querySelectorAll('#modes button').forEach((b, i) => b.setAttribute('aria-pressed', String(state.modes[i] === '1')));
+    document.querySelectorAll('#modes button').forEach((b) => b.setAttribute('aria-pressed', String([...b.dataset.bits].some((i) => state.modes[+i] === '1'))));
     $('trmax').value = String(state.tr);
   }
   $('modes').addEventListener('click', (e) => {
     const b = e.target.closest('button'); if (!b) return;
-    const i = +b.dataset.i, m = state.modes.split(''); m[i] = m[i] === '1' ? '0' : '1';
+    const bits = [...b.dataset.bits].map(Number), m = state.modes.split(''), on = bits.some((i) => m[i] === '1');
+    for (const i of bits) m[i] = on ? '0' : '1';
     if (!m.includes('1')) { toast('이동수단을 하나 이상 골라 주세요.'); return; }
     state.modes = m.join(''); setModesUI(); recompute();
   });
