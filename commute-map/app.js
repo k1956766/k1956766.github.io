@@ -219,7 +219,7 @@
       return `<button type="button" class="${on && !sel ? 'off' : ''}${sel ? ' sel' : ''}" data-c="${k}" style="background:${c}" aria-pressed="${sel}" title="${tip} · ${cnt}곳 (눌러서 이 구간만 보기)" aria-label="${tip} ${cnt}곳"></button>`;
     }).join('');
     // 눈금: 경계값을 최대 6개까지 간격을 두고 표시
-    const stride = Math.max(1, Math.ceil(br.length / (window.innerWidth <= 720 ? 4 : 6)));
+    const stride = Math.max(1, Math.ceil(br.length / 6));
     const ticks = br.map((v, i) => ({ v, i })).filter(({ i }) => (br.length - 1 - i) % stride === 0) // 마지막 경계부터 고르게
       .map(({ v, i }) => { const pos = ((i + 1) / n) * 100; return `<span class="${pos > 94 ? 'edge-r' : ''}" style="left:${pos}%">${lab(v)}</span>`; }).join('');
     el.innerHTML = `<div class="pbar">${segs}</div><div class="pticks">${ticks}</div>
@@ -277,7 +277,7 @@
   }
   function selectApt(a, fly) {
     state.sel = a; state.hover = a.cell;
-    if (document.querySelector('.panel.min')) setSheet(false); // 접혀 있으면 단지 정보를 보이게 펼침
+    if (mobile() && sheetH != null && sheetH < 140) setSheet(false); // 접혀 있으면 단지 정보가 보이게 펼침
     if (fly) map.flyTo([a.lat, a.lon], Math.max(map.getZoom(), 15), { duration: 0.6 });
     renderReadout(a.cell); renderList(); layer.redraw(); showRoute(a.cell);
     const k = state.matches.indexOf(a);
@@ -411,7 +411,7 @@
     $('ramp').innerHTML = bandColors.map((c, k) => `<span style="background:${c};flex:${Math.min(10, L - k * 10)}"></span>`).join('');
     const ticks = []; for (let m = 0; m < L; m += 10) ticks.push(m);
     // 끝 눈금(오른쪽 정렬)과 그 앞 눈금(가운데 정렬)이 겹치면 앞 눈금 생략 — 글자 폭을 실제로 재서 판단
-    const W = (window.innerWidth <= 720 ? 200 - 18 : 280 - 28);
+    const W = (window.innerWidth <= 720 ? window.innerWidth - 16 - 20 - 62 - 92 : 280 - 28);
     const mctx = (renderLegend._c ||= document.createElement('canvas').getContext('2d'));
     mctx.font = `${window.innerWidth <= 720 ? 10 : 11}px ${getComputedStyle(document.body).fontFamily}`;
     const tw = (s) => mctx.measureText(String(s)).width;
@@ -501,20 +501,54 @@
   document.querySelectorAll('#kind button').forEach((b) => b.addEventListener('click', () => { setKind(b.dataset.kind); syncHash(); refresh(); }));
   $('pmode').addEventListener('click', () => { state.priceMode = state.priceMode === 'jenks' ? 'fixed' : 'jenks'; state.pick = null; syncHash(); refresh(); });
   // 가격 범례 칸 누르기: 구간 고르기/해제(여러 개 가능)
-  /* 휴대폰: 조건 창 접기·펼치기, 범례 숨기기·보이기 */
-  const panelEl = document.querySelector('.panel');
-  function setSheet(min) {
-    panelEl.classList.toggle('min', min); document.body.classList.toggle('sheet-min', min);
-    const t = $('sheet-tog'); t.setAttribute('aria-expanded', String(!min));
-    t.setAttribute('aria-label', min ? '조건 창 펼치기' : '조건 창 접기'); t.querySelector('.st-t').textContent = min ? '펼치기' : '접기';
-    if (min) panelEl.scrollTop = 0;
+  /* 휴대폰: 조건 창 위 손잡이를 끌어 높이 조절, 끝 가까이에서는 위·아래로 붙음 */
+  const panelEl = document.querySelector('.panel'), mobile = () => window.matchMedia('(max-width:720px)').matches;
+  const sheetLim = () => { const H = window.innerHeight; return { min: 58, def: Math.round(H * 0.52), max: Math.round(H * 0.78) }; };
+  let sheetH = null;
+  function setSheetH(h) {
+    sheetH = h; document.documentElement.style.setProperty('--sheet-h', h + 'px');
+    document.body.classList.toggle('sheet-low', h < 140);
+    // 조건 창을 높이 올리면 남은 지도가 좁아서 범례를 잠시 버튼으로 줄였다가, 내리면 되돌림
+    const high = h > sheetLim().def + 60, lg = $('legend');
+    if (high && !lg.classList.contains('min')) { setLegendMin(true); autoLg = true; }
+    else if (!high && autoLg) { setLegendMin(false); autoLg = false; }
   }
-  $('sheet-tog').addEventListener('click', () => setSheet(!panelEl.classList.contains('min')));
-  $('lg-tog').addEventListener('click', () => {
-    const lg = $('legend'), min = !lg.classList.contains('min'); lg.classList.toggle('min', min);
+  let autoLg = false;
+  function setLegendMin(min) {
+    $('legend').classList.toggle('min', min);
     const t = $('lg-tog'); t.textContent = min ? '범례 보기' : '숨기기';
     t.setAttribute('aria-expanded', String(!min)); t.setAttribute('aria-label', min ? '범례 보기' : '범례 숨기기');
-  });
+  }
+  function setSheet(min) { setSheetH(min ? sheetLim().min : sheetLim().def); if (min) panelEl.scrollTop = 0; }
+  (() => {
+    const hd = $('sheet-handle'); let y0 = 0, h0 = 0, moved = false, id = null;
+    hd.addEventListener('pointerdown', (e) => {
+      if (!mobile()) return;
+      id = e.pointerId; hd.setPointerCapture(id); y0 = e.clientY; h0 = panelEl.getBoundingClientRect().height; moved = false;
+      document.body.classList.add('dragging');
+    });
+    hd.addEventListener('pointermove', (e) => {
+      if (e.pointerId !== id) return;
+      const d = y0 - e.clientY; if (Math.abs(d) > 4) moved = true;
+      const L = sheetLim(); setSheetH(Math.min(L.max, Math.max(L.min, h0 + d)));
+    });
+    const end = (e) => {
+      if (e.pointerId !== id) return; id = null; document.body.classList.remove('dragging');
+      const L = sheetLim(), h = sheetH ?? L.def;
+      if (!moved) { setSheet(h > L.min + 20); return; } // 짧게 누르면 접기 ↔ 기본 높이
+      if (h < L.min + (L.def - L.min) * 0.35) setSheet(true);                 // 아래쪽 끝 가까이 → 맨 아래
+      else if (h > L.max - (L.max - L.def) * 0.35) setSheetH(L.max);           // 위쪽 끝 가까이 → 맨 위(지도는 남김)
+    };
+    hd.addEventListener('pointerup', end); hd.addEventListener('pointercancel', end);
+    hd.addEventListener('keydown', (e) => {
+      const L = sheetLim(), h = sheetH ?? L.def;
+      if (e.key === 'ArrowUp') { setSheetH(Math.min(L.max, h + 60)); e.preventDefault(); }
+      if (e.key === 'ArrowDown') { setSheetH(Math.max(L.min, h - 60)); e.preventDefault(); }
+    });
+    window.addEventListener('resize', () => { if (sheetH != null) { const L = sheetLim(); setSheetH(Math.min(L.max, Math.max(L.min, sheetH))); } renderLegend(); renderPriceLegend(); });
+  })();
+  $('lg-tog').addEventListener('click', () => { autoLg = false; setLegendMin(!$('legend').classList.contains('min')); });
+
   $('to-top').addEventListener('click', () => { document.querySelector('.panel').scrollTo({ top: 0, behavior: 'smooth' }); });
   // 버튼 3개(버스·지하철·기차) ↔ 내부 수단 4가지 [지하철·전철, 기차, 광역·시외버스, 시내·마을버스]
   function setModesUI() {

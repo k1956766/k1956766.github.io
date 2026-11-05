@@ -261,35 +261,37 @@ body.picking #map{cursor:crosshair}
 .mode .chips button{flex:1}
 .mode-h{justify-content:flex-start;gap:14px}
 
-/* 휴대폰: 조건 창 접기, 범례 숨기기 */
-.sheet-tog,.lg-tog{display:none}
+/* 휴대폰: 조건 창 높이 끌어서 조절, 가로 범례 */
+.sheet-handle,.lg-tog{display:none}
 @media (max-width:720px){
-  .panel{transition:max-height .25s ease}
-  .brand{position:relative;padding-right:76px}
-  .sheet-tog{display:flex;align-items:center;justify-content:center;position:absolute;right:0;top:50%;transform:translateY(-50%);
-    min-height:34px;padding:0 12px;font:inherit;font-size:13px;font-weight:700;color:var(--ink);background:#fff;border:1px solid var(--rule);border-radius:999px;cursor:pointer}
-  .sheet-tog::after{content:"▾";margin-left:4px;font-size:11px}
-  .panel.min .sheet-tog::after{content:"▴"}
-  .grab{position:absolute;left:50%;top:-12px;width:0;height:0}
-  .panel.min{max-height:54px;overflow:hidden;padding-top:12px;padding-bottom:12px}
-  body.sheet-min .legend{bottom:62px}
-  body.sheet-min .to-top{display:none}
+  :root{--sheet-h:52vh}
+  .panel{height:var(--sheet-h);max-height:none;padding-top:26px;transition:height .22s ease}
+  .sheet-handle{display:block;position:fixed;left:0;right:0;z-index:1002;height:30px;bottom:calc(var(--sheet-h) - 30px);
+    touch-action:none;cursor:grab;transition:bottom .22s ease;border:0;background:transparent;padding:0}
+  .sheet-handle::before{content:"";position:absolute;left:50%;top:9px;width:44px;height:5px;margin-left:-22px;border-radius:3px;background:#C3CAD2}
+  body.dragging .panel,body.dragging .sheet-handle,body.dragging .legend{transition:none}
+  body.sheet-low .to-top{display:none}
 
-  /* 범례: 더 작게, 누르는 곳은 충분히 */
-  .legend{width:172px;padding:6px 8px 6px;border-radius:9px}
-  .legend .lg-title{font-size:10.5px}
-  .legend .ramp{height:8px}
-  .legend .ramp-labels{font-size:9.5px;height:12px;margin-top:2px}
+  /* 범례: 화면 폭을 가로로 쓰고 높이는 낮게 */
+  .legend{left:8px;right:8px;width:auto;bottom:calc(var(--sheet-h) + 8px);padding:7px 10px 6px;border-radius:10px;transition:bottom .22s ease}
+  .legend .lg-row:first-of-type{flex-direction:row;align-items:flex-start;gap:8px;padding-right:62px}
+  .legend .lg-row:first-of-type .lg-title{padding-top:0;line-height:12px}
+  .legend .lg-scale{flex:1;min-width:0}
+  .legend .lg-title{font-size:11px}
+  .legend .ramp{height:8px;margin-top:2px}
+  .legend .ramp-labels{font-size:9.5px;height:12px;margin-top:1px}
   .legend .lg-price{margin-top:5px;padding-top:5px}
-  .legend .lg-btns{width:100%;justify-content:space-between;gap:4px;margin-top:2px}
-  .legend .pmode{flex:1;min-height:26px;font-size:10.5px;padding:0 4px}
-  .legend .pbar{height:20px;margin-top:5px}
-  .legend .pticks,.legend .pnote{font-size:9.5px}
-  .legend .lg-op{margin-top:5px;padding-top:5px}
-  .legend .lg-op label{font-size:10.5px}
-  .legend .lg-op input{height:22px}
-  .lg-tog{display:block;margin:0 0 5px auto;min-height:26px;padding:0 10px;font:inherit;font-size:11px;font-weight:700;color:var(--ink);background:#fff;border:1px solid var(--rule);border-radius:999px;cursor:pointer}
-  .legend.min{width:auto;padding:4px;background:transparent;box-shadow:none}
+  .legend .lg-ph{flex-wrap:nowrap}
+  .legend .lg-btns{flex-wrap:nowrap;gap:5px}
+  .legend .pmode{min-height:28px;font-size:11px;padding:0 10px}
+  .legend .pbar{height:26px;margin-top:5px}
+  .legend .pticks{font-size:10px;height:13px}
+  .legend .pnote{font-size:10px;margin-top:0}
+  .legend .lg-op{display:flex;align-items:center;gap:10px;margin-top:4px;padding-top:4px}
+  .legend .lg-op label{font-size:11px;white-space:nowrap;gap:6px}
+  .legend .lg-op input{flex:1;height:24px;margin:0}
+  .lg-tog{display:block;position:absolute;top:5px;right:8px;min-height:26px;padding:0 10px;font:inherit;font-size:11px;font-weight:700;color:var(--ink);background:#fff;border:1px solid var(--rule);border-radius:999px;cursor:pointer}
+  .legend.min{left:auto;width:auto;padding:0;background:transparent;box-shadow:none}
   .legend.min > :not(.lg-tog){display:none}
-  .legend.min .lg-tog{margin:0;min-height:34px;padding:0 14px;font-size:12px;box-shadow:0 2px 8px rgba(31,43,61,.18)}
+  .legend.min .lg-tog{position:static;min-height:34px;padding:0 14px;font-size:12px;box-shadow:0 2px 8px rgba(31,43,61,.18)}
 }
