@@ -255,3 +255,8 @@ body.picking #map{cursor:crosshair}
 
 .readout.in-one{display:none}
 .home .tr-l{justify-content:flex-start;font-weight:600}
+
+.mode-h{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.mode .chips{flex-wrap:nowrap}
+.mode .chips button{flex:1}
+.mode-h{justify-content:flex-start;gap:14px}
