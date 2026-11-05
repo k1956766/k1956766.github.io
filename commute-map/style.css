@@ -189,5 +189,7 @@ body.picking #map{cursor:crosshair}
 .detail tr.dim td{color:#A3ACB6}
 .detail p{margin:6px 0 0;font-size:11px;color:var(--ink-2)}
 
-.to-top{align-self:stretch;font:inherit;font-size:13px;font-weight:600;border:1px solid var(--rule);background:#fff;border-radius:8px;padding:8px 12px;cursor:pointer;color:#1F2B3D}
+/* 맨 위로: 조건 창 오른쪽 아래(지도 왼쪽 아래)에 항상 떠 있음 */
+.to-top{position:fixed;z-index:1001;left:366px;bottom:16px;font:inherit;font-size:13px;font-weight:700;color:#1F2B3D;background:#fff;border:1px solid var(--rule);border-radius:999px;padding:8px 14px;cursor:pointer;box-shadow:0 2px 8px rgba(31,43,61,.18)}
 .to-top:hover{background:#F3F5F8}
+@media (max-width:720px){.to-top{left:auto;right:10px;bottom:10px;font-size:12px;padding:7px 12px}}
