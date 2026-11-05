@@ -189,6 +189,10 @@ body.picking #map{cursor:crosshair}
 .detail tr.dim td{color:#A3ACB6}
 .detail p{margin:6px 0 0;font-size:11px;color:var(--ink-2)}
 
+
+.busy{position:fixed;z-index:1200;left:50%;top:14px;transform:translateX(-50%);background:#1F2B3D;color:#fff;font-size:13px;font-weight:600;padding:8px 14px;border-radius:999px;box-shadow:0 4px 14px rgba(0,0,0,.18)}
+.busy[hidden]{display:none}
+.beta-tag{font-size:12px;font-weight:700;color:#fff;background:#1F2B3D;border-radius:6px;padding:2px 7px;vertical-align:middle;margin-left:4px}
 /* 맨 위로: 조건 창 오른쪽 아래(지도 왼쪽 아래)에 항상 떠 있음 */
 .to-top{position:fixed;z-index:1001;left:366px;bottom:16px;font:inherit;font-size:13px;font-weight:700;color:#1F2B3D;background:#fff;border:1px solid var(--rule);border-radius:999px;padding:8px 14px;cursor:pointer;box-shadow:0 2px 8px rgba(31,43,61,.18)}
 .to-top:hover{background:#F3F5F8}

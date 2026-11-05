@@ -277,25 +277,36 @@
   }
 
   /* ---------- 직장 칸 자료: 64칸 묶음 파일에서 꺼내기 ---------- */
-  const bundles = new Map();
-  async function loadWork(i) {
-    const B = state.grid.bundle || 64, n = state.grid.n, k = Math.floor(i / B);
-    if (!bundles.has(k)) {
-      const p = fetch(`data/wb/${k}.bin`).then((r) => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); });
-      bundles.set(k, p); p.catch(() => bundles.delete(k));
-    }
-    const buf = await bundles.get(k);
-    return new Uint8Array(buf, (i % B) * 2 * n, 2 * n);
+  /* 직장 칸을 고르면 브라우저(웹 워커)에서 바로 계산. 같은 칸은 기억해 둠 */
+  const worker = new Worker('worker.js'); let qid = 0; const pending = new Map(), cache = new Map();
+  worker.onmessage = (e) => {
+    const m = e.data;
+    if (m.type === 'progress') { busy(`계산 자료 받는 중 ${Math.round((m.got / m.total) * 100)}% (처음 한 번만)`); return; }
+    if (m.type === 'ready') return;
+    const p = pending.get(m.id); if (!p) return; pending.delete(m.id);
+    if (m.type === 'error') p.reject(new Error(m.msg)); else { console.info(`통근시간 계산 ${m.ms}ms`); p.resolve(m.data); }
+  };
+  worker.postMessage({ type: 'init' }); // 페이지 열 때 미리 자료 받기 시작
+  function loadWork(i) {
+    if (cache.has(i)) return cache.get(i);
+    const id = ++qid; const p = new Promise((resolve, reject) => pending.set(id, { resolve, reject }));
+    worker.postMessage({ type: 'query', id, cell: i });
+    cache.set(i, p); p.catch(() => cache.delete(i));
+    return p;
   }
+  let busyEl = null;
+  function busy(msg) { if (!busyEl) { busyEl = document.createElement('div'); busyEl.className = 'busy'; document.body.appendChild(busyEl); } busyEl.textContent = msg; busyEl.hidden = !msg; }
 
   /* ---------- 직장 지정 ---------- */
   const markers = {};
   async function setWorkplace(key, lat, lon, label) {
     const i = nearestCell(lat, lon);
-    if (i < 0) { toast('서울 안의 위치를 골라 주세요. 서울 밖 업무지구는 곧 추가합니다.'); return; }
+    if (i < 0) { toast('서울·경기 안의 사람 사는 곳을 골라 주세요.'); return; }
     let data;
+    busy('통근시간 계산 중…');
     try { data = await loadWork(i); }
-    catch (e) { toast('이 위치의 통근시간 자료를 불러오지 못했습니다. 잠시 뒤 다시 골라 주세요.'); return; }
+    catch (e) { busy(''); toast('통근시간을 계산하지 못했습니다. 잠시 뒤 다시 골라 주세요.'); return; }
+    busy('');
     state[key] = { idx: i, lat, lon, label: label || '지도에서 고른 위치', data };
     if (markers[key]) markers[key].remove();
     markers[key] = L.marker([lat, lon], {
@@ -466,7 +477,7 @@
       fetch('data/grid.json').then((r) => r.json()),
       fetch('data/apts.json').then((r) => (r.ok ? r.json() : [])).catch(() => []),
       fetch('data/stations.json').then((r) => r.json()),
-      fetch('data/seoul.geojson').then((r) => r.json()),
+      fetch('data/region.geojson').then((r) => r.json()),
     ]);
     state.grid = g; state.apts = apts;
     { const S = g.size_m || 250, pos = new Map(g.ids.map((id, i) => [id, i]));
@@ -477,12 +488,12 @@
     map.fitBounds(outline.getBounds(), narrow
       ? { paddingTopLeft: [8, 8], paddingBottomRight: [8, Math.round(window.innerHeight * 0.52)] }
       : { paddingTopLeft: [380, 24], paddingBottomRight: [24, 24] });
-    $('basis').textContent = '국가교통DB 2025년 3월 평일 시간표, 평일 오전 7시 30분~8시 30분 사이 출발, 보행 시속 4.5km 기준.';
+    $('basis').textContent = '국가교통DB 2025년 3월 평일 시간표, 평일 오전 7시 30분~8시 30분 사이 출발, 보행 시속 4.5km 기준. 통근시간은 직장을 고를 때 브라우저에서 바로 계산합니다.';
 
     /* ---------- 직장 검색: 역 → 장소(회사·건물) → 주소 ---------- */
     let places = null, geocoder = null;
     try { if (window.kakao?.maps) kakao.maps.load(() => { places = new kakao.maps.services.Places(); geocoder = new kakao.maps.services.Geocoder(); }); } catch (e) { /* 검색 서비스 없이 역 검색만 */ }
-    const SEOUL_RECT = '126.76,37.41,127.19,37.72';
+    const SEOUL_RECT = '126.37,36.89,127.86,38.30'; // 서울·경기
     const norm = (s) => s.replace(/\s+/g, '');
     const searchKakao = (q) => new Promise((res) => {
       if (!places) return res([]);
@@ -494,7 +505,7 @@
         done();
       }, { rect: SEOUL_RECT, size: 6 });
       geocoder.addressSearch(q, (d, st) => {
-        if (st === kakao.maps.services.Status.OK) for (const x of d.filter((x) => (x.address_name || '').startsWith('서울')).slice(0, 3)) out.push({ kind: 'addr', name: x.road_address?.address_name || x.address_name, sub: x.road_address && x.road_address.address_name !== x.address_name ? x.address_name : '', lat: +x.y, lon: +x.x, order: looksAddr ? 1 : 2 });
+        if (st === kakao.maps.services.Status.OK) for (const x of d.filter((x) => /^(서울|경기)/.test(x.address_name || '')).slice(0, 3)) out.push({ kind: 'addr', name: x.road_address?.address_name || x.address_name, sub: x.road_address && x.road_address.address_name !== x.address_name ? x.address_name : '', lat: +x.y, lon: +x.x, order: looksAddr ? 1 : 2 });
         done();
       });
     });

@@ -3,17 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>통근 지도 — 직장에서 몇 분 거리에 살 수 있을까</title>
+<title>통근 지도(서울·경기) — 직장에서 몇 분 거리에 살 수 있을까</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <link rel="stylesheet" href="lib/leaflet.css">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div id="map" aria-label="서울 지도"></div>
+<div id="map" aria-label="서울·경기 지도"></div>
 
 <aside class="panel" aria-label="조건 설정">
   <header class="brand">
-    <h1>통근 지도</h1>
+    <h1>통근 지도 <span class="beta-tag">서울·경기</span></h1>
     <p>직장을 찍으면, 대중교통으로 몇 분 안에 닿는 동네가 칠해집니다.</p>
   </header>
 
@@ -107,6 +107,7 @@
   <footer class="basis">
     <p id="basis"></p>
     <p>가격은 국토교통부 실거래가(2025년 11월~2026년 10월) 중위값입니다. 해제된 거래는 뺐고, 전세는 월세 없는 계약만, 월세는 월세가 있는 계약만 셉니다. 거래가 적은 면적형은 가격이 들쭉날쭉할 수 있어 기본으로 2건 이상만 보여줍니다.</p>
+    <p>단지 위치는 행정안전부 주소정보(도로명주소 주출입구 좌표)입니다. 지도는 © OpenStreetMap 기여자.</p>
     <p>"보통"은 아무 때나 집을 나섰을 때의 중앙값, "최적"은 열차 시각에 맞춰 나섰을 때의 값입니다. 실제 지연·혼잡은 반영되지 않습니다.</p>
   </footer>
 </aside>
