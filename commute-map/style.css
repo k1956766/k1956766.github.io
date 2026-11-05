@@ -197,3 +197,29 @@ body.picking #map{cursor:crosshair}
 .to-top{position:fixed;z-index:1001;left:366px;bottom:16px;font:inherit;font-size:13px;font-weight:700;color:#1F2B3D;background:#fff;border:1px solid var(--rule);border-radius:999px;padding:8px 14px;cursor:pointer;box-shadow:0 2px 8px rgba(31,43,61,.18)}
 .to-top:hover{background:#F3F5F8}
 @media (max-width:720px){.to-top{left:auto;right:10px;bottom:10px;font-size:12px;padding:7px 12px}}
+
+/* 이동수단 고르기 */
+.mode{display:flex;flex-direction:column;gap:8px}
+.mode-l{font-weight:700;font-size:15px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{font:inherit;font-size:13px;font-weight:600;border:1px solid var(--rule);background:#fff;color:var(--ink-2);border-radius:999px;padding:6px 12px;cursor:pointer}
+.chips button[aria-pressed="true"]{background:#1F2B3D;border-color:#1F2B3D;color:#fff}
+.tr-l{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600}
+.tr-l select{font:inherit;font-size:13px;padding:4px 8px;border:1px solid var(--rule);border-radius:8px;background:#fff}
+/* 경로 */
+.route{margin-top:10px;display:flex;flex-direction:column;gap:10px}
+.rt{border:1px solid var(--rule);border-radius:10px;padding:10px 12px;background:#fff}
+.rt-h{font-size:13px;line-height:1.5}
+.rt-sum{display:inline-block;margin-left:4px;color:var(--ink-2);font-size:12px}
+.rt ol{list-style:none;margin:8px 0 0;padding:0 0 0 12px;border-left:2px solid var(--rule);display:flex;flex-direction:column;gap:6px}
+.rt li{font-size:13px;line-height:1.45;position:relative}
+.rt li::before{content:"";position:absolute;left:-18px;top:6px;width:9px;height:9px;border-radius:50%;background:#fff;border:2px solid #9AA3AF}
+.rt-walk{color:var(--ink-2)}
+.rt-st{color:var(--ink-2);font-size:12px}
+.rt-tag{display:inline-block;font-size:11px;font-weight:700;color:#fff;border-radius:4px;padding:1px 6px;margin-right:2px}
+.m1 .rt-tag{background:#2E6BD8}.m1::before{border-color:#2E6BD8!important}
+.m2 .rt-tag{background:#6B4FBB}.m2::before{border-color:#6B4FBB!important}
+.m3 .rt-tag{background:#C8322E}.m3::before{border-color:#C8322E!important}
+.m4 .rt-tag{background:#2E9A57}.m4::before{border-color:#2E9A57!important}
+.rt-wait,.rt-note{font-size:12px;color:var(--ink-2);margin:0}
+.panel>*{flex-shrink:0}
