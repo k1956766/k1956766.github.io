@@ -223,3 +223,35 @@ body.picking #map{cursor:crosshair}
 .m4 .rt-tag{background:#2E9A57}.m4::before{border-color:#2E9A57!important}
 .rt-wait,.rt-note{font-size:12px;color:var(--ink-2);margin:0}
 .panel>*{flex-shrink:0}
+
+/* 조건 창 압축 */
+.stop{padding-bottom:10px}
+.stop .row{align-items:center;gap:6px}
+.stop .row label{flex:0 0 auto;margin:0;font-size:14px;font-weight:700;width:44px}
+.stop .row input{font-size:13px;padding:6px 8px}
+.stop .pick{font-size:12px;padding:6px 8px;align-self:stretch}
+.stop .clear{font-size:15px;line-height:1;padding:0 8px;align-self:stretch}
+.line::before{top:12px;bottom:22px}
+.stop .dot{margin-top:6px}
+.mode{gap:6px;margin:4px 0 2px}
+.mode-l{font-size:13px}
+.chips{gap:4px}
+.chips button{font-size:12px;padding:4px 9px}
+.tr-l{font-size:13px}
+.tr-l select{font-size:12px;padding:3px 6px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:2px}
+.two>div{display:flex;flex-direction:column;gap:4px;min-width:0}
+.home .two label{font-size:13px}
+.home .two select{font-size:12px;padding:5px 6px;min-width:0}
+
+/* 단지 하나만 보기 */
+.apt.one{display:flex;flex-direction:column;gap:6px;cursor:default}
+.apt.one .nm{font-size:18px}
+.back{align-self:flex-start;font:inherit;font-size:12px;font-weight:600;border:1px solid var(--rule);background:#fff;border-radius:999px;padding:4px 10px;cursor:pointer;margin-bottom:4px}
+.one-t{display:flex;gap:16px;margin:4px 0}
+.one-t .ro-item b{font-size:26px;font-weight:800;line-height:1.1}
+.one-t .ro-item small{font-size:12px;color:var(--ink-2)}
+#route-slot .route{margin-top:0}
+
+.readout.in-one{display:none}
+.home .tr-l{justify-content:flex-start;font-weight:600}

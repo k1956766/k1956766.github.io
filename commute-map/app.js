@@ -102,10 +102,13 @@
       for (const a of state.matches) {
         if (a.lat < b.getSouth() || a.lat > b.getNorth() || a.lon < b.getWest() || a.lon > b.getEast()) continue;
         const p = m.latLngToContainerPoint([a.lat, a.lon]);
+        ctx.globalAlpha = state.sel && a !== state.sel ? 0.25 : 1; // 단지를 고르면 나머지는 흐리게
         ctx.beginPath(); ctx.arc(p.x, p.y, a === state.sel ? r + 3 : r, 0, 7);
         ctx.fillStyle = state.priceColors[a.cls]; ctx.fill();
         ctx.strokeStyle = a === state.sel ? '#1F2B3D' : 'rgba(31,43,61,0.55)'; ctx.lineWidth = a === state.sel ? 2.5 : (z >= 12 ? 1.2 : 0.8); ctx.stroke();
       }
+      ctx.globalAlpha = 1;
+      if (state.sel) { const a = state.sel, p = m.latLngToContainerPoint([a.lat, a.lon]); ctx.beginPath(); ctx.arc(p.x, p.y, r + 3, 0, 7); ctx.fillStyle = state.priceColors[a.cls]; ctx.fill(); ctx.strokeStyle = '#1F2B3D'; ctx.lineWidth = 2.5; ctx.stroke(); }
       if (state.hover >= 0) {
         const i = state.hover;
         const p0 = m.latLngToContainerPoint([g.lat[i] + HALF_LAT, g.lon[i] - HALF_LON]);
@@ -227,6 +230,26 @@
     if (!state.a) { $('apt-count').textContent = '단지 목록'; ol.innerHTML = '<li class="none">직장을 정하면 통근시간 안에 있는 아파트 단지가 여기에 나옵니다.</li>'; $('apt-more').hidden = true; return; }
     $('apt-count').textContent = `조건에 맞는 단지 ${state.matches.length.toLocaleString()}곳`;
     if (!state.matches.length) { ol.innerHTML = state.all.length ? '<li class="none">고른 가격 구간이 없습니다. 오른쪽 아래 가격 범례의 칸을 눌러 보고 싶은 구간을 켜 주세요.</li>' : '<li class="none">조건에 맞는 단지가 없습니다. 최대 통근시간이나 예산을 늘려 보세요.</li>'; $('apt-more').hidden = true; return; }
+    // 경로 상자는 단지 카드 안으로 옮겨 쓰므로, 목록을 다시 그리기 전에 원래 자리로 돌려 둠
+    const rt = $('route'); if (rt.parentElement !== $('ro-sec')) $('ro-sec').appendChild(rt);
+    $('ro-sec').classList.toggle('in-one', !!(state.sel && state.matches.includes(state.sel)));
+    if (state.sel && state.matches.includes(state.sel)) {
+      // 단지 하나만 보기: 선택한 단지 카드(통근시간·가는 길·면적별 가격)만
+      const a = state.sel, k = state.matches.indexOf(a);
+      const tb = state.b?.data ? t(state.b, a.cell, false) : null, ta = t(state.a, a.cell, false);
+      const bb = state.b?.data ? t(state.b, a.cell, true) : null, ba = t(state.a, a.cell, true);
+      $('apt-count').textContent = '선택한 단지';
+      ol.innerHTML = `<li class="apt one sel" data-k="${k}">
+        <button type="button" class="back" id="apt-back">← 목록으로 (${state.matches.length.toLocaleString()}곳)</button>
+        <span class="nm">${a.name}</span><span class="sub">${a.dong}${a.year ? `, ${a.year}년` : ''}</span>
+        <div class="one-t"><div class="ro-item a"><span class="ro-k">A까지</span><b>${ta}분</b><small>빠르면 ${ba}분</small></div>
+        ${tb == null ? '' : `<div class="ro-item b"><span class="ro-k">B까지</span><b>${tb}분</b><small>빠르면 ${bb}분</small></div>`}</div>
+        <div id="route-slot"></div>
+        ${detailHTML(a)}</li>`;
+      $('route-slot').appendChild(rt);
+      $('apt-more').hidden = true;
+      return;
+    }
     ol.innerHTML = state.matches.slice(0, state.showN).map((a, k) => {
       const tb = state.b?.data ? t(state.b, a.cell, false) : null, ta = t(state.a, a.cell, false);
       const tm = tb == null ? `${ta}분` : `A ${ta} / B ${tb}분`;
@@ -258,7 +281,7 @@
     renderReadout(a.cell); renderList(); layer.redraw(); showRoute(a.cell);
     const k = state.matches.indexOf(a);
     if (k >= state.showN) { state.showN = k + 10; renderList(); }
-    document.querySelector(`.apt[data-k="${k}"]`)?.scrollIntoView({ block: 'nearest' });
+    $('apt-count').scrollIntoView({ block: 'start', behavior: 'smooth' });
   }
   function refresh() { computeMatches(); renderList(); renderPriceLegend(); layer.redraw(); renderReadout(state.hover); $('legend').classList.toggle('empty', !state.a); }
 
@@ -351,13 +374,14 @@
     }).addTo(map);
     document.querySelector(`.stop.${key}`).classList.add('set');
     $(`where-${key}`).textContent = state[key].label;
+    { const q = $(`q-${key}`); if (!label) { q.value = ''; q.placeholder = '지도에서 고른 곳'; } else if (!q.value) q.value = label; }
     if (key === 'b') $('clear-b').hidden = false;
     syncHash(); refresh();
   }
   function clearB() {
     state.b = null; markers.b?.remove(); delete markers.b;
     document.querySelector('.stop.b').classList.remove('set');
-    $('where-b').textContent = '비워 두면 A만 기준으로 봅니다'; $('q-b').value = ''; $('clear-b').hidden = true;
+    $('where-b').textContent = '비워 두면 A만 기준으로 봅니다'; $('q-b').value = ''; $('q-b').placeholder = '맞벌이라면 (선택)'; $('clear-b').hidden = true;
     syncHash(); refresh();
   }
 
@@ -439,6 +463,7 @@
     const cp = map.latLngToContainerPoint(e.latlng); let hit = null, hd = 12 * 12;
     for (const a of state.matches) { const p = map.latLngToContainerPoint([a.lat, a.lon]); const d = (p.x - cp.x) ** 2 + (p.y - cp.y) ** 2; if (d < hd) { hd = d; hit = a; } }
     if (hit) { selectApt(hit, false); return; }
+    if (state.sel) { state.sel = null; renderList(); }
     state.hover = nearestCell(e.latlng.lat, e.latlng.lng); renderReadout(state.hover); layer.redraw(); showRoute(state.hover);
   });
   let raf;
@@ -513,6 +538,8 @@
   $('op').addEventListener('input', (e) => setOpacity(+e.target.value));
   try { const sv = +localStorage.getItem('commute-opacity'); if (sv >= 20 && sv <= 90) setOpacity(sv); else setOpacity(55); } catch (e) { setOpacity(55); }
   $('apt-list').addEventListener('click', (e) => {
+    if (e.target.closest('#apt-back')) { state.sel = null; renderList(); layer.redraw(); showRoute(-1); $('apt-count').scrollIntoView({ block: 'nearest' }); return; }
+    if (e.target.closest('.one')) return;
     const btn = e.target.closest('.more-d');
     if (btn) { const a = state.matches[+btn.dataset.k]; state.open = state.open === a.seq ? null : a.seq; selectApt(a, false); return; }
     if (e.target.closest('.detail')) return;
