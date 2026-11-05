@@ -260,3 +260,36 @@ body.picking #map{cursor:crosshair}
 .mode .chips{flex-wrap:nowrap}
 .mode .chips button{flex:1}
 .mode-h{justify-content:flex-start;gap:14px}
+
+/* 휴대폰: 조건 창 접기, 범례 숨기기 */
+.sheet-tog,.lg-tog{display:none}
+@media (max-width:720px){
+  .panel{transition:max-height .25s ease}
+  .brand{position:relative;padding-right:76px}
+  .sheet-tog{display:flex;align-items:center;justify-content:center;position:absolute;right:0;top:50%;transform:translateY(-50%);
+    min-height:34px;padding:0 12px;font:inherit;font-size:13px;font-weight:700;color:var(--ink);background:#fff;border:1px solid var(--rule);border-radius:999px;cursor:pointer}
+  .sheet-tog::after{content:"▾";margin-left:4px;font-size:11px}
+  .panel.min .sheet-tog::after{content:"▴"}
+  .grab{position:absolute;left:50%;top:-12px;width:0;height:0}
+  .panel.min{max-height:54px;overflow:hidden;padding-top:12px;padding-bottom:12px}
+  body.sheet-min .legend{bottom:62px}
+  body.sheet-min .to-top{display:none}
+
+  /* 범례: 더 작게, 누르는 곳은 충분히 */
+  .legend{width:172px;padding:6px 8px 6px;border-radius:9px}
+  .legend .lg-title{font-size:10.5px}
+  .legend .ramp{height:8px}
+  .legend .ramp-labels{font-size:9.5px;height:12px;margin-top:2px}
+  .legend .lg-price{margin-top:5px;padding-top:5px}
+  .legend .lg-btns{width:100%;justify-content:space-between;gap:4px;margin-top:2px}
+  .legend .pmode{flex:1;min-height:26px;font-size:10.5px;padding:0 4px}
+  .legend .pbar{height:20px;margin-top:5px}
+  .legend .pticks,.legend .pnote{font-size:9.5px}
+  .legend .lg-op{margin-top:5px;padding-top:5px}
+  .legend .lg-op label{font-size:10.5px}
+  .legend .lg-op input{height:22px}
+  .lg-tog{display:block;margin:0 0 5px auto;min-height:26px;padding:0 10px;font:inherit;font-size:11px;font-weight:700;color:var(--ink);background:#fff;border:1px solid var(--rule);border-radius:999px;cursor:pointer}
+  .legend.min{width:auto;padding:4px;background:transparent;box-shadow:none}
+  .legend.min > :not(.lg-tog){display:none}
+  .legend.min .lg-tog{margin:0;min-height:34px;padding:0 14px;font-size:12px;box-shadow:0 2px 8px rgba(31,43,61,.18)}
+}

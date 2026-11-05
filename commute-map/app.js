@@ -277,6 +277,7 @@
   }
   function selectApt(a, fly) {
     state.sel = a; state.hover = a.cell;
+    if (document.querySelector('.panel.min')) setSheet(false); // 접혀 있으면 단지 정보를 보이게 펼침
     if (fly) map.flyTo([a.lat, a.lon], Math.max(map.getZoom(), 15), { duration: 0.6 });
     renderReadout(a.cell); renderList(); layer.redraw(); showRoute(a.cell);
     const k = state.matches.indexOf(a);
@@ -500,6 +501,20 @@
   document.querySelectorAll('#kind button').forEach((b) => b.addEventListener('click', () => { setKind(b.dataset.kind); syncHash(); refresh(); }));
   $('pmode').addEventListener('click', () => { state.priceMode = state.priceMode === 'jenks' ? 'fixed' : 'jenks'; state.pick = null; syncHash(); refresh(); });
   // 가격 범례 칸 누르기: 구간 고르기/해제(여러 개 가능)
+  /* 휴대폰: 조건 창 접기·펼치기, 범례 숨기기·보이기 */
+  const panelEl = document.querySelector('.panel');
+  function setSheet(min) {
+    panelEl.classList.toggle('min', min); document.body.classList.toggle('sheet-min', min);
+    const t = $('sheet-tog'); t.setAttribute('aria-expanded', String(!min));
+    t.setAttribute('aria-label', min ? '조건 창 펼치기' : '조건 창 접기'); t.querySelector('.st-t').textContent = min ? '펼치기' : '접기';
+    if (min) panelEl.scrollTop = 0;
+  }
+  $('sheet-tog').addEventListener('click', () => setSheet(!panelEl.classList.contains('min')));
+  $('lg-tog').addEventListener('click', () => {
+    const lg = $('legend'), min = !lg.classList.contains('min'); lg.classList.toggle('min', min);
+    const t = $('lg-tog'); t.textContent = min ? '범례 보기' : '숨기기';
+    t.setAttribute('aria-expanded', String(!min)); t.setAttribute('aria-label', min ? '범례 보기' : '범례 숨기기');
+  });
   $('to-top').addEventListener('click', () => { document.querySelector('.panel').scrollTo({ top: 0, behavior: 'smooth' }); });
   // 버튼 3개(버스·지하철·기차) ↔ 내부 수단 4가지 [지하철·전철, 기차, 광역·시외버스, 시내·마을버스]
   function setModesUI() {
