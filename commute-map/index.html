@@ -64,6 +64,24 @@
     <p class="hint" id="lim-hint">출근 시간대 보통 걸리는 시간 기준입니다.</p>
   </section>
 
+  <section class="mode" aria-label="이동수단">
+    <span class="mode-l" id="modes-label">이동수단</span>
+    <div class="chips" id="modes" role="group" aria-labelledby="modes-label">
+      <button type="button" data-i="0" aria-pressed="true">지하철·전철</button>
+      <button type="button" data-i="1" aria-pressed="true">기차</button>
+      <button type="button" data-i="2" aria-pressed="true">광역·시외버스</button>
+      <button type="button" data-i="3" aria-pressed="true">시내·마을버스</button>
+    </div>
+    <label class="tr-l" for="trmax">환승
+      <select id="trmax">
+        <option value="-1">제한 없음</option>
+        <option value="0">환승 없이</option>
+        <option value="1">1회까지</option>
+        <option value="2">2회까지</option>
+      </select>
+    </label>
+  </section>
+
   <section class="home" aria-label="집 조건">
     <div class="seg" id="kind" role="radiogroup" aria-label="거래 방식">
       <button type="button" role="radio" aria-checked="true" data-kind="sale">매매</button>
@@ -95,6 +113,7 @@
       <div class="ro-item a"><span class="ro-k">A까지</span><span class="ro-v" id="ro-a">–</span><span class="ro-s" id="ro-a-best"></span></div>
       <div class="ro-item b" id="ro-b-wrap"><span class="ro-k">B까지</span><span class="ro-v" id="ro-b">–</span><span class="ro-s" id="ro-b-best"></span></div>
     </div>
+    <div class="route" id="route" hidden></div>
   </section>
 
   <section class="apts" aria-label="조건에 맞는 단지">

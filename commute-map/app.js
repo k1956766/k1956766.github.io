@@ -37,7 +37,7 @@
   const $ = (id) => document.getElementById(id);
 
   const state = { grid: null, a: null, b: null, limit: 50, picking: null, hover: -1,
-    opacity: 0.55, priceMode: 'fixed', pick: null, all: [], open: null, apts: [], kind: 'sale', budget: Infinity, minArea: 59, minN: 2, prio: 'eq', extra: 15, matches: [], showN: 30, sel: null };
+    opacity: 0.55, priceMode: 'fixed', pick: null, modes: '1111', tr: -1, routeCell: -1, all: [], open: null, apts: [], kind: 'sale', budget: Infinity, minArea: 59, minN: 2, prio: 'eq', extra: 15, matches: [], showN: 30, sel: null };
 
   let buckets = new Map();
 
@@ -255,7 +255,7 @@
   function selectApt(a, fly) {
     state.sel = a; state.hover = a.cell;
     if (fly) map.flyTo([a.lat, a.lon], Math.max(map.getZoom(), 15), { duration: 0.6 });
-    renderReadout(a.cell); renderList(); layer.redraw();
+    renderReadout(a.cell); renderList(); layer.redraw(); showRoute(a.cell);
     const k = state.matches.indexOf(a);
     if (k >= state.showN) { state.showN = k + 10; renderList(); }
     document.querySelector(`.apt[data-k="${k}"]`)?.scrollIntoView({ block: 'nearest' });
@@ -284,15 +284,51 @@
     if (m.type === 'progress') { busy(`계산 자료 받는 중 ${Math.round((m.got / m.total) * 100)}% (처음 한 번만)`); return; }
     if (m.type === 'ready') return;
     const p = pending.get(m.id); if (!p) return; pending.delete(m.id);
-    if (m.type === 'error') p.reject(new Error(m.msg)); else { console.info(`통근시간 계산 ${m.ms}ms`); p.resolve(m.data); }
+    if (m.type === 'error') p.reject(new Error(m.msg)); else { if (m.ms != null) console.info(`통근시간 계산 ${m.ms}ms`); p.resolve(m.med ? { data: m.data, med: m.med } : m.data); }
   };
   worker.postMessage({ type: 'init' }); // 페이지 열 때 미리 자료 받기 시작
+  const optKey = () => `${state.modes}|${state.tr}`;
+  function ask(msg) { const id = ++qid; const p = new Promise((resolve, reject) => pending.set(id, { resolve, reject })); worker.postMessage({ ...msg, id }); return p; }
   function loadWork(i) {
-    if (cache.has(i)) return cache.get(i);
-    const id = ++qid; const p = new Promise((resolve, reject) => pending.set(id, { resolve, reject }));
-    worker.postMessage({ type: 'query', id, cell: i });
-    cache.set(i, p); p.catch(() => cache.delete(i));
+    const key = `${i}|${optKey()}`;
+    if (cache.has(key)) return cache.get(key);
+    const p = ask({ type: 'query', cell: i, modes: state.modes, tr: state.tr });
+    cache.set(key, p); p.catch(() => cache.delete(key));
     return p;
+  }
+  // 이동수단·환승 조건이 바뀌면 직장 A·B를 다시 계산
+  async function recompute() {
+    const ks = ['a', 'b'].filter((k) => state[k]); if (!ks.length) { syncHash(); return; }
+    busy('통근시간 다시 계산 중…');
+    try { for (const k of ks) { const r = await loadWork(state[k].idx); state[k].data = r.data; state[k].med = r.med; } }
+    catch (e) { toast('통근시간을 계산하지 못했습니다.'); }
+    busy(''); syncHash(); refresh(); if (state.routeCell >= 0) showRoute(state.routeCell);
+  }
+  /* ---------- 경로: 누른 칸(또는 단지)에서 직장까지 '보통' 출발 기준 대표 경로 ---------- */
+  const CAT = { 1: ['지하철', 'm1'], 2: ['기차', 'm2'], 3: ['광역버스', 'm3'], 4: ['버스', 'm4'] };
+  const hhmm = (s) => `${String(Math.floor(s / 3600)).padStart(2, '0')}:${String(Math.floor((s % 3600) / 60)).padStart(2, '0')}`;
+  const esc = (x) => String(x).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  let routeSeq = 0;
+  async function showRoute(cell) {
+    state.routeCell = cell; const el = $('route'); const my = ++routeSeq;
+    if (cell < 0 || !state.a) { el.hidden = true; return; }
+    el.hidden = false; el.innerHTML = '<p class="rt-wait">가는 길 찾는 중…</p>';
+    const parts = [];
+    for (const k of ['a', 'b']) {
+      const w = state[k]; if (!w?.med) continue;
+      const ai = w.med[cell];
+      if (ai === 255) { parts.push(`<div class="rt"><div class="rt-h"><b>${k.toUpperCase()}까지</b> 150분 안에 갈 수 없음</div></div>`); continue; }
+      let r; try { r = await ask({ type: 'path', work: w.idx, home: cell, ai, modes: state.modes, tr: state.tr }); } catch (e) { continue; }
+      if (my !== routeSeq) return;
+      const rides = r.legs.filter((l) => l.k === 'ride');
+      const sum = rides.length ? `${rides.map((l) => CAT[l.cat][0]).filter((v, i, a) => a.indexOf(v) === i).join('+')}, 환승 ${rides.length - 1}회` : '걸어서';
+      const li = r.legs.map((l) => l.k === 'walk'
+        ? `<li class="rt-walk">도보 ${Math.max(1, Math.round(l.sec / 60))}분</li>`
+        : `<li class="rt-ride ${CAT[l.cat][1]}"><span class="rt-tag">${CAT[l.cat][0]}</span> <b>${esc(l.name)}</b><br><span class="rt-st">${esc(l.from)} ${hhmm(l.dep)} → ${esc(l.to)} ${hhmm(l.arr)} · ${l.stops}정거장</span></li>`).join('');
+      parts.push(`<div class="rt"><div class="rt-h"><b>${k.toUpperCase()}까지</b> ${hhmm(r.depart)} 출발 → ${hhmm(r.arrive)} 도착 <span class="rt-sum">${sum}</span></div><ol>${li}</ol></div>`);
+    }
+    if (my !== routeSeq) return;
+    el.innerHTML = parts.join('') + '<p class="rt-note">보통 걸리는 시각에 나섰을 때의 예시 경로입니다. 나서는 시각에 따라 경로가 달라질 수 있어요.</p>';
   }
   let busyEl = null;
   function busy(msg) { if (!busyEl) { busyEl = document.createElement('div'); busyEl.className = 'busy'; document.body.appendChild(busyEl); } busyEl.textContent = msg; busyEl.hidden = !msg; }
@@ -304,10 +340,11 @@
     if (i < 0) { toast('서울·경기 안의 사람 사는 곳을 골라 주세요.'); return; }
     let data;
     busy('통근시간 계산 중…');
-    try { data = await loadWork(i); }
+    let med;
+    try { const r = await loadWork(i); data = r.data; med = r.med; }
     catch (e) { busy(''); toast('통근시간을 계산하지 못했습니다. 잠시 뒤 다시 골라 주세요.'); return; }
     busy('');
-    state[key] = { idx: i, lat, lon, label: label || '지도에서 고른 위치', data };
+    state[key] = { idx: i, lat, lon, label: label || '지도에서 고른 위치', data, med };
     if (markers[key]) markers[key].remove();
     markers[key] = L.marker([lat, lon], {
       keyboard: false, icon: L.divIcon({ className: '', html: `<div class="wp-marker ${key}">${key.toUpperCase()}</div>`, iconSize: [26, 26], iconAnchor: [13, 13] }),
@@ -380,6 +417,7 @@
     if (state.b) p.set('b', `${state.b.lat.toFixed(5)},${state.b.lon.toFixed(5)}`);
     p.set('t', state.limit); p.set('k', state.kind); if (state.priceMode === 'jenks') p.set('pb', 'j'); if (state.pick) p.set('pc', [...state.pick].sort((a, b) => a - b).join('.') || 'none'); p.set('m', state.minArea); p.set('n', state.minN); if (state.b) { p.set('pr', state.prio); p.set('x', state.extra); }
     if (state.budget !== Infinity) p.set('p', state.budget);
+    if (state.modes !== '1111') p.set('md', state.modes); if (state.tr >= 0) p.set('tr', state.tr);
     history.replaceState(null, '', '#' + p.toString());
     renderLegend();
   }
@@ -401,7 +439,7 @@
     const cp = map.latLngToContainerPoint(e.latlng); let hit = null, hd = 12 * 12;
     for (const a of state.matches) { const p = map.latLngToContainerPoint([a.lat, a.lon]); const d = (p.x - cp.x) ** 2 + (p.y - cp.y) ** 2; if (d < hd) { hd = d; hit = a; } }
     if (hit) { selectApt(hit, false); return; }
-    state.hover = nearestCell(e.latlng.lat, e.latlng.lng); renderReadout(state.hover); layer.redraw();
+    state.hover = nearestCell(e.latlng.lat, e.latlng.lng); renderReadout(state.hover); layer.redraw(); showRoute(state.hover);
   });
   let raf;
   map.on('mousemove', (e) => {
@@ -438,6 +476,17 @@
   $('pmode').addEventListener('click', () => { state.priceMode = state.priceMode === 'jenks' ? 'fixed' : 'jenks'; state.pick = null; syncHash(); refresh(); });
   // 가격 범례 칸 누르기: 구간 고르기/해제(여러 개 가능)
   $('to-top').addEventListener('click', () => { document.querySelector('.panel').scrollTo({ top: 0, behavior: 'smooth' }); });
+  function setModesUI() {
+    document.querySelectorAll('#modes button').forEach((b, i) => b.setAttribute('aria-pressed', String(state.modes[i] === '1')));
+    $('trmax').value = String(state.tr);
+  }
+  $('modes').addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    const i = +b.dataset.i, m = state.modes.split(''); m[i] = m[i] === '1' ? '0' : '1';
+    if (!m.includes('1')) { toast('이동수단을 하나 이상 골라 주세요.'); return; }
+    state.modes = m.join(''); setModesUI(); recompute();
+  });
+  $('trmax').addEventListener('change', (e) => { state.tr = +e.target.value; recompute(); });
   $('pick-toggle').addEventListener('click', () => { state.pick = state.pick && state.pick.size === 0 ? null : new Set(); state.showN = 30; syncHash(); refresh(); });
   $('lg-price-body').addEventListener('click', (e) => {
     const b = e.target.closest('.pbar button'); if (!b) return; const k = +b.dataset.c;
@@ -555,6 +604,9 @@
     if (p.get('t')) { state.limit = Math.min(90, Math.max(15, +p.get('t') || 50)); $('lim').value = state.limit; }
     if (KINDS[p.get('k')]) setKind(p.get('k'));
     if (p.get('pb') === 'j') state.priceMode = 'jenks';
+    if (/^[01]{4}$/.test(p.get('md') || '') && p.get('md') !== '0000') state.modes = p.get('md');
+    if (p.get('tr') != null && /^[0-3]$/.test(p.get('tr'))) state.tr = +p.get('tr');
+    setModesUI();
     if (p.get('pc')) state.pick = new Set(p.get('pc') === 'none' ? [] : p.get('pc').split('.').map(Number).filter((k) => k >= 0 && k < 40));
     if (p.get('m') != null) { state.minArea = +p.get('m') || 0; $('area').value = String(state.minArea); }
     if (p.get('p')) state.budget = +p.get('p') || Infinity;
