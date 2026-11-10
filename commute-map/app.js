@@ -615,7 +615,7 @@
     map.fitBounds(outline.getBounds(), narrow
       ? { paddingTopLeft: [8, 8], paddingBottomRight: [8, Math.round(window.innerHeight * 0.52)] }
       : { paddingTopLeft: [380, 24], paddingBottomRight: [24, 24] });
-    $('basis').textContent = '국가교통DB 2025년 3월 평일 시간표, 평일 오전 7시 30분~8시 30분 사이 출발, 보행 시속 4.5km, 지하철 환승은 국가교통DB 환승시간 기준. 통근시간은 직장을 고를 때 브라우저에서 바로 계산합니다.';
+    $('basis').textContent = '국가교통DB 2025년 3월 평일 시간표, 평일 오전 7시 30분~8시 30분 사이 출발, 보행 시속 4.5km, 지하철 환승은 국가교통DB 환승시간 기준, 버스 구간 시간은 서울시 실측 운행기록(2025년 3월 평일 출근시간)으로 보정. 통근시간은 직장을 고를 때 브라우저에서 바로 계산합니다.';
 
     /* ---------- 직장 검색: 역 → 장소(회사·건물) → 주소 ---------- */
     let places = null, geocoder = null;
