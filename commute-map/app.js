@@ -361,7 +361,7 @@
   const markers = {};
   async function setWorkplace(key, lat, lon, label) {
     const i = nearestCell(lat, lon);
-    if (i < 0) { toast('서울·경기 안의 사람 사는 곳을 골라 주세요.'); return; }
+    if (i < 0) { toast('서울·인천·경기 안의 사람 사는 곳을 골라 주세요.'); return; }
     let data;
     busy('통근시간 계산 중…');
     let med;
@@ -620,7 +620,7 @@
     /* ---------- 직장 검색: 역 → 장소(회사·건물) → 주소 ---------- */
     let places = null, geocoder = null;
     try { if (window.kakao?.maps) kakao.maps.load(() => { places = new kakao.maps.services.Places(); geocoder = new kakao.maps.services.Geocoder(); }); } catch (e) { /* 검색 서비스 없이 역 검색만 */ }
-    const SEOUL_RECT = '126.37,36.89,127.86,38.30'; // 서울·경기
+    const SEOUL_RECT = '126.10,36.89,127.86,38.30'; // 서울·인천·경기
     const norm = (s) => s.replace(/\s+/g, '');
     const searchKakao = (q) => new Promise((res) => {
       if (!places) return res([]);
@@ -632,7 +632,7 @@
         done();
       }, { rect: SEOUL_RECT, size: 6 });
       geocoder.addressSearch(q, (d, st) => {
-        if (st === kakao.maps.services.Status.OK) for (const x of d.filter((x) => /^(서울|경기)/.test(x.address_name || '')).slice(0, 3)) out.push({ kind: 'addr', name: x.road_address?.address_name || x.address_name, sub: x.road_address && x.road_address.address_name !== x.address_name ? x.address_name : '', lat: +x.y, lon: +x.x, order: looksAddr ? 1 : 2 });
+        if (st === kakao.maps.services.Status.OK) for (const x of d.filter((x) => /^(서울|인천|경기)/.test(x.address_name || '')).slice(0, 3)) out.push({ kind: 'addr', name: x.road_address?.address_name || x.address_name, sub: x.road_address && x.road_address.address_name !== x.address_name ? x.address_name : '', lat: +x.y, lon: +x.x, order: looksAddr ? 1 : 2 });
         done();
       });
     });
