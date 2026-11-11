@@ -42,6 +42,7 @@ jobs:
           K: ${{ secrets.VWORLD_KEY_CF }}
         run: |
           # github.io용 브이월드 키를 Cloudflare 주소용 키로 바꿈(없으면 비워서 OSM·역 검색으로 동작)
+          K=$(printf '%s' "$K" | tr -d '[:space:]')
           sed -i -E "s/const VW_KEY = '[^']*'/const VW_KEY = '${K}'/" commute-map/app.js
           grep -c "k1956766" -r commute-map --include=*.js --include=*.html --include=*.json || true
       - name: deploy
