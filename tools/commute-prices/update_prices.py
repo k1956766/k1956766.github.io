@@ -43,14 +43,14 @@ def fetch(key, kind, gu, ym):
     rows, page = [], 1
     while True:
         root = None
-        for attempt in range(5):
+        for attempt in range(3):
             try:
                 r = requests.get('https://apis.data.go.kr/1613000/' + EP[kind],
-                                 params={'serviceKey': key, 'LAWD_CD': gu, 'DEAL_YMD': ym, 'numOfRows': '1000', 'pageNo': str(page)}, timeout=40)
+                                 params={'serviceKey': key, 'LAWD_CD': gu, 'DEAL_YMD': ym, 'numOfRows': '1000', 'pageNo': str(page)}, timeout=30)
                 root = ET.fromstring(r.content)
                 break
             except Exception:
-                time.sleep(5 * (attempt + 1))
+                time.sleep(3 * (attempt + 1))
         if root is None:
             raise RuntimeError('network')
         code = root.findtext('.//resultCode')
@@ -69,6 +69,16 @@ def refetch():
         return
     key = urllib.parse.unquote(key)
     codes = [c.strip() for c in open(os.path.join(HERE, 'codes.txt')) if c.strip()]
+    # 접속 점검: 처음 3곳이 모두 실패하면 이번 실행은 수집을 건너뛰고 기존 자료로만 계산
+    t0 = time.time(); ok = 0
+    for gu in codes[:3]:
+        try:
+            fetch(key, 'trade', gu, months_back(1)[0]); ok += 1
+        except RuntimeError as e:
+            print('점검 실패', gu, e, flush=True)
+    print('접속 점검', ok, '/ 3,', round(time.time() - t0), '초', flush=True)
+    if ok == 0:
+        return
     for kind in ('trade', 'rent'):
         cols = TC if kind == 'trade' else RC
         for ym in months_back(N_REFETCH):
@@ -87,7 +97,7 @@ def refetch():
             new = pd.concat(parts, ignore_index=True) if parts else old
             new = new.reindex(columns=cols)
             new.to_csv(f, index=False, compression='gzip')
-            print(kind, ym, 'rows', len(new), 'fail', len(fail), ' '.join(fail[:5]))
+            print(kind, ym, 'rows', len(new), 'fail', len(fail), ' '.join(fail[:5]), flush=True)
     # 13개월보다 오래된 월 파일 정리
     keep = set(months_back(WIN + 1))
     for f in glob.glob(os.path.join(DATA, '*.csv.gz')):
