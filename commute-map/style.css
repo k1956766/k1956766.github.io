@@ -14,7 +14,9 @@ html,body{margin:0;height:100%}
 body{font-family:var(--font);color:var(--ink);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
 #map{position:fixed;inset:0;background:#E9ECEA}
 .leaflet-container{font-family:var(--font)}
-.basemap{filter:grayscale(.85) contrast(1.05) brightness(1.03)}
+/* 배경지도: 처음엔 컬러, 직장을 정하면 흑백(지하철 노선은 별도 층이라 색 유지) */
+.basemap{filter:none;transition:filter .35s}
+body.has-work .basemap{filter:grayscale(.85) contrast(1.05) brightness(1.03)}
 body.picking #map{cursor:crosshair}
 
 .panel{
@@ -313,7 +315,7 @@ body.picking #map{cursor:crosshair}
 /* 역 */
 .o-st b{position:absolute;left:-4px;top:-4px;width:8px;height:8px;border-radius:50%;background:#fff;border:2px solid #555}
 .o-st.tr b{left:-5px;top:-5px;width:10px;height:10px;border-width:2.5px}
-/* 확대 단계별: 멀리서는 환승역 점만, 12에서 환승역 이름, 13부터 모든 역 이름 */
+/* 확대 단계별: 멀리서는 환승역 점만, 12부터 모든 역 점(이름은 배경지도에 있음) */
 .zlo .o-st{display:none}
 .zlo .o-st.tr{display:block}
 .zlo .o-st span,.zmid .o-st:not(.tr) span{display:none}

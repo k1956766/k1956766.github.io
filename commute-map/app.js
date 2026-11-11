@@ -287,7 +287,7 @@
     if (k >= state.showN) { state.showN = k + 10; renderList(); }
     $('apt-count').scrollIntoView({ block: 'start', behavior: 'smooth' });
   }
-  function refresh() { computeMatches(); renderList(); renderPriceLegend(); layer.redraw(); renderReadout(state.hover); $('legend').classList.toggle('empty', !state.a); }
+  function refresh() { document.body.classList.toggle('has-work', !!state.a); computeMatches(); renderList(); renderPriceLegend(); layer.redraw(); renderReadout(state.hover); $('legend').classList.toggle('empty', !state.a); }
 
   /* ---------- 격자 찾기 ---------- */
   const bkey = (lat, lon) => `${Math.floor(lat / 0.005)}_${Math.floor(lon / 0.005)}`;
@@ -652,7 +652,7 @@
       const LN = rst.lines;
       for (const [n, la, lo, ls] of rst.st) {
         const tr = ls.length > 1, col = LN[ls[0]] ? LN[ls[0]][1] : '#555';
-        lbl(la, lo, `o-st${tr ? ' tr' : ''}`, `<b style="border-color:${tr ? '#1F2B3D' : col}"></b><span>${esc(n.replace(/역$/, ''))}</span>`, P_LAB).addTo(oLayers.rail);
+        lbl(la, lo, `o-st${tr ? ' tr' : ''}`, `<b style="border-color:${tr ? '#1F2B3D' : col}" title="${esc(n)}"></b>`, P_LAB).addTo(oLayers.rail);
       }
       zoomClass();
     } catch (e) { /* 표시 자료가 없어도 지도는 동작 */ }
