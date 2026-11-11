@@ -8,11 +8,11 @@
   // 가격 색: 파랑(싼 곳) → 보라 → 자홍 → 빨강(비싼 곳). 구간 수에 맞춰 보간.
   const PRICE_STOPS = ['#3D65EE', '#627DEF', '#74B2E9', '#91B7E5', '#ABCEEE', '#B3D0F1', '#D4D5DF', '#DDD9DD', '#F9C7A9', '#F4C398', '#F3A47D', '#EA836B', '#DA5C58', '#CF4B4C', '#AD0D1D']; // 사용자 지정 파랑→회색→빨강
   const range = (a, b, s) => { const o = []; for (let v = a; v <= b + 1e-9; v += s) o.push(Math.round(v)); return o; };
-  // pi/ni: apts.json types 안 가격·건수 위치. 금액 단위는 만원.
+  // pi/ni/wi: apts.json types 안 가격·건수·기간(최근 3/6/12개월) 위치. 금액 단위는 만원.
   const KINDS = {
-    sale:   { name: '매매', pi: 1, ni: 2, bud: { min: 1, max: 40, step: 0.5, mul: 10000 }, fixed: range(10000, 150000, 10000), round: 1000 },
-    jeonse: { name: '전세', pi: 3, ni: 4, bud: { min: 1, max: 20, step: 0.5, mul: 10000 }, fixed: range(5000, 60000, 5000), round: 1000 },
-    rent:   { name: '월세', pi: 6, ni: 8, bud: { min: 10, max: 300, step: 10, mul: 1 }, fixed: range(50, 150, 10), round: 5 },
+    sale:   { name: '매매', pi: 1, ni: 2, wi: 9, bud: { min: 1, max: 40, step: 0.5, mul: 10000 }, fixed: range(10000, 150000, 10000), round: 1000 },
+    jeonse: { name: '전세', pi: 3, ni: 4, wi: 10, bud: { min: 1, max: 20, step: 0.5, mul: 10000 }, fixed: range(5000, 60000, 5000), round: 1000 },
+    rent:   { name: '월세', pi: 6, ni: 8, wi: 11, bud: { min: 10, max: 300, step: 10, mul: 1 }, fixed: range(50, 150, 10), round: 5 },
   };
   const hex = (h) => [1, 3, 5].map((k) => parseInt(h.slice(k, k + 2), 16));
   function rampN(n) { // RAMP을 n칸으로 보간
@@ -150,7 +150,7 @@
   function computeMatches() {
     state.matches = [];
     if (!state.a?.data) return;
-    const { pi, ni } = KINDS[state.kind];
+    const { pi, ni, wi } = KINDS[state.kind];
     for (const [seq, name, dong, year, lat, lon, cell, types] of state.apts) {
       if (cell < 0) continue;
       const v = metric(cell); if (v == null || v > state.limit) continue;
@@ -160,7 +160,7 @@
         if (!best || t[pi] < best[pi]) best = t;
       }
       if (!best) continue;
-      state.matches.push({ seq, name, dong, year, lat, lon, cell, v, types, area: best[0], price: best[pi], n: best[ni], dep: best[7], ym: best[5] });
+      state.matches.push({ seq, name, dong, year, lat, lon, cell, v, types, area: best[0], price: best[pi], n: best[ni], w: best[wi], dep: best[7], ym: best[5] });
     }
     for (const a of state.matches) a.v2 = second(a.cell);
     state.matches.sort((x, y) => x.v - y.v || x.v2 - y.v2 || x.price - y.price);
@@ -256,7 +256,7 @@
       return `<li class="apt${a === state.sel ? ' sel' : ''}" data-k="${k}" tabindex="0">
         <span class="nm">${a.name}</span><span class="tm">${tm}</span>
         <span class="sub">${a.dong}${a.year ? `, ${a.year}년` : ''}</span>
-        <span class="pr">${a.area}㎡ ${kindName} ${won(a.price)} (${a.n}건)</span>
+        <span class="pr">${a.area}㎡ ${kindName} ${won(a.price)} (${a.w ? `최근 ${a.w}개월 ` : ''}${a.n}건)</span>
         <button type="button" class="more-d" data-k="${k}" aria-expanded="${state.open === a.seq}">${state.open === a.seq ? '접기' : '세부정보'}</button>
         ${state.open === a.seq ? detailHTML(a) : ''}</li>`;
     }).join('');
@@ -268,12 +268,12 @@
     const rows = a.types.filter((t) => t[K.pi] != null).map((t) => {
       const extra = state.kind === 'rent' ? `<td>${t[7] != null ? won(t[7]) : '–'}</td>` : '';
       const ok = t[0] >= state.minArea && t[K.pi] <= state.budget && t[K.ni] >= state.minN;
-      return `<tr class="${ok ? '' : 'dim'}"><td>${t[0]}㎡</td><td>${won(t[K.pi])}</td>${extra}<td>${t[K.ni]}건</td></tr>`;
+      return `<tr class="${ok ? '' : 'dim'}"><td>${t[0]}㎡</td><td>${won(t[K.pi])}</td>${extra}<td>${t[K.wi] ? `${t[K.wi]}개월 ` : ''}${t[K.ni]}건</td></tr>`;
     }).join('');
     const head = state.kind === 'rent' ? '<th>면적</th><th>월세</th><th>보증금</th><th>거래</th>' : `<th>면적</th><th>${K.name}</th><th>거래</th>`;
     const last = a.ym ? `최근 거래 ${a.ym.slice(0, 4)}년 ${+a.ym.slice(4)}월` : '';
     return `<div class="detail"><table><thead><tr>${head}</tr></thead><tbody>${rows}</tbody></table>
-      <p>${state.kind === 'rent' ? '월세·보증금은 같은 면적형 월세 계약의 각각 중위값입니다. ' : ''}흐린 줄은 지금 조건(면적·예산·거래 수)에 안 맞는 면적형입니다. ${last}</p></div>`;
+      <p>가격은 최근 3개월에 거래가 2건 이상이면 3개월, 아니면 6개월, 그래도 없으면 12개월 거래의 중위값입니다(해제된 거래 제외). ${state.kind === 'rent' ? '월세·보증금은 같은 면적형 월세 계약의 각각 중위값입니다. ' : ''}흐린 줄은 지금 조건(면적·예산·거래 수)에 안 맞는 면적형입니다. ${last}</p></div>`;
   }
   function selectApt(a, fly) {
     state.sel = a; state.hover = a.cell;
@@ -607,6 +607,7 @@
       fetch('data/region.geojson').then((r) => r.json()),
     ]);
     state.grid = g; state.apts = apts;
+    fetch('data/apts_meta.json').then((r) => (r.ok ? r.json() : null)).then((m) => { if (m && $('price-basis')) $('price-basis').textContent = `${m.from.slice(0, 4)}년 ${+m.from.slice(4)}월~${m.to.slice(0, 4)}년 ${+m.to.slice(4)}월, ${m.updated} 갱신`; }).catch(() => {});
     { const S = g.size_m || 250, pos = new Map(g.ids.map((id, i) => [id, i]));
       nb = g.ids.map((id) => { const [x, y] = id.split('_').map(Number); const f = (dx, dy) => pos.get(`${x + dx}_${y + dy}`) ?? -1; return [f(0, S), f(0, -S), f(-S, 0), f(S, 0)]; }); }
     for (let i = 0; i < g.n; i++) { const k = bkey(g.lat[i], g.lon[i]); (buckets.get(k) || buckets.set(k, []).get(k)).push(i); }
