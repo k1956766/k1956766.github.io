@@ -107,11 +107,12 @@
         const p = m.latLngToContainerPoint([a.lat, a.lon]);
         ctx.globalAlpha = state.sel && a !== state.sel ? 0.25 : 1; // 단지를 고르면 나머지는 흐리게
         ctx.beginPath(); ctx.arc(p.x, p.y, a === state.sel ? r + 3 : r, 0, 7);
-        ctx.fillStyle = best.on && a.tier ? TIER_COL[a.tier - 1] : state.priceColors[a.cls]; ctx.fill();
+        ctx.fillStyle = state.priceColors[a.cls]; ctx.fill();
         ctx.strokeStyle = '#000'; ctx.lineWidth = a === state.sel ? 2.5 : (z >= 12 ? 1.2 : 0.8); ctx.stroke();
+        if (best.on && a.tier) { ctx.beginPath(); ctx.arc(p.x, p.y, (a === state.sel ? r + 3 : r) + 2.6, 0, 7); ctx.strokeStyle = TIER_COL[a.tier - 1]; ctx.lineWidth = 2.6; ctx.stroke(); }
       }
       ctx.globalAlpha = 1;
-      if (state.sel) { const a = state.sel, p = m.latLngToContainerPoint([a.lat, a.lon]); ctx.beginPath(); ctx.arc(p.x, p.y, r + 3, 0, 7); ctx.fillStyle = best.on && a.tier ? TIER_COL[a.tier - 1] : state.priceColors[a.cls]; ctx.fill(); ctx.strokeStyle = '#1F2B3D'; ctx.lineWidth = 2.5; ctx.stroke(); }
+      if (state.sel) { const a = state.sel, p = m.latLngToContainerPoint([a.lat, a.lon]); ctx.beginPath(); ctx.arc(p.x, p.y, r + 3, 0, 7); ctx.fillStyle = state.priceColors[a.cls]; ctx.fill(); ctx.strokeStyle = '#1F2B3D'; ctx.lineWidth = 2.5; ctx.stroke(); }
       if (state.hover >= 0) {
         const i = state.hover;
         const p0 = m.latLngToContainerPoint([g.lat[i] + HALF_LAT, g.lon[i] - HALF_LON]);
@@ -231,7 +232,7 @@
   function renderList() {
     const ol = $('apt-list'), kindName = KINDS[state.kind].name;
     if (!state.a) { $('apt-count').textContent = '단지 목록'; ol.innerHTML = '<li class="none">직장을 정하면 통근시간 안에 있는 아파트 단지가 여기에 나옵니다.</li>'; $('apt-more').hidden = true; return; }
-    $('apt-count').textContent = best.on ? `최적의 집 1~3순위 ${state.matches.length.toLocaleString()}곳` : `조건에 맞는 단지 ${state.matches.length.toLocaleString()}곳`;
+    $('apt-count').textContent = best.on ? `내게 맞는 집 1~3순위 ${state.matches.length.toLocaleString()}곳` : `조건에 맞는 단지 ${state.matches.length.toLocaleString()}곳`;
     if (!state.matches.length) { ol.innerHTML = state.all.length ? '<li class="none">고른 가격 구간이 없습니다. 오른쪽 아래 가격 범례의 칸을 눌러 보고 싶은 구간을 켜 주세요.</li>' : '<li class="none">조건에 맞는 단지가 없습니다. 최대 통근시간이나 예산을 늘려 보세요.</li>'; $('apt-more').hidden = true; return; }
     // 경로 상자는 단지 카드 안으로 옮겨 쓰므로, 목록을 다시 그리기 전에 원래 자리로 돌려 둠
     const rt = $('route'); if (rt.parentElement !== $('ro-sec')) $('ro-sec').appendChild(rt);
@@ -260,7 +261,7 @@
         <span class="nm">${a.name}</span><span class="tm">${tm}</span>
         <span class="sub">${a.dong}${a.year ? `, ${a.year}년` : ''}</span>
         <span class="pr">${a.area}㎡ ${kindName} ${won(a.price)} (${a.w ? `최근 ${a.w}개월 ` : ''}${a.n}건)</span>
-        ${best.on && a.rc ? `<span class="rk"><i style="background:${TIER_COL[a.tier - 1]}">${a.tier}순위</i> 실질 월 ${man(a.rc.total)}원 <small>(주거비 ${man(a.rc.house)} + 통근 ${man(a.rc.time)} + 교통 ${man(a.rc.fare)})</small></span>` : ''}
+        ${best.on && a.rc ? `<span class="rk"><i class="t${a.tier}">${a.tier}순위</i> ${a.rc.save >= 0 ? `비슷한 집보다 월 <b>${man(a.rc.save)}원</b> 절약` : `비슷한 집보다 월 ${man(-a.rc.save)}원 더 듦`} <small>(점수 ${Math.round(a.rc.score)})</small></span>` : ''}
         <button type="button" class="more-d" data-k="${k}" aria-expanded="${state.open === a.seq}">${state.open === a.seq ? '접기' : '세부정보'}</button>
         ${state.open === a.seq ? detailHTML(a) : ''}</li>`;
     }).join('');
@@ -289,59 +290,110 @@
     $('apt-count').scrollIntoView({ block: 'start', behavior: 'smooth' });
   }
 
-  /* ---------- 최적의 집 찾기: 실질 월 주거비(주거비 + 통근시간 환산 + 교통비)로 줄 세워 분위로 나눈 뒤 1~3순위 표시 ---------- */
-  const BEST_DEF = { rate: 4.88, wage: 10320, days: 21, fare: 1550, age: 0, q: 10 };
+  /* ---------- 최적의 집 찾기 ----------
+     1) 조건에 맞는 단지마다 통근시간·월 주거비·연식을 0~100점으로 바꿈(조건 안의 단지끼리 비교한 백분위, 연식은 구간 점수)
+     2) 사용자가 삼각형에서 고른 비중으로 더해 종합 점수를 냄
+     3) 점수 상위 10%를 1순위, 다음 10%를 2순위, 그다음 10%를 3순위로 표시
+     4) 각 단지가 '비슷한 집'(같은 면적대·연식대) 평균보다 실질 월 비용(주거비 + 통근시간 환산 + 교통비)을 얼마나 아끼는지 함께 보여 줌 */
+  const BEST_DEF = { rate: 4.88, wage: 10320, days: 21, fare: 1550, wt: 0.4, wc: 0.4, wy: 0.2 };
   // rate: 한국은행 예금은행 주택담보대출 금리(신규취급액, 2026년 9월) / wage: 2026년 최저임금 시급 / fare: 수도권 지하철 기본요금(교통카드)
-  const TIER_COL = ['#3B0764', '#7E22CE', '#D8B4FE'];
+  const TIER_COL = ['#3B0764', '#7E22CE', '#C084FC'];
   const best = { ...BEST_DEF, on: false };
-  try { const v = JSON.parse(localStorage.getItem('commute-best') || '{}'); for (const k of Object.keys(BEST_DEF)) if (v[k] != null) best[k] = v[k]; } catch (e) { /* 저장 안 됨 */ }
+  try { const v = JSON.parse(localStorage.getItem('commute-best2') || '{}'); for (const k of Object.keys(BEST_DEF)) if (v[k] != null) best[k] = v[k]; } catch (e) { /* 저장 안 됨 */ }
   const thisYear = new Date().getFullYear();
   const man = (v) => `${Math.round(v).toLocaleString()}만`;
-  function realCost(a) {
+  const ageBand = (y) => { const g = thisYear - y; return g <= 5 ? 0 : g <= 10 ? 1 : g <= 20 ? 2 : 3; }; // 신축·준신축·구축·노후
+  const AGE_SCORE = [100, 67, 33, 0];
+  const areaBand = (m2) => m2 < 60 ? 0 : m2 < 85 ? 1 : m2 < 115 ? 2 : 3;
+  function costOf(a) {
     const r = best.rate / 100 / 12; // 월 금리
     const house = state.kind === 'rent' ? a.price + (a.dep || 0) * r : a.price * r; // 만원/월
     const ta = t(state.a, a.cell, false), tb = state.b?.data ? t(state.b, a.cell, false) : null;
     const mins = (ta || 0) + (tb || 0), people = tb == null ? 1 : 2;
     const time = mins * 2 * best.days * (best.wage / 60) / 10000; // 만원/월
     const fare = people * 2 * best.days * best.fare / 10000; // 만원/월
-    return { house, time, fare, total: house + time + fare };
+    return { house, mins, total: house + time + fare };
   }
-  // 조건에 맞는 단지 전체를 실질 비용 순으로 줄 세우고 q분위로 나눔. 1~3분위만 남겨 목록·지도에 표시
+  // 값 배열 → 백분위 점수(낮을수록 좋은 값이면 낮은 값이 100점)
+  function pctScore(list, key) {
+    const xs = list.map((a) => a.rc[key]).sort((x, y) => x - y), n = xs.length;
+    const rankOf = (v) => { let lo = 0, hi = n; while (lo < hi) { const md = (lo + hi) >> 1; if (xs[md] < v) lo = md + 1; else hi = md; } let up = lo; while (up < n && xs[up] === v) up++; return (lo + up - 1) / 2; };
+    for (const a of list) a.rc['s_' + key] = n > 1 ? 100 * (1 - rankOf(a.rc[key]) / (n - 1)) : 100;
+  }
   function computeBest() {
-    const info = $('bx-info');
     for (const a of state.all || []) { a.tier = 0; a.rc = null; }
+    const info = $('bx-info');
     if (!best.on || !state.a?.data) { if (info) info.textContent = ''; return; }
-    const maxAge = +best.age || 0, q = +best.q || 10;
-    const cand = [];
-    let unknown = 0;
-    for (const a of state.matches) {
-      if (!a.year) { unknown++; continue; } // 연식 미상은 보류
-      if (maxAge && thisYear - a.year > maxAge) continue;
-      a.rc = realCost(a); cand.push(a);
+    const cand = []; let unknown = 0;
+    for (const a of state.matches) { if (!a.year) { unknown++; continue; } a.rc = costOf(a); a.rc.ab = ageBand(a.year); a.rc.mb = areaBand(a.area); cand.push(a); }
+    if (!cand.length) { state.matches = []; if (info) info.innerHTML = '<p class="bx-n">조건에 맞는 단지가 없어요.</p>'; return; }
+    pctScore(cand, 'mins'); pctScore(cand, 'house');
+    // 비슷한 집: 같은 면적대·연식대(5곳 미만이면 같은 면적대 전체) 평균 실질 비용
+    // 평균 대신 중앙값: 아주 비싼 몇 곳 때문에 '절약액'이 부풀지 않게
+    const grp = new Map(), grpA = new Map();
+    const add = (m, k, v) => { const g = m.get(k) || []; g.push(v); m.set(k, g); };
+    for (const a of cand) { add(grp, a.rc.mb + '_' + a.rc.ab, a.rc.total); add(grpA, a.rc.mb, a.rc.total); }
+    const med = (xs) => { const ys = xs.slice().sort((x, y) => x - y), k = ys.length >> 1; return ys.length % 2 ? ys[k] : (ys[k - 1] + ys[k]) / 2; };
+    for (const m of [grp, grpA]) for (const [k, xs] of m) m.set(k, { n: xs.length, m: med(xs) });
+    const sw = best.wt + best.wc + best.wy || 1;
+    for (const a of cand) {
+      const g = grp.get(a.rc.mb + '_' + a.rc.ab), ga = grpA.get(a.rc.mb), use = g.n >= 5 ? g : ga;
+      a.rc.save = use.m - a.rc.total;
+      a.rc.score = (best.wt * a.rc.s_mins + best.wc * a.rc.s_house + best.wy * AGE_SCORE[a.rc.ab]) / sw;
     }
-    cand.sort((x, y) => x.rc.total - y.rc.total);
+    cand.sort((x, y) => y.rc.score - x.rc.score || y.rc.save - x.rc.save);
     const n = cand.length, cnt = [0, 0, 0];
-    cand.forEach((a, i) => { const tier = Math.floor(i * q / n) + 1; if (tier <= 3) { a.tier = tier; cnt[tier - 1]++; } });
+    cand.forEach((a, i) => { const tier = Math.floor(i * 10 / n) + 1; if (tier <= 3) { a.tier = tier; cnt[tier - 1]++; } });
     state.matches = cand.filter((a) => a.tier);
     if (state.sel && !state.matches.includes(state.sel)) state.sel = null;
     if (info) {
-      const cut = (k) => { const xs = cand.filter((a) => a.tier === k); return xs.length ? `${man(xs[0].rc.total)}~${man(xs[xs.length - 1].rc.total)}원` : '–'; };
-      info.innerHTML = [1, 2, 3].map((k) => `<div class="bx-t"><i style="background:${TIER_COL[k - 1]}"></i><b>${k}순위</b><span>${cnt[k - 1]}곳</span><small>월 ${cut(k)}</small></div>`).join('')
-        + `<p class="bx-n">조건에 맞는 ${n.toLocaleString()}곳을 실질 월 주거비 순으로 ${q}등분한 위쪽 3구간이에요.${unknown ? ` 준공 연도를 모르는 ${unknown}곳은 뺐어요.` : ''}</p>`;
+      const avgSave = (k) => { const xs = cand.filter((a) => a.tier === k); return xs.length ? xs.reduce((s, a) => s + a.rc.save, 0) / xs.length : 0; };
+      info.innerHTML = [1, 2, 3].map((k) => { const v = avgSave(k); return `<div class="bx-t"><i class="t${k}"></i><b>${k}순위</b><span>${cnt[k - 1]}곳</span><small>평균 월 ${man(Math.abs(v))}원 ${v >= 0 ? '절약' : '더 듦'}</small></div>`; }).join('')
+        + `<p class="bx-n">조건에 맞는 ${n.toLocaleString()}곳을 고른 비중으로 점수 매겨 상위 10%씩 나눴어요. 절약액은 같은 면적대·연식대 집들의 보통(중앙값) 실질 월 비용(주거비 + 통근시간 환산 + 교통비)과 비교한 값이에요.${unknown ? ` 준공 연도를 모르는 ${unknown}곳은 뺐어요.` : ''}</p>`;
     }
   }
+  // 삼각형 비중 고르기: 꼭짓점 = 통근(위), 주거비(왼쪽 아래), 연식(오른쪽 아래)
+  const TRI = { W: 168, H: 146, P: [[84, 14], [14, 132], [154, 132]] };
+  function triPoint() { const [A, B, C] = TRI.P, s = best.wt + best.wc + best.wy || 1, u = best.wt / s, v = best.wc / s, w = best.wy / s; return [u * A[0] + v * B[0] + w * C[0], u * A[1] + v * B[1] + w * C[1]]; }
+  function triWeights(x, y) {
+    const [A, B, C] = TRI.P, d = (B[1] - C[1]) * (A[0] - C[0]) + (C[0] - B[0]) * (A[1] - C[1]);
+    let u = ((B[1] - C[1]) * (x - C[0]) + (C[0] - B[0]) * (y - C[1])) / d, v = ((C[1] - A[1]) * (x - C[0]) + (A[0] - C[0]) * (y - C[1])) / d;
+    u = Math.max(0, u); v = Math.max(0, v); let w = Math.max(0, 1 - u - v); const s = u + v + w; return [u / s, v / s, w / s];
+  }
+  function drawTri() {
+    const [x, y] = triPoint(), [A, B, C] = TRI.P;
+    $('bx-tri').innerHTML = `<polygon points="${A} ${B} ${C}" fill="#F5F3FF" stroke="#7E22CE" stroke-width="1.5"/>
+      <text x="${A[0]}" y="${A[1] - 4}" text-anchor="middle">통근시간</text><text x="${B[0] - 2}" y="${B[1] + 13}" text-anchor="start">주거비</text><text x="${C[0] + 2}" y="${C[1] + 13}" text-anchor="end">연식</text>
+      <circle cx="${x}" cy="${y}" r="8" fill="#3B0764" stroke="#fff" stroke-width="2.5"/>`;
+    const s = best.wt + best.wc + best.wy || 1;
+    $('bx-w').innerHTML = `통근 <b>${Math.round(100 * best.wt / s)}</b> · 주거비 <b>${Math.round(100 * best.wc / s)}</b> · 연식 <b>${Math.round(100 * best.wy / s)}</b>`;
+  }
+  function saveBest() { try { const v = {}; for (const k of Object.keys(BEST_DEF)) v[k] = best[k]; localStorage.setItem('commute-best2', JSON.stringify(v)); } catch (e) { /* 저장 안 됨 */ } }
   function bestUI() {
     const f = $('bx-form'), tog = $('bx-tog'); if (!f) return;
-    const sync = () => { for (const k of Object.keys(BEST_DEF)) { const i = f.elements[k]; if (i) i.value = best[k]; } };
+    const sync = () => { for (const k of ['rate', 'wage', 'days', 'fare']) f.elements[k].value = best[k]; drawTri(); };
     sync();
-    const setOn = (on) => { best.on = on; tog.setAttribute('aria-pressed', String(on)); $('bx-body').hidden = !on; $('legend').classList.toggle('best-on', on); state.showN = 30; refresh(); };
+    const setOn = (on) => { best.on = on; tog.setAttribute('aria-pressed', String(on)); $('bx-body').hidden = !on; state.showN = 30; refresh(); };
     tog.addEventListener('click', () => setOn(!best.on));
     f.addEventListener('input', () => {
-      for (const k of Object.keys(BEST_DEF)) { const i = f.elements[k]; if (i && i.value !== '' && isFinite(+i.value)) best[k] = +i.value; }
-      try { const v = {}; for (const k of Object.keys(BEST_DEF)) v[k] = best[k]; localStorage.setItem('commute-best', JSON.stringify(v)); } catch (e) { /* 저장 안 됨 */ }
-      state.showN = 30; refresh();
+      for (const k of ['rate', 'wage', 'days', 'fare']) { const i = f.elements[k]; if (i.value !== '' && isFinite(+i.value)) best[k] = +i.value; }
+      saveBest(); state.showN = 30; refresh();
     });
-    $('bx-reset').addEventListener('click', () => { Object.assign(best, BEST_DEF, { on: true }); sync(); f.dispatchEvent(new Event('input')); });
+    let raf = 0;
+    const svg = $('bx-tri');
+    const move = (e) => {
+      const r = svg.getBoundingClientRect(), x = (e.clientX - r.left) * TRI.W / r.width, y = (e.clientY - r.top) * TRI.H / r.height;
+      [best.wt, best.wc, best.wy] = triWeights(x, y); drawTri();
+      cancelAnimationFrame(raf); raf = requestAnimationFrame(() => { state.showN = 30; refresh(); });
+    };
+    svg.addEventListener('pointerdown', (e) => { svg.setPointerCapture(e.pointerId); move(e); });
+    svg.addEventListener('pointermove', (e) => { if (svg.hasPointerCapture(e.pointerId)) move(e); });
+    svg.addEventListener('pointerup', () => saveBest());
+    $('bx-presets').addEventListener('click', (e) => {
+      const b = e.target.closest('button'); if (!b) return;
+      [best.wt, best.wc, best.wy] = b.dataset.w.split(',').map(Number); drawTri(); saveBest(); state.showN = 30; refresh();
+    });
+    $('bx-reset').addEventListener('click', () => { Object.assign(best, BEST_DEF, { on: true }); sync(); saveBest(); refresh(); });
   }
 
   function refresh() { document.body.classList.toggle('has-work', !!state.a); computeMatches(); computeBest(); renderList(); renderPriceLegend(); layer.redraw(); renderReadout(state.hover); $('legend').classList.toggle('empty', !state.a); }
@@ -696,24 +748,6 @@
     } catch (e) { /* 표시 자료가 없어도 지도는 동작 */ }
   }
 
-  /* ---------- 업무지구 바로 고르기(누른 버튼만 직장으로 정함) ---------- */
-  async function initHubs() {
-    try {
-      const hubs = await fetch('data/orient/hubs.json').then((r) => r.json());
-      const box = $('hubs'); if (!box) return;
-      box.innerHTML = hubs.map(([n], i) => `<button type="button" data-i="${i}">${esc(n)}</button>`).join('');
-      box.addEventListener('click', (e) => {
-        const b = e.target.closest('button'); if (!b) return;
-        const [n, la, lo, st] = hubs[+b.dataset.i];
-        const key = state.picking || 'a'; // '지도에서 고르기'로 B를 고르는 중이면 B, 아니면 A
-        if (state.picking) setPicking(state.picking);
-        $(`q-${key}`).value = st; setWorkplace(key, la, lo, st);
-        map.flyTo([la, lo], Math.max(map.getZoom(), 12), { duration: 0.6 });
-      });
-      $('hubs-wrap').hidden = false;
-    } catch (e) { /* 없으면 숨김 */ }
-  }
-
   /* ---------- 시작 ---------- */
   (async () => {
     const [g, apts, stations, seoul] = await Promise.all([
@@ -732,7 +766,7 @@
     map.fitBounds(outline.getBounds(), narrow
       ? { paddingTopLeft: [8, 8], paddingBottomRight: [8, Math.round(window.innerHeight * 0.52)] }
       : { paddingTopLeft: [380, 24], paddingBottomRight: [24, 24] });
-    initOrient(); initHubs(); bestUI();
+    initOrient(); bestUI();
     $('basis').textContent = '국가교통DB 2025년 3월 평일 시간표, 평일 오전 7시 30분~8시 30분 사이 출발, 보행 시속 4.5km, 지하철 환승은 국가교통DB 환승시간 기준, 버스 구간 시간은 서울시 실측 운행기록(2025년 3월 평일 출근시간)으로 보정. 통근시간은 직장을 고를 때 브라우저에서 바로 계산합니다.';
 
     /* ---------- 직장 검색: 역 → 장소(회사·건물) → 주소 ---------- */
