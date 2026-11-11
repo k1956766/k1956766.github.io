@@ -44,9 +44,12 @@
   const map = L.map('map', { zoomControl: false, minZoom: 10, maxZoom: 17 }).setView([37.5565, 126.99], 11);
   L.control.zoom({ position: 'topright' }).addTo(map);
   if (DEBUG_MASK) window.__map = map;
-  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  // 배경지도: 국토교통부 브이월드(키 없으면 OSM으로 대체)
+  const VW_KEY = '1F1FC18C-C547-49DF-8274-78EA69A8D9C2';
+  const hasVW = /^[0-9A-F-]{30,}$/i.test(VW_KEY);
+  L.tileLayer(hasVW ? `https://api.vworld.kr/req/wmts/1.0.0/${VW_KEY}/Base/{z}/{y}/{x}.png` : 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19, className: 'basemap',
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> 기여자',
+    attribution: hasVW ? '&copy; <a href="https://www.vworld.kr">국토교통부 브이월드</a>' : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> 기여자',
   }).addTo(map);
 
   /* ---------- 격자 캔버스 레이어 ---------- */
@@ -619,24 +622,29 @@
     $('basis').textContent = '국가교통DB 2025년 3월 평일 시간표, 평일 오전 7시 30분~8시 30분 사이 출발, 보행 시속 4.5km, 지하철 환승은 국가교통DB 환승시간 기준, 버스 구간 시간은 서울시 실측 운행기록(2025년 3월 평일 출근시간)으로 보정. 통근시간은 직장을 고를 때 브라우저에서 바로 계산합니다.';
 
     /* ---------- 직장 검색: 역 → 장소(회사·건물) → 주소 ---------- */
-    let places = null, geocoder = null;
-    try { if (window.kakao?.maps) kakao.maps.load(() => { places = new kakao.maps.services.Places(); geocoder = new kakao.maps.services.Geocoder(); }); } catch (e) { /* 검색 서비스 없이 역 검색만 */ }
-    const SEOUL_RECT = '126.10,36.89,127.86,38.30'; // 서울·인천·경기
+    // 브이월드 검색 API(JSONP): 장소(회사·건물) + 도로명·지번 주소
+    const BBOX = '126.10,36.89,127.86,38.30'; // 서울·인천·경기
     const norm = (s) => s.replace(/\s+/g, '');
-    const searchKakao = (q) => new Promise((res) => {
-      if (!places) return res([]);
-      const looksAddr = /\d/.test(q); // 번지가 있으면 주소를 장소보다 먼저
-      const out = []; let pending = 2;
-      const done = () => { if (--pending === 0) res(out); };
-      places.keywordSearch(q, (d, st) => {
-        if (st === kakao.maps.services.Status.OK) for (const x of d.slice(0, 6)) out.push({ kind: 'place', name: x.place_name, sub: x.road_address_name || x.address_name, lat: +x.y, lon: +x.x, order: looksAddr ? 2 : 1 });
-        done();
-      }, { rect: SEOUL_RECT, size: 6 });
-      geocoder.addressSearch(q, (d, st) => {
-        if (st === kakao.maps.services.Status.OK) for (const x of d.filter((x) => /^(서울|인천|경기)/.test(x.address_name || '')).slice(0, 3)) out.push({ kind: 'addr', name: x.road_address?.address_name || x.address_name, sub: x.road_address && x.road_address.address_name !== x.address_name ? x.address_name : '', lat: +x.y, lon: +x.x, order: looksAddr ? 1 : 2 });
-        done();
-      });
+    let jsonpN = 0;
+    const jsonp = (url) => new Promise((res) => {
+      const cb = `__vw${Date.now()}_${jsonpN++}`, sc = document.createElement('script');
+      const end = (v) => { clearTimeout(t); delete window[cb]; sc.remove(); res(v); };
+      const t = setTimeout(() => end(null), 5000);
+      window[cb] = (d) => end(d); sc.onerror = () => end(null);
+      sc.src = `${url}&callback=${cb}`; document.head.appendChild(sc);
     });
+    const vw = (q, type, category) => !hasVW ? Promise.resolve([]) : jsonp('https://api.vworld.kr/req/search?service=search&request=search&version=2.0&crs=EPSG:4326&size=6&page=1&format=json&errorformat=json'
+      + `&type=${type}${category ? `&category=${category}` : ''}&bbox=${BBOX}&query=${encodeURIComponent(q)}&key=${VW_KEY}&domain=${encodeURIComponent(location.origin)}`)
+      .then((d) => (d && d.response && d.response.status === 'OK' && d.response.result && d.response.result.items) || []);
+    const inCap = (t) => /^(서울|인천|경기)/.test(t || '');
+    const searchVW = async (q) => {
+      const looksAddr = /\d/.test(q); // 번지가 있으면 주소를 장소보다 먼저
+      const [pl, road, parcel] = await Promise.all([vw(q, 'place'), looksAddr ? vw(q, 'address', 'road') : [], looksAddr ? vw(q, 'address', 'parcel') : []]);
+      const out = [];
+      for (const x of pl) { const ad = x.address || {}; if (inCap(ad.road || ad.parcel)) out.push({ kind: 'place', name: x.title, sub: ad.road || ad.parcel || '', lat: +x.point.y, lon: +x.point.x, order: looksAddr ? 2 : 1 }); }
+      for (const x of [...road, ...parcel].slice(0, 4)) { const ad = x.address || {}; const nm = ad.road || ad.parcel; if (inCap(nm)) out.push({ kind: 'addr', name: nm, sub: ad.bldnm || (ad.road && ad.parcel && ad.parcel !== ad.road ? ad.parcel : ''), lat: +x.point.y, lon: +x.point.x, order: looksAddr ? 1 : 2 }); }
+      return out;
+    };
     const KIND = { st: '역', place: '장소', addr: '주소' };
     for (const k of ['a', 'b']) {
       const input = $(`q-${k}`), list = $(`sugg-${k}`);
@@ -661,7 +669,7 @@
         const st = stations.filter(([n]) => norm(n).replace(/역$/, '').includes(nq)).slice(0, 4)
           .map(([n, la, lo]) => ({ kind: 'st', name: n, sub: '지하철역', lat: la, lon: lo, order: 0 }));
         items = st; active = items.length ? 0 : -1; render();
-        const more = await searchKakao(q);
+        const more = await searchVW(q);
         if (my !== seq) return; // 더 새 입력이 있으면 버림
         const seen = new Set(items.map((x) => x.name));
         for (const x of more.sort((a, b) => a.order - b.order)) if (!seen.has(x.name)) { seen.add(x.name); items.push(x); }
