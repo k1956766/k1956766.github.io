@@ -602,20 +602,20 @@
   $('apt-list').addEventListener('keydown', (e) => { if (e.key === 'Enter') { const li = e.target.closest('.apt'); if (li) selectApt(state.matches[+li.dataset.k], true); } });
 
 
-  /* ---------- 위치 알아보기: 노선·역·시군구·랜드마크 (누르는 동작 없음, 보기 전용) ---------- */
+  /* ---------- 위치 알아보기: 지하철 노선·역 (누르는 동작 없음, 보기 전용) ---------- */
   const ORIENT_KEY = 'commute-orient';
-  let orient = { rail: true, land: true, area: true };
+  let orient = { rail: true };
   try { Object.assign(orient, JSON.parse(localStorage.getItem(ORIENT_KEY) || '{}')); } catch (e) { /* 저장 안 됨 */ }
   function mkPane(name, z) { const p = map.createPane(name); p.style.zIndex = z; p.style.pointerEvents = 'none'; return name; }
-  const P_AREA = mkPane('o-area', 405), P_RAIL = mkPane('o-rail', 410), P_LAB = mkPane('o-lab', 620);
-  const oLayers = { rail: L.layerGroup(), land: L.layerGroup(), area: L.layerGroup() };
+  const P_RAIL = mkPane('o-rail', 410), P_LAB = mkPane('o-lab', 620);
+  const oLayers = { rail: L.layerGroup() };
   const lbl = (lat, lon, cls, html, pane) => L.marker([lat, lon], { pane, interactive: false, keyboard: false,
     icon: L.divIcon({ className: `o-lab ${cls}`, html, iconSize: null }) });
   function zoomClass() {
     const z = map.getZoom(), c = map.getContainer().classList;
     for (let i = 8; i <= 18; i++) c.toggle(`z${i}`, i === z);
     c.toggle('zlo', z <= 11); c.toggle('zmid', z === 12); c.toggle('zhi', z >= 13);
-    if (railLine) { const w = z <= 11 ? 2 : z <= 13 ? 3 : 4.5; railCase.setStyle({ weight: w + 2.5 }); railLine.setStyle({ weight: w }); }
+    if (railLine) { const w = z <= 11 ? 1.2 : z <= 13 ? 1.8 : 2.6; railCase.setStyle({ weight: w + 1.6 }); railLine.setStyle({ weight: w }); }
   }
   let railLine = null, railCase = null;
   function applyOrient() {
@@ -628,7 +628,7 @@
     const Ctl = L.Control.extend({ options: { position: 'topright' }, onAdd() {
       const d = L.DomUtil.create('div', 'o-ctl'); d.id = 'o-ctl';
       d.innerHTML = '<button type="button" class="o-me" id="o-me" title="내 위치로 이동(위치는 저장하지 않아요)" aria-label="내 위치로 이동">◎</button>'
-        + '<button type="button" data-o="rail" aria-pressed="true">노선</button><button type="button" data-o="land" aria-pressed="true">명소</button><button type="button" data-o="area" aria-pressed="true">지역</button>';
+        + '<button type="button" data-o="rail" aria-pressed="true">노선</button>';
       L.DomEvent.disableClickPropagation(d); L.DomEvent.disableScrollPropagation(d); return d; } });
     map.addControl(new Ctl());
     $('o-ctl').addEventListener('click', (e) => { const b = e.target.closest('[data-o]'); if (!b) return; orient[b.dataset.o] = !orient[b.dataset.o]; applyOrient(); });
@@ -646,18 +646,14 @@
     map.on('zoomend', zoomClass); zoomClass(); applyOrient();
     const get = (f) => fetch(`data/orient/${f}`).then((r) => r.json());
     try {
-      const [rail, rst, sl, slab, land] = await Promise.all(['rail.json', 'rail_st.json', 'sgg_line.json', 'sgg_lab.json', 'landmarks.json'].map(get));
-      L.geoJSON(sl, { pane: P_AREA, interactive: false, style: { color: '#1F2B3D', weight: 1, opacity: 0.35, dashArray: '4 4', fill: false } }).addTo(oLayers.area);
-      for (const [n, la, lo] of slab) lbl(la, lo, 'o-area', `<span>${esc(n)}</span>`, P_LAB).addTo(oLayers.area);
-      railCase = L.geoJSON(rail, { pane: P_RAIL, interactive: false, style: { color: '#fff', weight: 4.5, opacity: 0.9, lineCap: 'round' } }).addTo(oLayers.rail);
-      railLine = L.geoJSON(rail, { pane: P_RAIL, interactive: false, style: (f) => ({ color: f.properties.c, weight: 2, opacity: 0.95, lineCap: 'round' }) }).addTo(oLayers.rail);
+      const [rail, rst] = await Promise.all(['rail.json', 'rail_st.json'].map(get));
+      railCase = L.geoJSON(rail, { pane: P_RAIL, interactive: false, style: { color: '#fff', weight: 2.8, opacity: 0.85, lineCap: 'round' } }).addTo(oLayers.rail);
+      railLine = L.geoJSON(rail, { pane: P_RAIL, interactive: false, style: (f) => ({ color: f.properties.c, weight: 1.2, opacity: 0.9, lineCap: 'round' }) }).addTo(oLayers.rail);
       const LN = rst.lines;
       for (const [n, la, lo, ls] of rst.st) {
         const tr = ls.length > 1, col = LN[ls[0]] ? LN[ls[0]][1] : '#555';
-        const badges = ls.map((k) => `<i style="background:${LN[k] ? LN[k][1] : '#555'}">${esc(k)}</i>`).join('');
-        lbl(la, lo, `o-st${tr ? ' tr' : ''}`, `<b style="border-color:${tr ? '#1F2B3D' : col}"></b><span>${esc(n.replace(/역$/, ''))}<em>${badges}</em></span>`, P_LAB).addTo(oLayers.rail);
+        lbl(la, lo, `o-st${tr ? ' tr' : ''}`, `<b style="border-color:${tr ? '#1F2B3D' : col}"></b><span>${esc(n.replace(/역$/, ''))}</span>`, P_LAB).addTo(oLayers.rail);
       }
-      for (const [n, la, lo] of land) lbl(la, lo, 'o-lm', `<b>★</b><span>${esc(n)}</span>`, P_LAB).addTo(oLayers.land);
       zoomClass();
     } catch (e) { /* 표시 자료가 없어도 지도는 동작 */ }
   }
