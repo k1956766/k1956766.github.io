@@ -112,6 +112,15 @@
       }
       ctx.globalAlpha = 1;
       if (state.sel) { const a = state.sel, p = m.latLngToContainerPoint([a.lat, a.lon]); ctx.beginPath(); ctx.arc(p.x, p.y, r + 3, 0, 7); ctx.fillStyle = state.priceColors[a.cls]; ctx.fill(); ctx.strokeStyle = '#1F2B3D'; ctx.lineWidth = 2.5; ctx.stroke(); }
+      // 최적의 집 1·2·3순위 번호
+      for (const [k, a] of (state.best || []).entries()) {
+        if (a.lat < b.getSouth() || a.lat > b.getNorth() || a.lon < b.getWest() || a.lon > b.getEast()) continue;
+        const p = m.latLngToContainerPoint([a.lat, a.lon]), R = 10;
+        ctx.beginPath(); ctx.arc(p.x, p.y - R - 4, R, 0, 7); ctx.fillStyle = '#1F2B3D'; ctx.fill();
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
+        ctx.fillStyle = '#fff'; ctx.font = '700 12px Pretendard Variable, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(String(k + 1), p.x, p.y - R - 3.5);
+      }
       if (state.hover >= 0) {
         const i = state.hover;
         const p0 = m.latLngToContainerPoint([g.lat[i] + HALF_LAT, g.lon[i] - HALF_LON]);
@@ -287,7 +296,67 @@
     if (k >= state.showN) { state.showN = k + 10; renderList(); }
     $('apt-count').scrollIntoView({ block: 'start', behavior: 'smooth' });
   }
-  function refresh() { document.body.classList.toggle('has-work', !!state.a); computeMatches(); renderList(); renderPriceLegend(); layer.redraw(); renderReadout(state.hover); $('legend').classList.toggle('empty', !state.a); }
+
+  /* ---------- 최적의 집: 실질 월 주거비(주거비 + 통근시간 환산 + 교통비)가 낮은 순 1·2·3순위 ---------- */
+  const BEST_DEF = { rate: 4.88, wage: 10320, days: 21, fare: 1550, age: 0 };
+  // rate: 한국은행 예금은행 주택담보대출 금리(신규취급액, 2026년 9월) / wage: 2026년 최저임금 시급 / fare: 수도권 지하철 기본요금(교통카드)
+  const best = { ...BEST_DEF };
+  try { Object.assign(best, JSON.parse(localStorage.getItem('commute-best') || '{}')); } catch (e) { /* 저장 안 됨 */ }
+  const thisYear = new Date().getFullYear();
+  function realCost(a) {
+    const r = best.rate / 100 / 12; // 월 금리
+    const house = state.kind === 'rent' ? a.price + (a.dep || 0) * r : a.price * r; // 만원/월
+    const ta = t(state.a, a.cell, false), tb = state.b?.data ? t(state.b, a.cell, false) : null;
+    const mins = (ta || 0) + (tb || 0), people = tb == null ? 1 : 2;
+    const time = mins * 2 * best.days * (best.wage / 60) / 10000; // 만원/월
+    const fare = people * 2 * best.days * best.fare / 10000; // 만원/월
+    return { house, time, fare, total: house + time + fare, ta, tb };
+  }
+  function computeBest() {
+    state.best = [];
+    if (!state.a?.data) return;
+    const maxAge = +best.age || 0;
+    const cand = [];
+    for (const a of state.matches) {
+      if (!a.year) continue; // 연식 미상은 추천에서 보류
+      if (maxAge && thisYear - a.year > maxAge) continue;
+      cand.push([realCost(a), a]);
+    }
+    cand.sort((x, y) => x[0].total - y[0].total);
+    state.best = cand.slice(0, 3).map(([c, a]) => Object.assign(a, { rc: c }));
+  }
+  const man = (v) => `${Math.round(v).toLocaleString()}만`;
+  function renderBest() {
+    const box = $('best'); if (!box) return;
+    box.hidden = !state.a;
+    if (!state.a) return;
+    const kn = KINDS[state.kind].name;
+    const el = $('best-list');
+    if (!state.best.length) { el.innerHTML = '<li class="none">조건에 맞는 단지가 없어요. 연식 조건이나 예산을 넓혀 보세요.</li>'; return; }
+    el.innerHTML = state.best.map((a, k) => {
+      const c = a.rc, tt = c.tb == null ? `A까지 ${c.ta}분` : `A ${c.ta}분 · B ${c.tb}분`;
+      const price = state.kind === 'rent' ? `월세 ${won(a.price)}(보증금 ${won(a.dep || 0)})` : `${kn} ${won(a.price)}`;
+      return `<li class="bc" data-k="${k}" tabindex="0"><span class="bk">${k + 1}</span>
+        <div class="bb"><div class="bn">${esc(a.name)} <small>${a.year}년 · ${a.area}㎡</small></div>
+        <div class="bt">실질 월 <b>${man(c.total)}원</b></div>
+        <div class="bs">주거비 ${man(c.house)} + 통근 환산 ${man(c.time)} + 교통비 ${man(c.fare)}</div>
+        <div class="bs">${price} · ${tt}</div></div></li>`;
+    }).join('');
+  }
+  function bestUI() {
+    const f = $('best-form'); if (!f) return;
+    for (const k of Object.keys(BEST_DEF)) { const i = f.elements[k]; if (i) i.value = best[k]; }
+    f.addEventListener('input', () => {
+      for (const k of Object.keys(BEST_DEF)) { const i = f.elements[k]; if (i && i.value !== '' && isFinite(+i.value)) best[k] = +i.value; }
+      try { localStorage.setItem('commute-best', JSON.stringify(best)); } catch (e) { /* 저장 안 됨 */ }
+      computeBest(); renderBest(); layer.redraw();
+    });
+    $('best-reset').addEventListener('click', () => { Object.assign(best, BEST_DEF); for (const k of Object.keys(BEST_DEF)) { const i = f.elements[k]; if (i) i.value = best[k]; } f.dispatchEvent(new Event('input')); });
+    $('best-list').addEventListener('click', (e) => { const li = e.target.closest('.bc'); if (li) selectApt(state.best[+li.dataset.k], true); });
+    $('best-list').addEventListener('keydown', (e) => { if (e.key === 'Enter') { const li = e.target.closest('.bc'); if (li) selectApt(state.best[+li.dataset.k], true); } });
+  }
+
+  function refresh() { document.body.classList.toggle('has-work', !!state.a); computeMatches(); computeBest(); renderBest(); renderList(); renderPriceLegend(); layer.redraw(); renderReadout(state.hover); $('legend').classList.toggle('empty', !state.a); }
 
   /* ---------- 격자 찾기 ---------- */
   const bkey = (lat, lon) => `${Math.floor(lat / 0.005)}_${Math.floor(lon / 0.005)}`;
@@ -675,7 +744,7 @@
     map.fitBounds(outline.getBounds(), narrow
       ? { paddingTopLeft: [8, 8], paddingBottomRight: [8, Math.round(window.innerHeight * 0.52)] }
       : { paddingTopLeft: [380, 24], paddingBottomRight: [24, 24] });
-    initOrient(); initHubs();
+    initOrient(); initHubs(); bestUI();
     $('basis').textContent = '국가교통DB 2025년 3월 평일 시간표, 평일 오전 7시 30분~8시 30분 사이 출발, 보행 시속 4.5km, 지하철 환승은 국가교통DB 환승시간 기준, 버스 구간 시간은 서울시 실측 운행기록(2025년 3월 평일 출근시간)으로 보정. 통근시간은 직장을 고를 때 브라우저에서 바로 계산합니다.';
 
     /* ---------- 직장 검색: 역 → 장소(회사·건물) → 주소 ---------- */

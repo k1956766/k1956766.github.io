@@ -125,6 +125,25 @@
     <div class="route" id="route" hidden></div>
   </section>
 
+  <section class="best" id="best" hidden aria-label="최적의 집 추천">
+    <h2>최적의 집 <span class="tag">시안</span></h2>
+    <p class="hint">지금 조건에 맞는 단지 중 <b>실질 월 주거비</b>(주거비 + 통근시간을 돈으로 환산 + 교통비)가 가장 낮은 곳이에요.</p>
+    <form id="best-form" onsubmit="return false">
+      <label class="ba">연식 <select name="age">
+        <option value="0">상관없음</option><option value="20">20년 이내</option><option value="10">10년 이내</option><option value="5">5년 이내(신축)</option>
+      </select></label>
+      <ol class="best-list" id="best-list"></ol>
+      <details class="bd"><summary>계산 기준 바꾸기</summary>
+        <label>금리(연 %) <input name="rate" type="number" step="0.01" min="0" max="20"></label>
+        <label>내 시간의 가치(시급, 원) <input name="wage" type="number" step="10" min="0"></label>
+        <label>한 달 출근일 <input name="days" type="number" step="1" min="1" max="31"></label>
+        <label>편도 교통요금(원) <input name="fare" type="number" step="10" min="0"></label>
+        <p class="hint">금리는 한국은행 예금은행 주택담보대출 금리(신규취급액, 2026년 9월 4.88%), 시급은 2026년 최저임금, 교통요금은 수도권 지하철 기본요금입니다. 매매·전세는 집값(보증금)에 금리를 곱한 월 이자, 월세는 월세에 보증금 이자를 더해 주거비로 봅니다. 통근시간은 왕복으로, 맞벌이면 두 사람 시간을 더합니다. 준공 연도를 모르는 단지는 추천에서 뺍니다.</p>
+        <button type="button" class="more" id="best-reset">기본값으로</button>
+      </details>
+    </form>
+  </section>
+
   <section class="apts" aria-label="조건에 맞는 단지">
     <h2 id="apt-count">단지 목록</h2>
     <ol id="apt-list"></ol>

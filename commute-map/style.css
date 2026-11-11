@@ -311,3 +311,24 @@ body.picking #map{cursor:crosshair}
 .o-lab span{position:absolute;left:8px;top:-9px;white-space:nowrap;font-size:11.5px;font-weight:700;color:var(--ink);
   text-shadow:0 0 2px #fff,0 0 2px #fff,0 0 3px #fff,0 0 4px #fff}
 @media (max-width:720px){ .o-ctl{flex-direction:row} .o-ctl button{width:40px;height:28px;font-size:11px} .o-lab span{font-size:11px} }
+
+/* ---------- 최적의 집(시안) ---------- */
+.best h2{font-size:17px;margin:0 0 4px;display:flex;align-items:center;gap:6px}
+.best .tag{font-size:11px;font-weight:700;background:#C2410C;color:#fff;border-radius:4px;padding:1px 5px}
+.best .hint{margin:0 0 8px}
+.ba{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;margin-bottom:8px}
+.ba select{font:inherit;font-size:13px;padding:4px 6px;border:1px solid var(--rule);border-radius:6px;background:#fff}
+.best-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.best-list .none{font-size:13px;color:var(--ink-2)}
+.bc{display:grid;grid-template-columns:26px 1fr;gap:8px;background:#fff;border:1px solid var(--rule);border-radius:10px;padding:9px 10px;cursor:pointer}
+.bc:hover,.bc:focus{border-color:var(--ink);outline:none}
+.bk{width:24px;height:24px;border-radius:50%;background:var(--ink);color:#fff;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center}
+.bn{font-weight:700;font-size:14px;line-height:1.3}
+.bn small{font-weight:500;color:var(--ink-2);font-size:12px}
+.bt{font-size:13px;margin-top:2px}
+.bt b{font-size:16px;font-weight:800}
+.bs{font-size:12px;color:var(--ink-2);line-height:1.4}
+.bd{margin-top:8px;font-size:13px}
+.bd summary{cursor:pointer;font-weight:700;color:var(--ink-2)}
+.bd label{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:6px 0}
+.bd input{width:110px;font:inherit;font-size:13px;padding:3px 6px;border:1px solid var(--rule);border-radius:6px;text-align:right}
