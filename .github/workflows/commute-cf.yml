@@ -1,0 +1,52 @@
+name: commute-cf
+# 통근권 집찾기: commute-map 폴더를 Cloudflare Pages(아이디와 무관한 주소)에도 배포
+# 필요한 저장소 비밀값: CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID (없으면 건너뜀), VWORLD_KEY_CF(새 주소용 브이월드 키)
+on:
+  push:
+    branches: [master]
+    paths: ['commute-map/**']
+  workflow_run:
+    workflows: [commute-prices]
+    types: [completed]
+  workflow_dispatch:
+concurrency:
+  group: commute-cf
+  cancel-in-progress: true
+env:
+  CF_PROJECT: tonggeun-map
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: check secrets
+        id: chk
+        env:
+          T: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          A: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [ -n "$T" ] && [ -n "$A" ]; then echo "ok=1" >> "$GITHUB_OUTPUT"; else echo "Cloudflare 비밀값이 없어 건너뜀"; fi
+      - uses: actions/checkout@v4
+        if: steps.chk.outputs.ok == '1'
+        with:
+          ref: master
+      - name: create project if missing
+        if: steps.chk.outputs.ok == '1'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx --yes wrangler@3 pages project create "$CF_PROJECT" --production-branch=main || true
+      - name: swap vworld key for this domain
+        if: steps.chk.outputs.ok == '1'
+        env:
+          K: ${{ secrets.VWORLD_KEY_CF }}
+        run: |
+          # github.io용 브이월드 키를 Cloudflare 주소용 키로 바꿈(없으면 비워서 OSM·역 검색으로 동작)
+          sed -i -E "s/const VW_KEY = '[^']*'/const VW_KEY = '${K}'/" commute-map/app.js
+          grep -c "k1956766" -r commute-map --include=*.js --include=*.html --include=*.json || true
+      - name: deploy
+        if: steps.chk.outputs.ok == '1'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx --yes wrangler@3 pages deploy commute-map --project-name="$CF_PROJECT" --branch=main --commit-dirty=true

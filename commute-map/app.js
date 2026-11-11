@@ -45,7 +45,7 @@
   L.control.zoom({ position: 'topright' }).addTo(map);
   if (DEBUG_MASK) window.__map = map;
   // 배경지도: 국토교통부 브이월드(키 없으면 OSM으로 대체)
-  const VW_KEY = '1F1FC18C-C547-49DF-8274-78EA69A8D9C2';
+  const VW_KEY = '1F1FC18C-C547-49DF-8274-78EA69A8D9C2'; // Cloudflare 배포 때는 그 주소용 키로 바뀜(commute-cf.yml)
   const hasVW = /^[0-9A-F-]{30,}$/i.test(VW_KEY);
   L.tileLayer(hasVW ? `https://api.vworld.kr/req/wmts/1.0.0/${VW_KEY}/Base/{z}/{y}/{x}.png` : 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19, className: 'basemap',
