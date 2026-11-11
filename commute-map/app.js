@@ -602,15 +602,13 @@
   $('apt-list').addEventListener('keydown', (e) => { if (e.key === 'Enter') { const li = e.target.closest('.apt'); if (li) selectApt(state.matches[+li.dataset.k], true); } });
 
 
-  /* ---------- 위치 알아보기: 지하철 노선·역 (누르는 동작 없음, 보기 전용) ---------- */
+  /* ---------- 위치 알아보기: 지하철 노선 (누르는 동작 없음, 보기 전용) ---------- */
   const ORIENT_KEY = 'commute-orient';
   let orient = { rail: true };
   try { Object.assign(orient, JSON.parse(localStorage.getItem(ORIENT_KEY) || '{}')); } catch (e) { /* 저장 안 됨 */ }
   function mkPane(name, z) { const p = map.createPane(name); p.style.zIndex = z; p.style.pointerEvents = 'none'; return name; }
   const P_RAIL = mkPane('o-rail', 410), P_LAB = mkPane('o-lab', 620);
   const oLayers = { rail: L.layerGroup() };
-  const lbl = (lat, lon, cls, html, pane) => L.marker([lat, lon], { pane, interactive: false, keyboard: false,
-    icon: L.divIcon({ className: `o-lab ${cls}`, html, iconSize: null }) });
   function zoomClass() {
     const z = map.getZoom(), c = map.getContainer().classList;
     for (let i = 8; i <= 18; i++) c.toggle(`z${i}`, i === z);
@@ -646,14 +644,9 @@
     map.on('zoomend', zoomClass); zoomClass(); applyOrient();
     const get = (f) => fetch(`data/orient/${f}`).then((r) => r.json());
     try {
-      const [rail, rst] = await Promise.all(['rail.json', 'rail_st.json'].map(get));
+      const [rail] = await Promise.all(['rail.json'].map(get));
       railCase = L.geoJSON(rail, { pane: P_RAIL, interactive: false, style: { color: '#fff', weight: 2.8, opacity: 0.85, lineCap: 'round' } }).addTo(oLayers.rail);
       railLine = L.geoJSON(rail, { pane: P_RAIL, interactive: false, style: (f) => ({ color: f.properties.c, weight: 1.2, opacity: 0.9, lineCap: 'round' }) }).addTo(oLayers.rail);
-      const LN = rst.lines;
-      for (const [n, la, lo, ls] of rst.st) {
-        const tr = ls.length > 1, col = LN[ls[0]] ? LN[ls[0]][1] : '#555';
-        lbl(la, lo, `o-st${tr ? ' tr' : ''}`, `<b style="border-color:${tr ? '#1F2B3D' : col}" title="${esc(n)}"></b>`, P_LAB).addTo(oLayers.rail);
-      }
       zoomClass();
     } catch (e) { /* 표시 자료가 없어도 지도는 동작 */ }
   }

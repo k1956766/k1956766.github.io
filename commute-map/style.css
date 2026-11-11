@@ -312,13 +312,4 @@ body.picking #map{cursor:crosshair}
 .o-lab{pointer-events:none!important;background:none;border:0}
 .o-lab span{position:absolute;left:8px;top:-9px;white-space:nowrap;font-size:11.5px;font-weight:700;color:var(--ink);
   text-shadow:0 0 2px #fff,0 0 2px #fff,0 0 3px #fff,0 0 4px #fff}
-/* 역 */
-.o-st b{position:absolute;left:-4px;top:-4px;width:8px;height:8px;border-radius:50%;background:#fff;border:2px solid #555}
-.o-st.tr b{left:-5px;top:-5px;width:10px;height:10px;border-width:2.5px}
-/* 확대 단계별: 멀리서는 환승역 점만, 12부터 모든 역 점(이름은 배경지도에 있음) */
-.zlo .o-st{display:none}
-.zlo .o-st.tr{display:block}
-.zlo .o-st span,.zmid .o-st:not(.tr) span{display:none}
-.zlo .o-st.tr b{width:7px;height:7px;left:-3.5px;top:-3.5px;border-width:2px}
-.zmid .o-st span{font-size:10.5px}
 @media (max-width:720px){ .o-ctl{flex-direction:row} .o-ctl button{width:40px;height:28px;font-size:11px} .o-lab span{font-size:11px} }
