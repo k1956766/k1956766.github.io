@@ -13,7 +13,7 @@ concurrency:
   group: commute-cf
   cancel-in-progress: true
 env:
-  CF_PROJECT: tonggeun-map
+  CF_PROJECT: doorto
 jobs:
   deploy:
     runs-on: ubuntu-latest
