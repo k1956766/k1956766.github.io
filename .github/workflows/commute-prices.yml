@@ -1,0 +1,42 @@
+name: commute-prices
+# 통근권 집찾기: 매일 아파트 실거래가 갱신 (국토교통부 실거래가 API → commute-map/data/apts.json)
+on:
+  schedule:
+    - cron: '10 20 * * *'   # 매일 05:10 KST
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: write
+concurrency:
+  group: commute-prices
+  cancel-in-progress: false
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: install
+        run: pip install --quiet pandas numpy scipy requests
+      - name: update prices
+        env:
+          DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
+        run: python tools/commute-prices/update_prices.py
+      - name: commit
+        id: commit
+        run: |
+          git config user.name "commute-prices-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add tools/commute-prices commute-map/data/apts.json commute-map/data/apts_meta.json
+          if git diff --cached --quiet; then echo "changed=0" >> "$GITHUB_OUTPUT"; exit 0; fi
+          git commit -m "통근권 집찾기: 실거래가 갱신 $(TZ=Asia/Seoul date +%F)"
+          git push
+          echo "changed=1" >> "$GITHUB_OUTPUT"
+      - name: deploy site
+        if: steps.commit.outputs.changed == '1'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run deploy.yml --ref master
