@@ -603,8 +603,8 @@
 
 
   /* ---------- 위치 알아보기: 지하철 노선 (누르는 동작 없음, 보기 전용) ---------- */
-  const ORIENT_KEY = 'commute-orient';
-  let orient = { rail: true };
+  const ORIENT_KEY = 'commute-orient2'; // 노선은 기본 꺼짐(누르면 켜짐)
+  let orient = { rail: false };
   try { Object.assign(orient, JSON.parse(localStorage.getItem(ORIENT_KEY) || '{}')); } catch (e) { /* 저장 안 됨 */ }
   function mkPane(name, z) { const p = map.createPane(name); p.style.zIndex = z; p.style.pointerEvents = 'none'; return name; }
   const P_RAIL = mkPane('o-rail', 410), P_LAB = mkPane('o-lab', 620);
@@ -625,22 +625,10 @@
     // 지도 오른쪽 위: 표시 켜고 끄기 + 내 위치
     const Ctl = L.Control.extend({ options: { position: 'topright' }, onAdd() {
       const d = L.DomUtil.create('div', 'o-ctl'); d.id = 'o-ctl';
-      d.innerHTML = '<button type="button" class="o-me" id="o-me" title="내 위치로 이동(위치는 저장하지 않아요)" aria-label="내 위치로 이동">◎</button>'
-        + '<button type="button" data-o="rail" aria-pressed="true">노선</button>';
+      d.innerHTML = '<button type="button" data-o="rail" aria-pressed="false" title="지하철 노선 보기">노선</button>';
       L.DomEvent.disableClickPropagation(d); L.DomEvent.disableScrollPropagation(d); return d; } });
     map.addControl(new Ctl());
     $('o-ctl').addEventListener('click', (e) => { const b = e.target.closest('[data-o]'); if (!b) return; orient[b.dataset.o] = !orient[b.dataset.o]; applyOrient(); });
-    let meMk = null;
-    $('o-me').addEventListener('click', () => {
-      if (!navigator.geolocation) { toast('이 브라우저에서는 위치를 확인할 수 없어요.'); return; }
-      busy('내 위치 찾는 중…');
-      navigator.geolocation.getCurrentPosition((p) => {
-        busy(''); const ll = [p.coords.latitude, p.coords.longitude];
-        if (meMk) meMk.remove();
-        meMk = L.marker(ll, { pane: P_LAB, interactive: false, keyboard: false, icon: L.divIcon({ className: '', html: '<div class="o-me-dot"></div>', iconSize: [18, 18], iconAnchor: [9, 9] }) }).addTo(map);
-        map.flyTo(ll, Math.max(map.getZoom(), 14), { duration: 0.6 });
-      }, () => { busy(''); toast('위치를 확인하지 못했어요. 브라우저의 위치 권한을 확인해 주세요.'); }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 });
-    });
     map.on('zoomend', zoomClass); zoomClass(); applyOrient();
     const get = (f) => fetch(`data/orient/${f}`).then((r) => r.json());
     try {

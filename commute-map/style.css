@@ -307,8 +307,6 @@ body.picking #map{cursor:crosshair}
 .o-ctl{display:flex;flex-direction:column;gap:4px;margin-top:6px!important}
 .o-ctl button{font:inherit;font-size:12px;font-weight:700;width:46px;height:30px;border:1px solid var(--rule);border-radius:8px;background:#fff;color:var(--ink-2);cursor:pointer;box-shadow:0 1px 3px rgba(31,43,61,.15)}
 .o-ctl button[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
-.o-ctl .o-me{font-size:17px;color:var(--ink)}
-.o-me-dot{width:18px;height:18px;border-radius:50%;background:#1A73E8;border:3px solid #fff;box-shadow:0 0 0 6px rgba(26,115,232,.25)}
 .o-lab{pointer-events:none!important;background:none;border:0}
 .o-lab span{position:absolute;left:8px;top:-9px;white-space:nowrap;font-size:11.5px;font-weight:700;color:var(--ink);
   text-shadow:0 0 2px #fff,0 0 2px #fff,0 0 3px #fff,0 0 4px #fff}
