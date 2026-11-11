@@ -601,6 +601,85 @@
   });
   $('apt-list').addEventListener('keydown', (e) => { if (e.key === 'Enter') { const li = e.target.closest('.apt'); if (li) selectApt(state.matches[+li.dataset.k], true); } });
 
+
+  /* ---------- 위치 알아보기: 노선·역·시군구·랜드마크 (누르는 동작 없음, 보기 전용) ---------- */
+  const ORIENT_KEY = 'commute-orient';
+  let orient = { rail: true, land: true, area: true };
+  try { Object.assign(orient, JSON.parse(localStorage.getItem(ORIENT_KEY) || '{}')); } catch (e) { /* 저장 안 됨 */ }
+  function mkPane(name, z) { const p = map.createPane(name); p.style.zIndex = z; p.style.pointerEvents = 'none'; return name; }
+  const P_AREA = mkPane('o-area', 405), P_RAIL = mkPane('o-rail', 410), P_LAB = mkPane('o-lab', 620);
+  const oLayers = { rail: L.layerGroup(), land: L.layerGroup(), area: L.layerGroup() };
+  const lbl = (lat, lon, cls, html, pane) => L.marker([lat, lon], { pane, interactive: false, keyboard: false,
+    icon: L.divIcon({ className: `o-lab ${cls}`, html, iconSize: null }) });
+  function zoomClass() {
+    const z = map.getZoom(), c = map.getContainer().classList;
+    for (let i = 8; i <= 18; i++) c.toggle(`z${i}`, i === z);
+    c.toggle('zlo', z <= 11); c.toggle('zmid', z === 12); c.toggle('zhi', z >= 13);
+    if (railLine) { const w = z <= 11 ? 2 : z <= 13 ? 3 : 4.5; railCase.setStyle({ weight: w + 2.5 }); railLine.setStyle({ weight: w }); }
+  }
+  let railLine = null, railCase = null;
+  function applyOrient() {
+    for (const k of Object.keys(oLayers)) { if (orient[k]) oLayers[k].addTo(map); else oLayers[k].remove(); }
+    document.querySelectorAll('#o-ctl [data-o]').forEach((b) => b.setAttribute('aria-pressed', String(!!orient[b.dataset.o])));
+    try { localStorage.setItem(ORIENT_KEY, JSON.stringify(orient)); } catch (e) { /* 저장 안 됨 */ }
+  }
+  async function initOrient() {
+    // 지도 오른쪽 위: 표시 켜고 끄기 + 내 위치
+    const Ctl = L.Control.extend({ options: { position: 'topright' }, onAdd() {
+      const d = L.DomUtil.create('div', 'o-ctl'); d.id = 'o-ctl';
+      d.innerHTML = '<button type="button" class="o-me" id="o-me" title="내 위치로 이동(위치는 저장하지 않아요)" aria-label="내 위치로 이동">◎</button>'
+        + '<button type="button" data-o="rail" aria-pressed="true">노선</button><button type="button" data-o="land" aria-pressed="true">명소</button><button type="button" data-o="area" aria-pressed="true">지역</button>';
+      L.DomEvent.disableClickPropagation(d); L.DomEvent.disableScrollPropagation(d); return d; } });
+    map.addControl(new Ctl());
+    $('o-ctl').addEventListener('click', (e) => { const b = e.target.closest('[data-o]'); if (!b) return; orient[b.dataset.o] = !orient[b.dataset.o]; applyOrient(); });
+    let meMk = null;
+    $('o-me').addEventListener('click', () => {
+      if (!navigator.geolocation) { toast('이 브라우저에서는 위치를 확인할 수 없어요.'); return; }
+      busy('내 위치 찾는 중…');
+      navigator.geolocation.getCurrentPosition((p) => {
+        busy(''); const ll = [p.coords.latitude, p.coords.longitude];
+        if (meMk) meMk.remove();
+        meMk = L.marker(ll, { pane: P_LAB, interactive: false, keyboard: false, icon: L.divIcon({ className: '', html: '<div class="o-me-dot"></div>', iconSize: [18, 18], iconAnchor: [9, 9] }) }).addTo(map);
+        map.flyTo(ll, Math.max(map.getZoom(), 14), { duration: 0.6 });
+      }, () => { busy(''); toast('위치를 확인하지 못했어요. 브라우저의 위치 권한을 확인해 주세요.'); }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 });
+    });
+    map.on('zoomend', zoomClass); zoomClass(); applyOrient();
+    const get = (f) => fetch(`data/orient/${f}`).then((r) => r.json());
+    try {
+      const [rail, rst, sl, slab, land] = await Promise.all(['rail.json', 'rail_st.json', 'sgg_line.json', 'sgg_lab.json', 'landmarks.json'].map(get));
+      L.geoJSON(sl, { pane: P_AREA, interactive: false, style: { color: '#1F2B3D', weight: 1, opacity: 0.35, dashArray: '4 4', fill: false } }).addTo(oLayers.area);
+      for (const [n, la, lo] of slab) lbl(la, lo, 'o-area', `<span>${esc(n)}</span>`, P_LAB).addTo(oLayers.area);
+      railCase = L.geoJSON(rail, { pane: P_RAIL, interactive: false, style: { color: '#fff', weight: 4.5, opacity: 0.9, lineCap: 'round' } }).addTo(oLayers.rail);
+      railLine = L.geoJSON(rail, { pane: P_RAIL, interactive: false, style: (f) => ({ color: f.properties.c, weight: 2, opacity: 0.95, lineCap: 'round' }) }).addTo(oLayers.rail);
+      const LN = rst.lines;
+      for (const [n, la, lo, ls] of rst.st) {
+        const tr = ls.length > 1, col = LN[ls[0]] ? LN[ls[0]][1] : '#555';
+        const badges = ls.map((k) => `<i style="background:${LN[k] ? LN[k][1] : '#555'}">${esc(k)}</i>`).join('');
+        lbl(la, lo, `o-st${tr ? ' tr' : ''}`, `<b style="border-color:${tr ? '#1F2B3D' : col}"></b><span>${esc(n.replace(/역$/, ''))}<em>${badges}</em></span>`, P_LAB).addTo(oLayers.rail);
+      }
+      for (const [n, la, lo] of land) lbl(la, lo, 'o-lm', `<b>★</b><span>${esc(n)}</span>`, P_LAB).addTo(oLayers.land);
+      zoomClass();
+    } catch (e) { /* 표시 자료가 없어도 지도는 동작 */ }
+  }
+
+  /* ---------- 업무지구 바로 고르기(누른 버튼만 직장으로 정함) ---------- */
+  async function initHubs() {
+    try {
+      const hubs = await fetch('data/orient/hubs.json').then((r) => r.json());
+      const box = $('hubs'); if (!box) return;
+      box.innerHTML = hubs.map(([n], i) => `<button type="button" data-i="${i}">${esc(n)}</button>`).join('');
+      box.addEventListener('click', (e) => {
+        const b = e.target.closest('button'); if (!b) return;
+        const [n, la, lo, st] = hubs[+b.dataset.i];
+        const key = state.picking || 'a'; // '지도에서 고르기'로 B를 고르는 중이면 B, 아니면 A
+        if (state.picking) setPicking(state.picking);
+        $(`q-${key}`).value = st; setWorkplace(key, la, lo, st);
+        map.flyTo([la, lo], Math.max(map.getZoom(), 12), { duration: 0.6 });
+      });
+      $('hubs-wrap').hidden = false;
+    } catch (e) { /* 없으면 숨김 */ }
+  }
+
   /* ---------- 시작 ---------- */
   (async () => {
     const [g, apts, stations, seoul] = await Promise.all([
@@ -619,6 +698,7 @@
     map.fitBounds(outline.getBounds(), narrow
       ? { paddingTopLeft: [8, 8], paddingBottomRight: [8, Math.round(window.innerHeight * 0.52)] }
       : { paddingTopLeft: [380, 24], paddingBottomRight: [24, 24] });
+    initOrient(); initHubs();
     $('basis').textContent = '국가교통DB 2025년 3월 평일 시간표, 평일 오전 7시 30분~8시 30분 사이 출발, 보행 시속 4.5km, 지하철 환승은 국가교통DB 환승시간 기준, 버스 구간 시간은 서울시 실측 운행기록(2025년 3월 평일 출근시간)으로 보정. 통근시간은 직장을 고를 때 브라우저에서 바로 계산합니다.';
 
     /* ---------- 직장 검색: 역 → 장소(회사·건물) → 주소 ---------- */
