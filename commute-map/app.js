@@ -107,20 +107,11 @@
         const p = m.latLngToContainerPoint([a.lat, a.lon]);
         ctx.globalAlpha = state.sel && a !== state.sel ? 0.25 : 1; // 단지를 고르면 나머지는 흐리게
         ctx.beginPath(); ctx.arc(p.x, p.y, a === state.sel ? r + 3 : r, 0, 7);
-        ctx.fillStyle = state.priceColors[a.cls]; ctx.fill();
+        ctx.fillStyle = best.on && a.tier ? TIER_COL[a.tier - 1] : state.priceColors[a.cls]; ctx.fill();
         ctx.strokeStyle = '#000'; ctx.lineWidth = a === state.sel ? 2.5 : (z >= 12 ? 1.2 : 0.8); ctx.stroke();
       }
       ctx.globalAlpha = 1;
-      if (state.sel) { const a = state.sel, p = m.latLngToContainerPoint([a.lat, a.lon]); ctx.beginPath(); ctx.arc(p.x, p.y, r + 3, 0, 7); ctx.fillStyle = state.priceColors[a.cls]; ctx.fill(); ctx.strokeStyle = '#1F2B3D'; ctx.lineWidth = 2.5; ctx.stroke(); }
-      // 최적의 집 1·2·3순위 번호
-      for (const [k, a] of (state.best || []).entries()) {
-        if (a.lat < b.getSouth() || a.lat > b.getNorth() || a.lon < b.getWest() || a.lon > b.getEast()) continue;
-        const p = m.latLngToContainerPoint([a.lat, a.lon]), R = 10;
-        ctx.beginPath(); ctx.arc(p.x, p.y - R - 4, R, 0, 7); ctx.fillStyle = '#1F2B3D'; ctx.fill();
-        ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
-        ctx.fillStyle = '#fff'; ctx.font = '700 12px Pretendard Variable, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.fillText(String(k + 1), p.x, p.y - R - 3.5);
-      }
+      if (state.sel) { const a = state.sel, p = m.latLngToContainerPoint([a.lat, a.lon]); ctx.beginPath(); ctx.arc(p.x, p.y, r + 3, 0, 7); ctx.fillStyle = best.on && a.tier ? TIER_COL[a.tier - 1] : state.priceColors[a.cls]; ctx.fill(); ctx.strokeStyle = '#1F2B3D'; ctx.lineWidth = 2.5; ctx.stroke(); }
       if (state.hover >= 0) {
         const i = state.hover;
         const p0 = m.latLngToContainerPoint([g.lat[i] + HALF_LAT, g.lon[i] - HALF_LON]);
@@ -240,7 +231,7 @@
   function renderList() {
     const ol = $('apt-list'), kindName = KINDS[state.kind].name;
     if (!state.a) { $('apt-count').textContent = '단지 목록'; ol.innerHTML = '<li class="none">직장을 정하면 통근시간 안에 있는 아파트 단지가 여기에 나옵니다.</li>'; $('apt-more').hidden = true; return; }
-    $('apt-count').textContent = `조건에 맞는 단지 ${state.matches.length.toLocaleString()}곳`;
+    $('apt-count').textContent = best.on ? `최적의 집 1~3순위 ${state.matches.length.toLocaleString()}곳` : `조건에 맞는 단지 ${state.matches.length.toLocaleString()}곳`;
     if (!state.matches.length) { ol.innerHTML = state.all.length ? '<li class="none">고른 가격 구간이 없습니다. 오른쪽 아래 가격 범례의 칸을 눌러 보고 싶은 구간을 켜 주세요.</li>' : '<li class="none">조건에 맞는 단지가 없습니다. 최대 통근시간이나 예산을 늘려 보세요.</li>'; $('apt-more').hidden = true; return; }
     // 경로 상자는 단지 카드 안으로 옮겨 쓰므로, 목록을 다시 그리기 전에 원래 자리로 돌려 둠
     const rt = $('route'); if (rt.parentElement !== $('ro-sec')) $('ro-sec').appendChild(rt);
@@ -269,6 +260,7 @@
         <span class="nm">${a.name}</span><span class="tm">${tm}</span>
         <span class="sub">${a.dong}${a.year ? `, ${a.year}년` : ''}</span>
         <span class="pr">${a.area}㎡ ${kindName} ${won(a.price)} (${a.w ? `최근 ${a.w}개월 ` : ''}${a.n}건)</span>
+        ${best.on && a.rc ? `<span class="rk"><i style="background:${TIER_COL[a.tier - 1]}">${a.tier}순위</i> 실질 월 ${man(a.rc.total)}원 <small>(주거비 ${man(a.rc.house)} + 통근 ${man(a.rc.time)} + 교통 ${man(a.rc.fare)})</small></span>` : ''}
         <button type="button" class="more-d" data-k="${k}" aria-expanded="${state.open === a.seq}">${state.open === a.seq ? '접기' : '세부정보'}</button>
         ${state.open === a.seq ? detailHTML(a) : ''}</li>`;
     }).join('');
@@ -297,12 +289,14 @@
     $('apt-count').scrollIntoView({ block: 'start', behavior: 'smooth' });
   }
 
-  /* ---------- 최적의 집: 실질 월 주거비(주거비 + 통근시간 환산 + 교통비)가 낮은 순 1·2·3순위 ---------- */
-  const BEST_DEF = { rate: 4.88, wage: 10320, days: 21, fare: 1550, age: 0 };
+  /* ---------- 최적의 집 찾기: 실질 월 주거비(주거비 + 통근시간 환산 + 교통비)로 줄 세워 분위로 나눈 뒤 1~3순위 표시 ---------- */
+  const BEST_DEF = { rate: 4.88, wage: 10320, days: 21, fare: 1550, age: 0, q: 10 };
   // rate: 한국은행 예금은행 주택담보대출 금리(신규취급액, 2026년 9월) / wage: 2026년 최저임금 시급 / fare: 수도권 지하철 기본요금(교통카드)
-  const best = { ...BEST_DEF };
-  try { Object.assign(best, JSON.parse(localStorage.getItem('commute-best') || '{}')); } catch (e) { /* 저장 안 됨 */ }
+  const TIER_COL = ['#3B0764', '#7E22CE', '#D8B4FE'];
+  const best = { ...BEST_DEF, on: false };
+  try { const v = JSON.parse(localStorage.getItem('commute-best') || '{}'); for (const k of Object.keys(BEST_DEF)) if (v[k] != null) best[k] = v[k]; } catch (e) { /* 저장 안 됨 */ }
   const thisYear = new Date().getFullYear();
+  const man = (v) => `${Math.round(v).toLocaleString()}만`;
   function realCost(a) {
     const r = best.rate / 100 / 12; // 월 금리
     const house = state.kind === 'rent' ? a.price + (a.dep || 0) * r : a.price * r; // 만원/월
@@ -310,53 +304,47 @@
     const mins = (ta || 0) + (tb || 0), people = tb == null ? 1 : 2;
     const time = mins * 2 * best.days * (best.wage / 60) / 10000; // 만원/월
     const fare = people * 2 * best.days * best.fare / 10000; // 만원/월
-    return { house, time, fare, total: house + time + fare, ta, tb };
+    return { house, time, fare, total: house + time + fare };
   }
+  // 조건에 맞는 단지 전체를 실질 비용 순으로 줄 세우고 q분위로 나눔. 1~3분위만 남겨 목록·지도에 표시
   function computeBest() {
-    state.best = [];
-    if (!state.a?.data) return;
-    const maxAge = +best.age || 0;
+    const info = $('bx-info');
+    for (const a of state.all || []) { a.tier = 0; a.rc = null; }
+    if (!best.on || !state.a?.data) { if (info) info.textContent = ''; return; }
+    const maxAge = +best.age || 0, q = +best.q || 10;
     const cand = [];
+    let unknown = 0;
     for (const a of state.matches) {
-      if (!a.year) continue; // 연식 미상은 추천에서 보류
+      if (!a.year) { unknown++; continue; } // 연식 미상은 보류
       if (maxAge && thisYear - a.year > maxAge) continue;
-      cand.push([realCost(a), a]);
+      a.rc = realCost(a); cand.push(a);
     }
-    cand.sort((x, y) => x[0].total - y[0].total);
-    state.best = cand.slice(0, 3).map(([c, a]) => Object.assign(a, { rc: c }));
-  }
-  const man = (v) => `${Math.round(v).toLocaleString()}만`;
-  function renderBest() {
-    const box = $('best'); if (!box) return;
-    box.hidden = !state.a;
-    if (!state.a) return;
-    const kn = KINDS[state.kind].name;
-    const el = $('best-list');
-    if (!state.best.length) { el.innerHTML = '<li class="none">조건에 맞는 단지가 없어요. 연식 조건이나 예산을 넓혀 보세요.</li>'; return; }
-    el.innerHTML = state.best.map((a, k) => {
-      const c = a.rc, tt = c.tb == null ? `A까지 ${c.ta}분` : `A ${c.ta}분 · B ${c.tb}분`;
-      const price = state.kind === 'rent' ? `월세 ${won(a.price)}(보증금 ${won(a.dep || 0)})` : `${kn} ${won(a.price)}`;
-      return `<li class="bc" data-k="${k}" tabindex="0"><span class="bk">${k + 1}</span>
-        <div class="bb"><div class="bn">${esc(a.name)} <small>${a.year}년 · ${a.area}㎡</small></div>
-        <div class="bt">실질 월 <b>${man(c.total)}원</b></div>
-        <div class="bs">주거비 ${man(c.house)} + 통근 환산 ${man(c.time)} + 교통비 ${man(c.fare)}</div>
-        <div class="bs">${price} · ${tt}</div></div></li>`;
-    }).join('');
+    cand.sort((x, y) => x.rc.total - y.rc.total);
+    const n = cand.length, cnt = [0, 0, 0];
+    cand.forEach((a, i) => { const tier = Math.floor(i * q / n) + 1; if (tier <= 3) { a.tier = tier; cnt[tier - 1]++; } });
+    state.matches = cand.filter((a) => a.tier);
+    if (state.sel && !state.matches.includes(state.sel)) state.sel = null;
+    if (info) {
+      const cut = (k) => { const xs = cand.filter((a) => a.tier === k); return xs.length ? `${man(xs[0].rc.total)}~${man(xs[xs.length - 1].rc.total)}원` : '–'; };
+      info.innerHTML = [1, 2, 3].map((k) => `<div class="bx-t"><i style="background:${TIER_COL[k - 1]}"></i><b>${k}순위</b><span>${cnt[k - 1]}곳</span><small>월 ${cut(k)}</small></div>`).join('')
+        + `<p class="bx-n">조건에 맞는 ${n.toLocaleString()}곳을 실질 월 주거비 순으로 ${q}등분한 위쪽 3구간이에요.${unknown ? ` 준공 연도를 모르는 ${unknown}곳은 뺐어요.` : ''}</p>`;
+    }
   }
   function bestUI() {
-    const f = $('best-form'); if (!f) return;
-    for (const k of Object.keys(BEST_DEF)) { const i = f.elements[k]; if (i) i.value = best[k]; }
+    const f = $('bx-form'), tog = $('bx-tog'); if (!f) return;
+    const sync = () => { for (const k of Object.keys(BEST_DEF)) { const i = f.elements[k]; if (i) i.value = best[k]; } };
+    sync();
+    const setOn = (on) => { best.on = on; tog.setAttribute('aria-pressed', String(on)); $('bx-body').hidden = !on; $('legend').classList.toggle('best-on', on); state.showN = 30; refresh(); };
+    tog.addEventListener('click', () => setOn(!best.on));
     f.addEventListener('input', () => {
       for (const k of Object.keys(BEST_DEF)) { const i = f.elements[k]; if (i && i.value !== '' && isFinite(+i.value)) best[k] = +i.value; }
-      try { localStorage.setItem('commute-best', JSON.stringify(best)); } catch (e) { /* 저장 안 됨 */ }
-      computeBest(); renderBest(); layer.redraw();
+      try { const v = {}; for (const k of Object.keys(BEST_DEF)) v[k] = best[k]; localStorage.setItem('commute-best', JSON.stringify(v)); } catch (e) { /* 저장 안 됨 */ }
+      state.showN = 30; refresh();
     });
-    $('best-reset').addEventListener('click', () => { Object.assign(best, BEST_DEF); for (const k of Object.keys(BEST_DEF)) { const i = f.elements[k]; if (i) i.value = best[k]; } f.dispatchEvent(new Event('input')); });
-    $('best-list').addEventListener('click', (e) => { const li = e.target.closest('.bc'); if (li) selectApt(state.best[+li.dataset.k], true); });
-    $('best-list').addEventListener('keydown', (e) => { if (e.key === 'Enter') { const li = e.target.closest('.bc'); if (li) selectApt(state.best[+li.dataset.k], true); } });
+    $('bx-reset').addEventListener('click', () => { Object.assign(best, BEST_DEF, { on: true }); sync(); f.dispatchEvent(new Event('input')); });
   }
 
-  function refresh() { document.body.classList.toggle('has-work', !!state.a); computeMatches(); computeBest(); renderBest(); renderList(); renderPriceLegend(); layer.redraw(); renderReadout(state.hover); $('legend').classList.toggle('empty', !state.a); }
+  function refresh() { document.body.classList.toggle('has-work', !!state.a); computeMatches(); computeBest(); renderList(); renderPriceLegend(); layer.redraw(); renderReadout(state.hover); $('legend').classList.toggle('empty', !state.a); }
 
   /* ---------- 격자 찾기 ---------- */
   const bkey = (lat, lon) => `${Math.floor(lat / 0.005)}_${Math.floor(lon / 0.005)}`;
