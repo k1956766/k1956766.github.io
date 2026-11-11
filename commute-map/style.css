@@ -313,21 +313,10 @@ body.picking #map{cursor:crosshair}
 /* 역 */
 .o-st b{position:absolute;left:-4px;top:-4px;width:8px;height:8px;border-radius:50%;background:#fff;border:2px solid #555}
 .o-st.tr b{left:-5px;top:-5px;width:10px;height:10px;border-width:2.5px}
-.o-st em{font-style:normal;margin-left:3px}
-.o-st em i{font-style:normal;display:inline-block;font-size:9px;line-height:13px;padding:0 3px;margin-left:1px;border-radius:3px;color:#fff;text-shadow:none;vertical-align:1px}
-/* 확대 단계별: 멀리서는 환승역 점만, 12에서 환승역 이름, 13부터 모든 역 이름과 노선 표시 */
+/* 확대 단계별: 멀리서는 환승역 점만, 12에서 환승역 이름, 13부터 모든 역 이름 */
 .zlo .o-st{display:none}
 .zlo .o-st.tr{display:block}
 .zlo .o-st span,.zmid .o-st:not(.tr) span{display:none}
 .zlo .o-st.tr b{width:7px;height:7px;left:-3.5px;top:-3.5px;border-width:2px}
-.zlo .o-st em,.zmid .o-st em{display:none}
 .zmid .o-st span{font-size:10.5px}
-/* 명소: 11 이하 별만, 12부터 이름 */
-.o-lm b{position:absolute;left:-7px;top:-9px;font-size:13px;color:#C2410C;text-shadow:0 0 2px #fff,0 0 3px #fff}
-.o-lm span{left:9px;color:#7C2D12;font-weight:700}
-.zlo .o-lm span{display:none}
-.z10 .o-lm{display:none}
-/* 시군구 이름: 11 이하에서만 */
-.o-area span{left:0;transform:translateX(-50%);font-size:12.5px;font-weight:800;color:rgba(31,43,61,.6);letter-spacing:.02em}
-.z10 .o-area,.zmid .o-area,.zhi .o-area{display:none}
 @media (max-width:720px){ .o-ctl{flex-direction:row} .o-ctl button{width:40px;height:28px;font-size:11px} .o-lab span{font-size:11px} }
