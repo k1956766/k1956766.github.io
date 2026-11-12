@@ -337,7 +337,7 @@
     const r = Math.round(Math.abs(v)), good = v >= 0;
     if (k === 'house') return `주거비 월 ${man(Math.abs(v))}원 ${good ? '아낌' : '더 듦'}`;
     if (k === 'mins') return `통근 월 ${r}시간 ${good ? '아낌' : '더 씀'}${couple() ? '(둘 합쳐)' : ''}`;
-    return r < 1 ? '연식 비슷' : `${r}년 더 ${good ? '새 집' : '오래된 집'}`;
+    return r < 1 ? '연식 비슷' : `${r}년 더 ${good ? '신축' : '구축'}`;
   }
   const dval = (c, k) => k === 'house' ? c.dHouse : k === 'mins' ? hrs(c.dMins) : c.dAge;
   function rankLine(a) {
@@ -397,7 +397,7 @@
       const keys = shownKeys();
       const avg = (t, k) => { const xs = cand.filter((a) => a.tier === t); return xs.length ? xs.reduce((s, a) => s + dval(a.rc, k), 0) / xs.length : 0; };
       info.innerHTML = [1, 2, 3].map((t) => `<div class="bx-t"><i class="t${t}"></i><b>${t}순위</b><span>${cnt[t - 1]}곳</span><small>${keys.map(({ k }) => `· 평균 ${unitText(k, avg(t, k))}`).join('<br>')}</small></div>`).join('');
-      const why = $('bx-why'); if (why) why.textContent = `조건에 맞는 ${n.toLocaleString()}곳을 고른 비중대로 줄 세워 상위 5%씩 나눴어요. 주거비는 면적·연식이 비슷한 집, 통근시간·연식은 면적이 비슷한 집의 보통값과 비교했어요. 항목은 비중이 큰 순서로 보여 주고, 연식은 비교한 집들보다 몇 년 더 새 집인지예요.${skipText(skip)}`;
+      const why = $('bx-why'); if (why) why.textContent = `조건에 맞는 ${n.toLocaleString()}곳을 고른 비중대로 줄 세워 상위 5%씩 나눴어요. 주거비는 면적·연식이 비슷한 집, 통근시간·연식은 면적이 비슷한 집의 보통값과 비교했어요. 항목은 비중이 큰 순서로 보여 주고, 연식은 비교한 집들보다 몇 년 더 신축인지예요.${skipText(skip)}`;
     }
   }
   // 삼각형 비중 고르기: 꼭짓점 = 통근(위), 주거비(왼쪽 아래), 연식(오른쪽 아래)
