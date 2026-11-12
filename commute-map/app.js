@@ -184,6 +184,12 @@
 
   /* ---------- 단지 조건 ---------- */
   const won = (v) => v >= 10000 ? `${(v / 10000).toFixed(v % 10000 === 0 ? 0 : 1).replace(/\.0$/, '')}억` : `${v.toLocaleString()}만`;
+  // 월세: 거래마다 환산한 월세(보증금 0 기준, t[13])에서 '내 보증금'만큼 빼서 '내 보증금으로 계약하면 내는 월세'로 비교.
+  // 전월세전환율 5%(법정 상한 = 기준금리 3.00%+2%p, 사이트 자료로 잰 시장 중간값 약 5.3%)
+  const CONV = 0.05, CONV_M = CONV / 12;
+  const eq0 = (t) => (t[13] != null ? t[13] : t[6] != null ? t[6] + (t[7] || 0) * CONV_M : null); // 옛 자료(t[13] 없음) 대비
+  const rentAt = (t) => { const e = eq0(t); return e == null ? null : Math.max(0, Math.round(e - (state.myDep || 0) * CONV_M)); };
+  const priceOf = (t, pi) => (state.kind === 'rent' ? rentAt(t) : t[pi]);
   function computeMatches() {
     state.matches = [];
     if (!state.a?.data) return;
@@ -193,11 +199,12 @@
       const v = metric(cell); if (v == null || v > state.limit) continue;
       let best = null;
       for (const t of types) {
-        if (t[0] < state.minArea || t[pi] == null || t[pi] > state.budget || t[ni] < state.minN) continue;
-        if (!best || t[pi] < best[pi]) best = t;
+        const pv = priceOf(t, pi);
+        if (t[0] < state.minArea || pv == null || pv > state.budget || t[ni] < state.minN) continue;
+        if (!best || pv < priceOf(best, pi)) best = t;
       }
       if (!best) continue;
-      state.matches.push({ seq, name, dong, year, lat, lon, cell, v, types, hh: hh == null ? -1 : hh, sale: sale || 0, flag: best[12] || 0, area: best[0], price: best[pi], n: best[ni], w: best[wi], dep: best[7], ym: best[5] });
+      state.matches.push({ seq, name, dong, year, lat, lon, cell, v, types, hh: hh == null ? -1 : hh, sale: sale || 0, flag: best[12] || 0, area: best[0], price: priceOf(best, pi), n: best[ni], w: best[wi], mr: best[6], dep: best[7], eq: eq0(best), ym: best[5] });
     }
     for (const a of state.matches) a.v2 = second(a.cell);
     state.matches.sort((x, y) => x.v - y.v || x.v2 - y.v2 || x.price - y.price);
@@ -293,7 +300,8 @@
       return `<li class="apt${a === state.sel ? ' sel' : ''}" data-k="${k}" tabindex="0">
         <span class="nm">${a.name}</span><span class="tm">${tm}</span>
         <span class="sub">${a.dong}${a.year ? `, ${a.year}년` : ''}</span>
-        <span class="pr">${a.area}㎡ ${kindName} ${won(a.price)} (${a.w ? `최근 ${a.w}개월 ` : ''}${a.n}건)</span>
+        <span class="pr${state.kind === 'rent' ? ' rent' : ''}">${state.kind === 'rent' ? `${a.area}㎡ 월세 ${won(a.mr)} · 보증금 ${won(a.dep || 0)}` : `${a.area}㎡ ${kindName} ${won(a.price)}`} (${a.w ? `최근 ${a.w}개월 ` : ''}${a.n}건)</span>
+        ${state.kind === 'rent' ? `<span class="pr2">${rentNote(a)}</span>` : ''}
         ${best.on && a.rc ? rankLine(a) : ''}
         <button type="button" class="more-d" data-k="${k}" aria-expanded="${state.open === a.seq}">${state.open === a.seq ? '접기' : '세부정보'}</button>
         ${state.open === a.seq ? detailHTML(a) : ''}</li>`;
@@ -301,17 +309,26 @@
     $('apt-more').hidden = state.matches.length <= state.showN;
   }
   // 세부정보: 면적형별 가격(현재 거래 종류). 월세는 보증금도 함께.
+  // 월세 단지 한 줄: 내 보증금 기준으로 바꾼 월세
+  function rentNote(a) {
+    const D = state.myDep || 0;
+    const base = D ? `내 보증금 ${won(D)} 기준` : '보증금 없이(모두 월세로)';
+    if (D && a.price <= 0) return `${base} 월세 없음 <small>(내 보증금이 이 집 전세 수준)</small>`;
+    const adj = D && (a.dep || 0) > D ? ' · 보증금을 줄이는 셈이라 집주인 동의 필요' : '';
+    return `${base} 월 <b>${won(a.price)}</b>${adj}`;
+  }
   function detailHTML(a) {
     const K = KINDS[state.kind];
     const rows = a.types.filter((t) => t[K.pi] != null).map((t) => {
-      const extra = state.kind === 'rent' ? `<td>${t[7] != null ? won(t[7]) : '–'}</td>` : '';
-      const ok = t[0] >= state.minArea && t[K.pi] <= state.budget && t[K.ni] >= state.minN;
+      const pv = priceOf(t, K.pi);
+      const extra = state.kind === 'rent' ? `<td>${t[7] != null ? won(t[7]) : '–'}</td><td>${pv != null ? won(pv) : '–'}</td>` : '';
+      const ok = t[0] >= state.minArea && pv != null && pv <= state.budget && t[K.ni] >= state.minN;
       return `<tr class="${ok ? '' : 'dim'}"><td>${t[0]}㎡</td><td>${won(t[K.pi])}</td>${extra}<td>${t[K.wi] ? `${t[K.wi]}개월 ` : ''}${t[K.ni]}건</td></tr>`;
     }).join('');
-    const head = state.kind === 'rent' ? '<th>면적</th><th>월세</th><th>보증금</th><th>거래</th>' : `<th>면적</th><th>${K.name}</th><th>거래</th>`;
+    const head = state.kind === 'rent' ? `<th>면적</th><th>월세</th><th>보증금</th><th>${state.myDep ? '내 보증금 기준' : '모두 월세로'}</th><th>거래</th>` : `<th>면적</th><th>${K.name}</th><th>거래</th>`;
     const last = a.ym ? `최근 거래 ${a.ym.slice(0, 4)}년 ${+a.ym.slice(4)}월` : '';
     return `<div class="detail"><table><thead><tr>${head}</tr></thead><tbody>${rows}</tbody></table>
-      <p>가격은 최근 3개월에 거래가 2건 이상이면 3개월, 아니면 6개월, 그래도 없으면 12개월 거래의 중위값입니다(해제된 거래 제외). ${state.kind === 'rent' ? '월세·보증금은 같은 면적형 월세 계약의 각각 중위값입니다. ' : ''}흐린 줄은 지금 조건(면적·예산·거래 수)에 안 맞는 면적형입니다. ${last}</p></div>`;
+      <p>가격은 최근 3개월에 거래가 2건 이상이면 3개월, 아니면 6개월, 그래도 없으면 12개월 거래의 중위값입니다(해제된 거래 제외). ${state.kind === 'rent' ? '월세·보증금은 같은 면적형 계약을 보증금까지 월세로 바꿔(전환율 연 5%) 줄 세웠을 때 가운데 계약의 값입니다. ' : ''}흐린 줄은 지금 조건(면적·예산·거래 수)에 안 맞는 면적형입니다. ${last}</p></div>`;
   }
   function selectApt(a, fly) {
     state.sel = a; state.hover = a.cell;
@@ -329,8 +346,8 @@
      3) 삼각형에서 고른 비중으로 더해 순위를 내고 상위 2%씩 1·2·3순위
      4) 화면에는 세 항목 모두 비중 순서로 제 단위로(25% 이상은 굵게): 주거비(원, 같은 면적·연식대 대비), 통근(월 시간), 연식(년)(같은 면적대 대비)
      계산 기준(고정): 집값·보증금의 절반은 대출(대출금리), 절반은 내 돈(예금금리)으로 보고 월 이자 비용을 주거비로 봄 */
-  const CALC = { loan: 0.5, rLoan: 4.88, rDep: 3.45, wage: 10320, days: 21, fare: 1550 };
-  // rLoan: 한국은행 예금은행 주택담보대출 금리(신규취급액, 2026년 9월) / rDep: 같은 달 저축성 수신금리 / wage: 2026년 최저임금 시급 / fare: 수도권 지하철 기본요금
+  const CALC = { wage: 10320, days: 21, fare: 1550 };
+  // wage: 2026년 최저임금 시급 / fare: 수도권 지하철 기본요금. 집값·보증금은 전월세전환율(CONV, 연 5%)로 월 비용 환산
   const BEST_DEF = { wt: 1 / 3, wc: 1 / 3, wy: 1 / 3, small: 1 }; // small: 1이면 소규모 단지 빼기
   const TIER_COL = ['#3B0764', '#7E22CE', '#C084FC'];
   const best = { ...BEST_DEF, on: false, show: new Set([1, 2, 3]) }; // show: 지도·목록에 보일 순위
@@ -341,9 +358,9 @@
   const areaBand = (m2) => m2 < 40 ? 0 : m2 < 60 ? 1 : m2 < 85 ? 2 : m2 < 115 ? 3 : 4;
   const KIND_BIT = { sale: 1, jeonse: 2, rent: 4 };
   const SMALL_HH = 150; // K-apt 의무관리 기준 근처: 이보다 작거나 K-apt에 없으면 소규모
-  const RATE = (CALC.loan * CALC.rLoan + (1 - CALC.loan) * CALC.rDep) / 100 / 12; // 월 이자율
+  const RATE = CONV_M; // 월 이율: 사이트 전체를 전월세전환율 5%로 통일
   function costOf(a) {
-    const house = state.kind === 'rent' ? a.price + (a.dep || 0) * RATE : a.price * RATE; // 만원/월
+    const house = state.kind === 'rent' ? a.eq : a.price * RATE; // 만원/월(월세는 보증금까지 월세로 바꾼 값 — 내 보증금과 무관)
     const ta = t(state.a, a.cell, false), tb = state.b?.data ? t(state.b, a.cell, false) : null;
     const mins = (ta || 0) + (tb || 0), people = tb == null ? 1 : 2;
     const time = mins * 2 * CALC.days * (CALC.wage / 60) / 10000; // 만원/월
@@ -376,7 +393,7 @@
   function rankLine(a) {
     const c = a.rc, keys = shownKeys(); // 세 항목 모두, 비중 큰 순서로 / 비중 25% 이상은 굵게
     const head = keys.map(({ k, main }) => `<span class="rk-l">· ${main ? `<b>${unitText(k, dval(c, k))}</b>` : unitText(k, dval(c, k))}</span>`).join('');
-    const rent = state.kind === 'rent' ? `<small>월세 ${won(a.price)} + 보증금 ${won(a.dep || 0)}(이자 월 ${man((a.dep || 0) * RATE)}) = 주거비 월 ${man(c.house)}원</small>` : '';
+    const rent = state.kind === 'rent' ? `<small>월세 ${won(a.mr)} + 보증금 ${won(a.dep || 0)}×5%÷12(월 ${man((a.dep || 0) * RATE)}) = 주거비 월 ${man(c.house)}원</small>` : '';
     return `<span class="rk"><i class="t${a.tier}">${a.tier}순위</i>${head}${hhText(a) ? `<small>${hhText(a)}</small>` : ''}${rent}</span>`;
   }
   function skipText(k) {
@@ -648,6 +665,7 @@
     if (state.b) p.set('b', `${state.b.lat.toFixed(5)},${state.b.lon.toFixed(5)}`);
     p.set('t', state.limit); p.set('k', state.kind); if (state.priceMode === 'jenks') p.set('pb', 'j'); if (state.pick) p.set('pc', [...state.pick].sort((a, b) => a - b).join('.') || 'none'); p.set('m', state.minArea); p.set('n', state.minN); if (state.b) { p.set('pr', state.prio); p.set('x', state.extra); }
     if (state.budget !== Infinity) p.set('p', state.budget);
+    if (state.kind === 'rent' && state.myDep) p.set('d', state.myDep);
     if (state.modes !== '1111') p.set('md', state.modes); if (state.tr >= 0) p.set('tr', state.tr);
     history.replaceState(null, '', '#' + p.toString());
     renderLegend();
@@ -698,7 +716,7 @@
     if (state.budget !== Infinity && state.budget / B.mul >= B.max) state.budget = Infinity;
     s.min = B.min; s.max = B.max; s.step = B.step;
     s.value = state.budget === Infinity ? B.max : Math.min(B.max, Math.max(B.min, state.budget / B.mul));
-    $('bud-label').textContent = state.kind === 'rent' ? '월세 예산' : '예산';
+    $('bud-label').textContent = state.kind === 'rent' ? (state.myDep ? '월세 예산(내 보증금 기준)' : '월세 예산(보증금까지 월세로)') : '예산';
     $('bud-out').textContent = state.budget === Infinity ? '제한 없음' : `${won(state.budget)} 이하`;
   }
   $('bud').addEventListener('input', (e) => {
@@ -711,8 +729,16 @@
     const changed = state.kind !== k; state.kind = k;
     document.querySelectorAll('#kind button').forEach((x) => x.setAttribute('aria-checked', String(x.dataset.kind === k)));
     if (changed) { state.budget = Infinity; state.pick = null; state.anchor = null; } // 단위가 달라서 예산은 초기화
+    $('dep-box').hidden = k !== 'rent';
     setBudgetUI();
   }
+  // 월세: 내 보증금(억원) — 단지마다 이 보증금으로 계약할 때 월세로 바꿔 비교
+  let depT;
+  $('mydep').addEventListener('input', (e) => {
+    const v = parseFloat(e.target.value.replace(/[^0-9.]/g, ''));
+    state.myDep = isFinite(v) && v > 0 ? Math.round(Math.min(v, 50) * 10000) : 0; // 만원
+    clearTimeout(depT); depT = setTimeout(() => { setBudgetUI(); syncHash(); refresh(); }, 250);
+  });
   document.querySelectorAll('#kind button').forEach((b) => b.addEventListener('click', () => { setKind(b.dataset.kind); syncHash(); refresh(); }));
   $('pmode').addEventListener('click', () => { state.priceMode = state.priceMode === 'jenks' ? 'fixed' : 'jenks'; state.pick = null; state.anchor = null; syncHash(); refresh(); });
   // 가격 범례 칸 누르기: 구간 고르기/해제(여러 개 가능)
@@ -974,6 +1000,7 @@
     if (p.get('pc')) state.pick = new Set(p.get('pc') === 'none' ? [] : p.get('pc').split('.').map(Number).filter((k) => k >= 0 && k < 40));
     if (p.get('m') != null) { state.minArea = +p.get('m') || 0; $('area').value = String(state.minArea); }
     if (p.get('p')) state.budget = +p.get('p') || Infinity;
+    if (p.get('d')) { state.myDep = Math.max(0, +p.get('d') || 0); $('mydep').value = state.myDep ? String(state.myDep / 10000) : ''; }
     if (p.get('n')) { state.minN = Math.max(1, +p.get('n') || 2); $('minn').value = String(state.minN); }
     if (['eq', 'a', 'b'].includes(p.get('pr'))) setPrio(p.get('pr'));
     if (p.get('x')) { state.extra = Math.min(60, Math.max(0, +p.get('x') || 0)); $('extra').value = state.extra; }

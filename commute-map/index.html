@@ -68,10 +68,16 @@
 
 
   <section class="home" aria-label="집 조건">
-    <div class="seg" id="kind" role="radiogroup" aria-label="거래 방식">
+    <div class="kind-row">
+      <div class="seg" id="kind" role="radiogroup" aria-label="거래 방식">
       <button type="button" role="radio" aria-checked="true" data-kind="sale">매매</button>
       <button type="button" role="radio" aria-checked="false" data-kind="jeonse">전세</button>
       <button type="button" role="radio" aria-checked="false" data-kind="rent">월세</button>
+    </div>
+      <label class="dep-box" id="dep-box" hidden title="내가 낼 수 있는 보증금. 단지마다 이 보증금으로 계약할 때의 월세로 바꿔 비교해요">
+        <input id="mydep" type="text" inputmode="decimal" autocomplete="off" placeholder="보증금 입력" aria-label="내 보증금(억원)">
+        <span class="dep-u">억원</span>
+      </label>
     </div>
     <label for="bud"><span id="bud-label">예산</span> <output id="bud-out" for="bud">제한 없음</output></label>
     <input id="bud" type="range" min="1" max="20.5" step="0.5" value="20.5">
@@ -150,7 +156,7 @@
         <div id="bx-info"></div>
         <details class="bd"><summary>어떻게 계산하나요?</summary>
           <p class="bx-n" id="bx-why"></p>
-          <p class="bx-n">월 주거비는 집값(보증금)의 절반은 대출(주담대 금리 4.88%), 절반은 내 돈(예금금리 3.45%)으로 보고 그 이자를 한 달 비용으로 계산해요. 월세는 여기에 월세를 더해요. 통근시간 절약은 하루 왕복 차이 × 월 21일이에요. 순위는 통근시간·주거비·연식을 각각 후보 단지 안에서 얼마나 나은지로 같은 눈금에 맞춘 뒤, 고른 비중대로 더해서 정해요. 금리는 한국은행 2026년 9월 발표 기준이에요. 직거래·토지임대부 매매와 갱신 전월세 계약, 같은 단지에서 유난히 동떨어진 거래는 가격 계산에서 뺐어요. 세대수와 임대 여부는 공동주택관리정보시스템(K-apt) 자료예요.</p>
+          <p class="bx-n">월 주거비는 집값·보증금에 전월세전환율 연 5%(법정 상한 = 기준금리 3.00% + 2%p)를 곱해 12로 나눈 값이에요. 월세는 여기에 월세를 더해요. 통근시간 절약은 하루 왕복 차이 × 월 21일이에요. 순위는 통근시간·주거비·연식을 각각 후보 단지 안에서 얼마나 나은지로 같은 눈금에 맞춘 뒤, 고른 비중대로 더해서 정해요. 기준금리는 2026년 10월 한국은행 발표 기준이에요. 직거래·토지임대부 매매와 갱신 전월세 계약, 같은 단지에서 유난히 동떨어진 거래는 가격 계산에서 뺐어요. 세대수와 임대 여부는 공동주택관리정보시스템(K-apt) 자료예요.</p>
         </details>
       </form>
     </div>

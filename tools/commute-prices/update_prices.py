@@ -20,7 +20,7 @@ DATA = os.path.join(HERE, 'data')
 SITE = os.path.join(ROOT, 'commute-map', 'data')
 N_REFETCH = int(os.environ.get('N_REFETCH', '3'))
 WIN = 12
-EQ_RATE = 0.0417   # 보증금 월 환산 이자율(대출 4.88%·예금 3.45% 반반)
+EQ_RATE = 0.05     # 전월세전환율: 보증금 → 월세 환산(법정 상한 = 기준금리 3.00% + 2%p, 사이트 자료로 잰 시장 중간값 약 5.3%)
 KST = dt.timezone(dt.timedelta(hours=9))
 today = dt.datetime.now(KST).date()
 
@@ -227,7 +227,17 @@ def build():
 
     sale = tier(t, 'price').rename(columns={'p': 'sale', 'n': 'sn', 'y': 'sy', 'w': 'sw'})
     jeon = tier(j, 'dep').rename(columns={'p': 'jeonse', 'n': 'jn', 'y': 'jy', 'w': 'jw'})
-    mon = tier(w, 'mr', 'dep').rename(columns={'p': 'mrent', 'e': 'mdep', 'n': 'mn', 'y': 'my', 'w': 'mw'})
+    # 월세: 거래마다 환산 월세(월세 + 보증금×전환율/12)를 구해 그 중간값을 대표로. 화면에 보일 월세·보증금은
+    # 중간값에 해당하는 거래 한 건의 값(따로 구한 중간값끼리 묶으면 실제로 없는 조합이 나와서)
+    w = w.assign(eq=w.mr + w.dep * EQ_RATE / 12)
+    mon = tier(w, 'eq').rename(columns={'p': 'meq', 'n': 'mn', 'y': 'my', 'w': 'mw'})
+    mon['mrent'] = np.nan; mon['mdep'] = np.nan
+    for k in (3, 6, 12):  # tier가 고른 기간(mw)과 같은 기간에서 환산 월세 중간 거래
+        x = w[w.ym >= MS[k - 1]].sort_values(['aptSeq', 'area', 'eq'])
+        c = x.groupby(['aptSeq', 'area']).eq.transform('size'); i = x.groupby(['aptSeq', 'area']).cumcount()
+        g = x[i == (c - 1) // 2].set_index(['aptSeq', 'area'])[['mr', 'dep']]
+        idx = mon.index[mon.mw == k].intersection(g.index)
+        mon.loc[idx, 'mrent'] = g.loc[idx, 'mr'].values; mon.loc[idx, 'mdep'] = g.loc[idx, 'dep'].values
     ty = sale.join(jeon, how='outer').join(mon, how='outer').reset_index()
     info0 = pd.concat([t[['aptSeq', 'umdNm', 'buildYear']], r[['aptSeq', 'umdNm', 'buildYear']]]).drop_duplicates('aptSeq').set_index('aptSeq')
     ty = ty.join(info0, on='aptSeq')
@@ -236,7 +246,6 @@ def build():
     ty['ab'] = pd.cut(today.year - yr, [-99, 5, 10, 20, 999], labels=False)
     ty['mb'] = pd.cut(ty.area, [0, 40, 60, 85, 115, 9999], labels=False, right=False)
     # 이웃(같은 동·면적대·연식대, 5단지 미만이면 같은 시군구) 대표 가격보다 크게 낮은 단지는 '가격 확인 필요'
-    ty['meq'] = ty.mrent + ty.mdep * EQ_RATE / 12
     flag = np.zeros(len(ty), dtype=int)
     for bit, col, thr in ((1, 'sale', 0.55), (2, 'jeonse', 0.5), (4, 'meq', 0.5)):
         v = ty[col]
@@ -252,6 +261,8 @@ def build():
         .groupby('aptSeq').agg(lambda s: s.mode().iat[0] if len(s.dropna().mode()) else '')
     geo = pd.read_csv(os.path.join(HERE, 'apt_coord.csv'), dtype={'aptSeq': str})[['aptSeq', 'lat', 'lon']].dropna().drop_duplicates('aptSeq')
     G = json.load(open(os.path.join(SITE, 'grid.json')))
+    if G.get('v') == 2:  # 좌표가 1e-5도 정수 차이로 들어 있음
+        G['lat'] = np.cumsum(G['lat']) / 1e5; G['lon'] = np.cumsum(G['lon']) / 1e5
     tree = cKDTree(np.column_stack([np.array(G['lon']) * 88.4e3, np.array(G['lat']) * 111e3]))
     dd, ii = tree.query(np.column_stack([geo.lon * 88.4e3, geo.lat * 111e3]))
     geo['cell'] = np.where(dd <= 300, ii, -1)
@@ -263,7 +274,7 @@ def build():
         if a.aptSeq not in info.index or a.aptSeq not in grp:
             continue
         types = [[int(x.area), iv(x.sale), cn(x.sn), iv(x.jeonse), cn(x.jn), max(sv(x.sy), sv(x.jy), sv(x.my)),
-                  iv(x.mrent), iv(x.mdep), cn(x.mn), cn(x.sw), cn(x.jw), cn(x.mw), int(x.flag)] for x in grp[a.aptSeq].itertuples() if pd.notna(x.area)]
+                  iv(x.mrent), iv(x.mdep), cn(x.mn), cn(x.sw), cn(x.jw), cn(x.mw), int(x.flag), iv(x.meq)] for x in grp[a.aptSeq].itertuples() if pd.notna(x.area)]
         if not types:
             continue
         nm = info.loc[a.aptSeq]
