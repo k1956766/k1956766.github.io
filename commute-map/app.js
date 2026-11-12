@@ -100,19 +100,31 @@
         if (!inside(nE)) { ctx.moveTo(p1.x, p0.y); ctx.lineTo(p1.x, p1.y); }
       }
       ctx.stroke();
-      const z = m.getZoom(), r = z >= 14 ? 5 : z >= 12 ? 3.5 : 2.4;
+      const z = m.getZoom(), r = z >= 14 ? 6 : z >= 12 ? 4.5 : 3;
       ctx.lineWidth = z >= 12 ? 1.5 : 1;
-      for (const a of state.matches) {
+      const tiered = best.on;
+      // 최적의 집 찾기: 순위 숫자 배지. 3→2→1 순서로 그려 1순위가 위에 오게
+      const list = tiered ? state.matches.slice().sort((x, y) => (y.tier || 9) - (x.tier || 9)) : state.matches;
+      const R = z >= 14 ? 11 : z >= 12 ? 9.5 : 8;
+      for (const a of list) {
         if (a.lat < b.getSouth() || a.lat > b.getNorth() || a.lon < b.getWest() || a.lon > b.getEast()) continue;
         const p = m.latLngToContainerPoint([a.lat, a.lon]);
         ctx.globalAlpha = state.sel && a !== state.sel ? 0.25 : 1; // 단지를 고르면 나머지는 흐리게
+        if (tiered && a.tier) {
+          const rr = a === state.sel ? R + 2 : R;
+          ctx.beginPath(); ctx.arc(p.x, p.y, rr, 0, 7);
+          ctx.fillStyle = state.priceColors[a.cls]; ctx.fill();
+          ctx.strokeStyle = '#000'; ctx.lineWidth = a === state.sel ? 2.5 : 1.2; ctx.stroke();
+          ctx.font = `800 ${Math.round(rr * 1.15)}px Pretendard, system-ui, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+          ctx.lineWidth = 3; ctx.strokeStyle = '#fff'; ctx.strokeText(a.tier, p.x, p.y + 0.5); ctx.fillStyle = '#111'; ctx.fillText(a.tier, p.x, p.y + 0.5);
+          continue;
+        }
         ctx.beginPath(); ctx.arc(p.x, p.y, a === state.sel ? r + 3 : r, 0, 7);
         ctx.fillStyle = state.priceColors[a.cls]; ctx.fill();
         ctx.strokeStyle = '#000'; ctx.lineWidth = a === state.sel ? 2.5 : (z >= 12 ? 1.2 : 0.8); ctx.stroke();
-        if (best.on && a.tier) { ctx.beginPath(); ctx.arc(p.x, p.y, (a === state.sel ? r + 3 : r) + 2.6, 0, 7); ctx.strokeStyle = TIER_COL[a.tier - 1]; ctx.lineWidth = 2.6; ctx.stroke(); }
       }
       ctx.globalAlpha = 1;
-      if (state.sel) { const a = state.sel, p = m.latLngToContainerPoint([a.lat, a.lon]); ctx.beginPath(); ctx.arc(p.x, p.y, r + 3, 0, 7); ctx.fillStyle = state.priceColors[a.cls]; ctx.fill(); ctx.strokeStyle = '#1F2B3D'; ctx.lineWidth = 2.5; ctx.stroke(); }
+      if (state.sel && !(best.on && state.sel.tier)) { const a = state.sel, p = m.latLngToContainerPoint([a.lat, a.lon]); ctx.beginPath(); ctx.arc(p.x, p.y, r + 3, 0, 7); ctx.fillStyle = state.priceColors[a.cls]; ctx.fill(); ctx.strokeStyle = '#1F2B3D'; ctx.lineWidth = 2.5; ctx.stroke(); }
       if (state.hover >= 0) {
         const i = state.hover;
         const p0 = m.latLngToContainerPoint([g.lat[i] + HALF_LAT, g.lon[i] - HALF_LON]);
@@ -396,7 +408,7 @@
     if (info) {
       const keys = shownKeys();
       const avg = (t, k) => { const xs = cand.filter((a) => a.tier === t); return xs.length ? xs.reduce((s, a) => s + dval(a.rc, k), 0) / xs.length : 0; };
-      info.innerHTML = [1, 2, 3].map((t) => `<div class="bx-t"><i class="t${t}"></i><b>${t}순위</b><span>${cnt[t - 1]}곳</span><small>${keys.map(({ k }) => `· 평균 ${unitText(k, avg(t, k))}`).join('<br>')}</small></div>`).join('');
+      info.innerHTML = [1, 2, 3].map((t) => `<div class="bx-t"><div class="bx-h"><b>${t}순위</b><span>${cnt[t - 1]}곳</span></div><small>${keys.map(({ k }) => `· 평균 ${unitText(k, avg(t, k))}`).join('<br>')}</small></div>`).join('');
       const why = $('bx-why'); if (why) why.textContent = `조건에 맞는 ${n.toLocaleString()}곳을 고른 비중대로 줄 세워 상위 5%씩 나눴어요. 주거비는 면적·연식이 비슷한 집, 통근시간·연식은 면적이 비슷한 집의 보통값과 비교했어요. 항목은 비중이 큰 순서로 보여 주고, 연식은 비교한 집들보다 몇 년 더 신축인지예요.${skipText(skip)}`;
     }
   }
