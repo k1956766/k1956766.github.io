@@ -247,7 +247,7 @@ def build():
             continue
         nm = info.loc[a.aptSeq]
         out.append([a.aptSeq, nm.aptNm, nm.umdNm, int(nm.buildYear) if str(nm.buildYear).isdigit() else None,
-                    round(a.lat, 5), round(a.lon, 5), int(a.cell), types, *(kapt.get(a.aptSeq, (0, 0)) if kapt else (-1, 0))])  # 세대수(-1=단지정보 수집 전, 0=K-apt 미등록), 분양형태
+                    round(a.lat, 5), round(a.lon, 5), int(a.cell), types, *(kapt.get(a.aptSeq, (0, 0) if KAPT_DONE else (-1, 0)) if kapt else (-1, 0))])  # 세대수(-1=단지정보 수집 전, 0=K-apt 미등록), 분양형태
     json.dump(out, open(os.path.join(SITE, 'apts.json'), 'w'), ensure_ascii=False, separators=(',', ':'))
     json.dump({'from': MS[-1], 'to': MS[0], 'updated': today.isoformat(), 'complexes': len(out)},
               open(os.path.join(SITE, 'apts_meta.json'), 'w'), ensure_ascii=False)
