@@ -372,3 +372,5 @@ body.picking #map{cursor:crosshair}
 .tour-b .tour-go{background:#3B0764;border-color:#3B0764;color:#fff}
 .tour-b .tour-skip{border:0;color:var(--ink-2);padding:0 4px}
 @media (max-width:720px){.tour-btn{top:10px;right:58px;min-height:32px;font-size:12px;padding:0 12px}}
+body.picking .basemap{filter:none}
+body.picking .legend{display:none}

@@ -71,7 +71,7 @@
       c.style.width = size.x + 'px'; c.style.height = size.y + 'px';
       const ctx = c.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, size.x, size.y);
-      const g = state.grid; if (!g || !state.a?.data) return;
+      const g = state.grid; if (!g || !state.a?.data || state.picking) return; // 직장 고르는 중엔 통근시간 층을 비워 처음 지도처럼
       const b = m.getBounds().pad(0.05);
       ctx.globalAlpha = state.opacity; // 칸 색만 투명하게
       for (let i = 0; i < g.n; i++) {
@@ -660,6 +660,7 @@
     state.picking = state.picking === key ? null : key;
     document.querySelectorAll('.pick').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.key === state.picking)));
     document.body.classList.toggle('picking', !!state.picking);
+    layer.redraw(); // 고르는 동안 통근시간·단지 층 숨김, 끝나면 다시
     if (state.picking) toast(`지도에서 직장 ${state.picking.toUpperCase()} 위치를 눌러 주세요.`);
   }
 
