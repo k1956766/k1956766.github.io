@@ -220,14 +220,14 @@
       const lo = k === 0 ? null : br[k - 1], hi = k < br.length ? br[k] : null;
       const tip = lo == null ? `${won(hi)} 미만` : hi == null ? `${won(lo)} 이상` : `${won(lo)}~${won(hi)}`;
       const cnt = state.all.filter((a) => a.cls === k).length, sel = on && state.pick.has(k);
-      return `<button type="button" class="${on && !sel ? 'off' : ''}${sel ? ' sel' : ''}" data-c="${k}" style="background:${c}" aria-pressed="${sel}" title="${tip} · ${cnt}곳 (눌러서 이 구간만 보기)" aria-label="${tip} ${cnt}곳"></button>`;
+      return `<button type="button" class="${on && !sel ? 'off' : ''}${sel ? ' sel' : ''}" data-c="${k}" style="background:${c}" aria-pressed="${sel}" title="${tip} · ${cnt}곳 (두 칸을 차례로 누르면 그 사이가 모두 켜져요)" aria-label="${tip} ${cnt}곳"></button>`;
     }).join('');
     // 눈금: 경계값을 최대 6개까지 간격을 두고 표시
     const stride = Math.max(1, Math.ceil(br.length / 6));
     const ticks = br.map((v, i) => ({ v, i })).filter(({ i }) => (br.length - 1 - i) % stride === 0) // 마지막 경계부터 고르게
       .map(({ v, i }) => { const pos = ((i + 1) / n) * 100; return `<span class="${pos > 94 ? 'edge-r' : ''}" style="left:${pos}%">${lab(v)}</span>`; }).join('');
     el.innerHTML = `<div class="pbar">${segs}</div><div class="pticks">${ticks}</div>
-      <div class="pnote"><span>싼 곳</span><span>${on ? `${n}개 중 ${state.pick.size}개 선택` : '칸을 눌러 켜고 끄기'}</span><span>비싼 곳</span></div>`;
+      <div class="pnote"><span>싼 곳</span><span>${state.anchor != null ? '끝 구간을 누르세요' : on ? `${n}개 중 ${state.pick.size}개 선택` : '두 칸을 눌러 범위 고르기'}</span><span>비싼 곳</span></div>`;
   }
   function renderList() {
     const ol = $('apt-list'), kindName = KINDS[state.kind].name;
@@ -645,11 +645,11 @@
     if (!KINDS[k]) return;
     const changed = state.kind !== k; state.kind = k;
     document.querySelectorAll('#kind button').forEach((x) => x.setAttribute('aria-checked', String(x.dataset.kind === k)));
-    if (changed) { state.budget = Infinity; state.pick = null; } // 단위가 달라서 예산은 초기화
+    if (changed) { state.budget = Infinity; state.pick = null; state.anchor = null; } // 단위가 달라서 예산은 초기화
     setBudgetUI();
   }
   document.querySelectorAll('#kind button').forEach((b) => b.addEventListener('click', () => { setKind(b.dataset.kind); syncHash(); refresh(); }));
-  $('pmode').addEventListener('click', () => { state.priceMode = state.priceMode === 'jenks' ? 'fixed' : 'jenks'; state.pick = null; syncHash(); refresh(); });
+  $('pmode').addEventListener('click', () => { state.priceMode = state.priceMode === 'jenks' ? 'fixed' : 'jenks'; state.pick = null; state.anchor = null; syncHash(); refresh(); });
   // 가격 범례 칸 누르기: 구간 고르기/해제(여러 개 가능)
   /* 휴대폰: 조건 창 위 손잡이를 끌어 높이 조절, 끝 가까이에서는 위·아래로 붙음 */
   const panelEl = document.querySelector('.panel'), mobile = () => window.matchMedia('(max-width:720px)').matches;
@@ -713,11 +713,12 @@
     state.modes = m.join(''); setModesUI(); recompute();
   });
   $('trmax').addEventListener('change', (e) => { state.tr = +e.target.value; recompute(); });
-  $('pick-toggle').addEventListener('click', () => { state.pick = state.pick && state.pick.size === 0 ? null : new Set(); state.showN = 30; syncHash(); refresh(); });
+  $('pick-toggle').addEventListener('click', () => { state.pick = state.pick && state.pick.size === 0 ? null : new Set(); state.anchor = null; state.showN = 30; syncHash(); refresh(); });
   $('lg-price-body').addEventListener('click', (e) => {
     const b = e.target.closest('.pbar button'); if (!b) return; const k = +b.dataset.c;
-    if (!state.pick) state.pick = new Set(state.priceColors.map((_, i) => i)); // 전체 켜진 상태에서 누르면 그 칸만 끔
-    state.pick.has(k) ? state.pick.delete(k) : state.pick.add(k);
+    // 두 번 눌러 범위: 첫 클릭은 그 칸만(시작점), 다음 클릭은 시작점~이 칸 사이 전부, 그다음은 다시 시작점
+    if (state.anchor == null) { state.pick = new Set([k]); state.anchor = k; }
+    else { const lo = Math.min(state.anchor, k), hi = Math.max(state.anchor, k); state.pick = new Set(Array.from({ length: hi - lo + 1 }, (_, i) => lo + i)); state.anchor = null; }
     if (state.pick.size === state.priceColors.length) state.pick = null;
     state.showN = 30; syncHash(); refresh();
   });
