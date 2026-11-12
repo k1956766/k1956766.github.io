@@ -379,6 +379,8 @@
       grpN.set(key, summ([-1, 0, 1].flatMap((d) => grp.get(a.rc.mb + '_' + (a.rc.ab + d)) || [])));
     }
     for (const m of [grp, grpA]) for (const [k, xs] of m) m.set(k, summ(xs));
+    const all = summ(cand); // 같은 면적대도 5곳 미만이면 후보 전체와 비교
+    for (const [k, g] of grpA) if (g.n < 5) grpA.set(k, all);
     const sw = best.wt + best.wc + best.wy || 1;
     for (const a of cand) {
       const key = a.rc.mb + '_' + a.rc.ab, g = grp.get(key), gn = grpN.get(key);
