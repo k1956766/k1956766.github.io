@@ -12,7 +12,7 @@
   const KINDS = {
     sale:   { name: '매매', pi: 1, ni: 2, wi: 9, bud: { min: 1, max: 20.5, step: 0.5, mul: 10000 }, fixed: range(10000, 150000, 10000), round: 1000 },
     jeonse: { name: '전세', pi: 3, ni: 4, wi: 10, bud: { min: 1, max: 10.5, step: 0.5, mul: 10000 }, fixed: range(5000, 60000, 5000), round: 1000 },
-    rent:   { name: '월세', pi: 6, ni: 8, wi: 11, bud: { min: 10, max: 210, step: 10, mul: 1 }, fixed: range(50, 150, 10), round: 5 },
+    rent:   { name: '월세', pi: 6, ni: 8, wi: 11, bud: { min: 30, max: 210, step: 10, mul: 1 }, fixed: range(50, 150, 10), round: 5 },
   };
   const hex = (h) => [1, 3, 5].map((k) => parseInt(h.slice(k, k + 2), 16));
   function rampN(n) { // RAMP을 n칸으로 보간
