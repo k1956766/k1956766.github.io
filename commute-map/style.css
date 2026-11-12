@@ -346,3 +346,8 @@ body.picking #map{cursor:crosshair}
 .bx-t{align-items:start}
 .bx-t small{white-space:normal;line-height:1.45}
 .apt .rk{grid-column:1/-1}
+/* 순위 요약: 왼쪽에 'n순위 / n곳', 오른쪽에 넓게 세 줄 → 삼각형을 움직여도 줄바꿈으로 높이가 흔들리지 않게 */
+.bx-t{display:grid;grid-template-columns:44px 1fr;gap:6px;align-items:start;margin:4px 0}
+.bx-h{display:flex;flex-direction:column;line-height:1.3}
+.bx-h b{font-size:12px}.bx-h span{font-size:11px;color:var(--ink-2)}
+.bx-t small{white-space:nowrap;line-height:1.45;font-size:11px;overflow:hidden;text-overflow:ellipsis}
