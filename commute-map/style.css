@@ -351,3 +351,7 @@ body.picking #map{cursor:crosshair}
 .bx-h{display:flex;flex-direction:column;line-height:1.3}
 .bx-h b{font-size:12px}.bx-h span{font-size:11px;color:var(--ink-2)}
 .bx-t small{white-space:nowrap;line-height:1.45;font-size:11px;overflow:hidden;text-overflow:ellipsis}
+.bx-t{cursor:pointer;border-radius:6px;padding:2px 4px;margin:2px -4px}
+.bx-t:hover{background:rgba(124,58,237,.07)}
+.bx-t.off{opacity:.35}
+.bx-t.off .bx-h b{text-decoration:line-through}
