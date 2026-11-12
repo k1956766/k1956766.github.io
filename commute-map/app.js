@@ -294,7 +294,7 @@
      1) 조건에 맞는 단지마다 월 주거비·통근시간·연식을 구함
      2) 항목마다 (후보 중앙값 − 이 집 값) ÷ 사분위 범위로 눈금을 맞춤 → 크기 차이는 살리고 항목끼리 공평하게
      3) 삼각형에서 고른 비중으로 더해 순위를 내고 상위 5%씩 1·2·3순위
-     4) 화면에는 비중 25% 이상 항목만 제 단위로: 주거비(원, 같은 면적·연식대 대비), 통근(월 시간), 연식(년)(같은 면적대 대비)
+     4) 화면에는 세 항목 모두 비중 순서로 제 단위로(25% 이상은 굵게): 주거비(원, 같은 면적·연식대 대비), 통근(월 시간), 연식(년)(같은 면적대 대비)
      계산 기준(고정): 집값·보증금의 절반은 대출(대출금리), 절반은 내 돈(예금금리)으로 보고 월 이자 비용을 주거비로 봄 */
   const CALC = { loan: 0.5, rLoan: 4.88, rDep: 3.45, wage: 10320, days: 21, fare: 1550 };
   // rLoan: 한국은행 예금은행 주택담보대출 금리(신규취급액, 2026년 9월) / rDep: 같은 달 저축성 수신금리 / wage: 2026년 최저임금 시급 / fare: 수도권 지하철 기본요금
@@ -329,7 +329,7 @@
   // 보여 줄 항목: 비중 25% 이상인 것만, 비중 큰 순서로 (100이면 하나, 50:50이면 둘, 고르게면 셋)
   function shownKeys() {
     const sw = best.wt + best.wc + best.wy || 1;
-    return [['house', best.wc], ['mins', best.wt], ['age', best.wy]].filter(([, w]) => w / sw >= 0.25).sort((x, y) => y[1] - x[1]).map(([k]) => k);
+    return [['house', best.wc], ['mins', best.wt], ['age', best.wy]].sort((x, y) => y[1] - x[1]).map(([k, w]) => ({ k, main: w / sw >= 0.25 }));
   }
   const couple = () => !!state.b?.data;
   const hrs = (dm) => dm * 2 * CALC.days / 60; // 하루 차이(분) → 한 달 시간
@@ -337,15 +337,14 @@
     const r = Math.round(Math.abs(v)), good = v >= 0;
     if (k === 'house') return `주거비 월 ${man(Math.abs(v))}원 ${good ? '아낌' : '더 듦'}`;
     if (k === 'mins') return `통근 월 ${r}시간 ${good ? '아낌' : '더 씀'}${couple() ? '(둘 합쳐)' : ''}`;
-    return r < 1 ? '연식 비슷' : `${r}년 ${good ? '새것' : '오래됨'}`;
+    return r < 1 ? '연식 비슷' : `${r}년 더 ${good ? '새 집' : '오래된 집'}`;
   }
   const dval = (c, k) => k === 'house' ? c.dHouse : k === 'mins' ? hrs(c.dMins) : c.dAge;
   function rankLine(a) {
-    const c = a.rc, keys = shownKeys();
-    const head = keys.map((k, i) => i ? unitText(k, dval(c, k)) : `<b>${unitText(k, dval(c, k))}</b>`).join(' · ');
-    const rest = ['house', 'mins', 'age'].filter((k) => !keys.includes(k)).map((k) => unitText(k, dval(c, k)));
+    const c = a.rc, keys = shownKeys(); // 세 항목 모두, 비중 큰 순서로 / 비중 25% 이상은 굵게
+    const head = keys.map(({ k, main }) => main ? `<b>${unitText(k, dval(c, k))}</b>` : unitText(k, dval(c, k))).join(' · ');
     const rent = state.kind === 'rent' ? `<small>월세 ${won(a.price)} + 보증금 ${won(a.dep || 0)}(이자 월 ${man((a.dep || 0) * RATE)}) = 주거비 월 ${man(c.house)}원</small>` : '';
-    return `<span class="rk"><i class="t${a.tier}">${a.tier}순위</i> ${head}<small>${rest.length ? `참고: ${rest.join(', ')}` : ''}${rest.length && hhText(a) ? ' · ' : ''}${hhText(a)}</small>${rent}</span>`;
+    return `<span class="rk"><i class="t${a.tier}">${a.tier}순위</i> ${head}<small>${a.year}년 준공${hhText(a) ? ` · ${hhText(a)}` : ''}</small>${rent}</span>`;
   }
   function skipText(k) {
     const xs = [k.small && `소규모 단지 ${k.small}곳`, k.rental && `임대 단지 ${k.rental}곳`, k.chk && `이웃보다 유난히 싸 가격 확인이 필요한 ${k.chk}곳`, k.year && `준공 연도를 모르는 ${k.year}곳`].filter(Boolean);
@@ -397,8 +396,8 @@
     if (info) {
       const keys = shownKeys();
       const avg = (t, k) => { const xs = cand.filter((a) => a.tier === t); return xs.length ? xs.reduce((s, a) => s + dval(a.rc, k), 0) / xs.length : 0; };
-      info.innerHTML = [1, 2, 3].map((t) => `<div class="bx-t"><i class="t${t}"></i><b>${t}순위</b><span>${cnt[t - 1]}곳</span><small>평균 ${keys.map((k) => unitText(k, avg(t, k))).join(' · ')}</small></div>`).join('')
-        + `<p class="bx-n">조건에 맞는 ${n.toLocaleString()}곳을 고른 비중대로 줄 세워 상위 5%씩 나눴어요. 주거비는 면적·연식이 비슷한 집, 통근시간·연식은 면적이 비슷한 집의 보통값과 비교했어요. 비중이 25% 이상인 항목만 보여 줘요.`
+      info.innerHTML = [1, 2, 3].map((t) => `<div class="bx-t"><i class="t${t}"></i><b>${t}순위</b><span>${cnt[t - 1]}곳</span><small>평균 ${keys.map(({ k }) => unitText(k, avg(t, k))).join(' · ')}</small></div>`).join('')
+        + `<p class="bx-n">조건에 맞는 ${n.toLocaleString()}곳을 고른 비중대로 줄 세워 상위 5%씩 나눴어요. 주거비는 면적·연식이 비슷한 집, 통근시간·연식은 면적이 비슷한 집의 보통값과 비교했어요. 항목은 비중이 큰 순서로 보여 주고, 연식은 비교한 집들보다 몇 년 더 새 집인지예요.`
         + `${skipText(skip)}</p>`;
     }
   }
