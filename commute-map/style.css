@@ -287,8 +287,8 @@ body.picking #map{cursor:crosshair}
   .legend .lg-btns{flex-wrap:nowrap;gap:5px}
   .legend .pmode{min-height:28px;font-size:11px;padding:0 10px}
   .legend .pbar{height:26px;margin-top:5px}
-  .legend .pticks{font-size:10px;height:13px}
-  .legend .pnote{font-size:10px;margin-top:0}
+  .legend .pticks{font-size:10px;height:14px}
+  .legend .pnote{font-size:10px;margin-top:4px}
   .legend .lg-op{display:flex;align-items:center;gap:10px;margin-top:4px;padding-top:4px}
   .legend .lg-op label{font-size:11px;white-space:nowrap;gap:6px}
   .legend .lg-op input{flex:1;height:24px;margin:0}
@@ -355,3 +355,20 @@ body.picking #map{cursor:crosshair}
 .bx-t:hover{background:rgba(124,58,237,.07)}
 .bx-t.off{opacity:.35}
 .bx-t.off .bx-h b{text-decoration:line-through}
+.brand .asof{margin:4px 0 0;font-size:12px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+@media (max-width:720px){.brand p.asof{display:block;font-size:11px;margin-top:2px}}
+/* 처음이시라면? 안내 */
+.tour-btn{position:fixed;z-index:950;top:12px;right:62px;min-height:34px;padding:0 14px;font:inherit;font-size:13px;font-weight:700;color:#fff;background:#3B0764;border:0;border-radius:999px;box-shadow:0 2px 8px rgba(31,43,61,.25);cursor:pointer}
+.tour-btn:hover{background:#581C87}
+.tour-hole{position:fixed;z-index:1990;border-radius:10px;box-shadow:0 0 0 9999px rgba(15,23,42,.55);outline:3px solid #C084FC;pointer-events:none;transition:all .2s ease}
+.tour-card{position:fixed;z-index:2000;background:#fff;border-radius:12px;padding:14px 16px 12px;box-shadow:0 8px 28px rgba(15,23,42,.3);font-size:14px;line-height:1.55;color:var(--ink)}
+.tour-card h3{margin:2px 0 6px;font-size:16px}
+.tour-card p{margin:0 0 6px}
+.tour-card .tour-n{font-size:12px;color:#7E22CE;font-weight:700;margin:0}
+.tour-card .tour-x{font-size:12px;color:var(--ink-2)}
+.tour-b{display:flex;gap:6px;align-items:center;margin-top:8px}
+.tour-b span{flex:1}
+.tour-b button{min-height:32px;padding:0 12px;font:inherit;font-size:13px;font-weight:700;border-radius:8px;border:1px solid var(--rule);background:#fff;color:var(--ink);cursor:pointer}
+.tour-b .tour-go{background:#3B0764;border-color:#3B0764;color:#fff}
+.tour-b .tour-skip{border:0;color:var(--ink-2);padding:0 4px}
+@media (max-width:720px){.tour-btn{top:10px;right:58px;min-height:32px;font-size:12px;padding:0 12px}}
