@@ -305,7 +305,7 @@
   /* ---------- 최적의 집 찾기 ----------
      1) 조건에 맞는 단지마다 월 주거비·통근시간·연식을 구함
      2) 항목마다 (후보 중앙값 − 이 집 값) ÷ 사분위 범위로 눈금을 맞춤 → 크기 차이는 살리고 항목끼리 공평하게
-     3) 삼각형에서 고른 비중으로 더해 순위를 내고 상위 5%씩 1·2·3순위
+     3) 삼각형에서 고른 비중으로 더해 순위를 내고 상위 2%씩 1·2·3순위
      4) 화면에는 세 항목 모두 비중 순서로 제 단위로(25% 이상은 굵게): 주거비(원, 같은 면적·연식대 대비), 통근(월 시간), 연식(년)(같은 면적대 대비)
      계산 기준(고정): 집값·보증금의 절반은 대출(대출금리), 절반은 내 돈(예금금리)으로 보고 월 이자 비용을 주거비로 봄 */
   const CALC = { loan: 0.5, rLoan: 4.88, rDep: 3.45, wage: 10320, days: 21, fare: 1550 };
@@ -402,14 +402,14 @@
     }
     cand.sort((x, y) => y.rc.score - x.rc.score || y.rc.save - x.rc.save);
     const n = cand.length, cnt = [0, 0, 0];
-    cand.forEach((a, i) => { const tier = Math.floor(i * 20 / n) + 1; if (tier <= 3) { a.tier = tier; cnt[tier - 1]++; } });
+    cand.forEach((a, i) => { const tier = Math.floor(i * 50 / n) + 1; if (tier <= 3) { a.tier = tier; cnt[tier - 1]++; } });
     state.matches = cand.filter((a) => a.tier);
     if (state.sel && !state.matches.includes(state.sel)) state.sel = null;
     if (info) {
       const keys = shownKeys();
       const avg = (t, k) => { const xs = cand.filter((a) => a.tier === t); return xs.length ? xs.reduce((s, a) => s + dval(a.rc, k), 0) / xs.length : 0; };
       info.innerHTML = [1, 2, 3].map((t) => `<div class="bx-t"><div class="bx-h"><b>${t}순위</b><span>${cnt[t - 1]}곳</span></div><small>${keys.map(({ k }) => `· 평균 ${unitText(k, avg(t, k))}`).join('<br>')}</small></div>`).join('');
-      const why = $('bx-why'); if (why) why.textContent = `조건에 맞는 ${n.toLocaleString()}곳을 고른 비중대로 줄 세워 상위 5%씩 나눴어요. 주거비는 면적·연식이 비슷한 집, 통근시간·연식은 면적이 비슷한 집의 보통값과 비교했어요. 항목은 비중이 큰 순서로 보여 주고, 연식은 비교한 집들보다 몇 년 더 신축인지예요.${skipText(skip)}`;
+      const why = $('bx-why'); if (why) why.textContent = `조건에 맞는 ${n.toLocaleString()}곳을 고른 비중대로 줄 세워 상위 2%씩 나눴어요. 주거비는 면적·연식이 비슷한 집, 통근시간·연식은 면적이 비슷한 집의 보통값과 비교했어요. 항목은 비중이 큰 순서로 보여 주고, 연식은 비교한 집들보다 몇 년 더 신축인지예요.${skipText(skip)}`;
     }
   }
   // 삼각형 비중 고르기: 꼭짓점 = 통근(위), 주거비(왼쪽 아래), 연식(오른쪽 아래)
