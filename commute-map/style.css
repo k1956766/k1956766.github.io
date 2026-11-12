@@ -14,7 +14,9 @@ html,body{margin:0;height:100%}
 body{font-family:var(--font);color:var(--ink);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
 #map{position:fixed;inset:0;background:#E9ECEA}
 .leaflet-container{font-family:var(--font)}
-.basemap{filter:grayscale(.85) contrast(1.05) brightness(1.03)}
+/* 배경지도: 처음엔 컬러, 직장을 정하면 흑백(지하철 노선은 별도 층이라 색 유지) */
+.basemap{filter:none;transition:filter .35s}
+body.has-work .basemap{filter:grayscale(.85) contrast(1.05) brightness(1.03)}
 body.picking #map{cursor:crosshair}
 
 .panel{
@@ -305,18 +307,7 @@ body.picking #map{cursor:crosshair}
 .o-ctl{display:flex;flex-direction:column;gap:4px;margin-top:6px!important}
 .o-ctl button{font:inherit;font-size:12px;font-weight:700;width:46px;height:30px;border:1px solid var(--rule);border-radius:8px;background:#fff;color:var(--ink-2);cursor:pointer;box-shadow:0 1px 3px rgba(31,43,61,.15)}
 .o-ctl button[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
-.o-ctl .o-me{font-size:17px;color:var(--ink)}
-.o-me-dot{width:18px;height:18px;border-radius:50%;background:#1A73E8;border:3px solid #fff;box-shadow:0 0 0 6px rgba(26,115,232,.25)}
 .o-lab{pointer-events:none!important;background:none;border:0}
 .o-lab span{position:absolute;left:8px;top:-9px;white-space:nowrap;font-size:11.5px;font-weight:700;color:var(--ink);
   text-shadow:0 0 2px #fff,0 0 2px #fff,0 0 3px #fff,0 0 4px #fff}
-/* 역 */
-.o-st b{position:absolute;left:-4px;top:-4px;width:8px;height:8px;border-radius:50%;background:#fff;border:2px solid #555}
-.o-st.tr b{left:-5px;top:-5px;width:10px;height:10px;border-width:2.5px}
-/* 확대 단계별: 멀리서는 환승역 점만, 12에서 환승역 이름, 13부터 모든 역 이름 */
-.zlo .o-st{display:none}
-.zlo .o-st.tr{display:block}
-.zlo .o-st span,.zmid .o-st:not(.tr) span{display:none}
-.zlo .o-st.tr b{width:7px;height:7px;left:-3.5px;top:-3.5px;border-width:2px}
-.zmid .o-st span{font-size:10.5px}
 @media (max-width:720px){ .o-ctl{flex-direction:row} .o-ctl button{width:40px;height:28px;font-size:11px} .o-lab span{font-size:11px} }
