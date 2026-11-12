@@ -244,7 +244,7 @@
   function renderList() {
     const ol = $('apt-list'), kindName = KINDS[state.kind].name;
     if (!state.a) { $('apt-count').textContent = '단지 목록'; ol.innerHTML = '<li class="none">직장을 정하면 통근시간 안에 있는 아파트 단지가 여기에 나옵니다.</li>'; $('apt-more').hidden = true; return; }
-    $('apt-count').textContent = best.on ? `내게 맞는 집 1~3순위 ${state.matches.length.toLocaleString()}곳` : `조건에 맞는 단지 ${state.matches.length.toLocaleString()}곳`;
+    $('apt-count').textContent = best.on ? `내게 맞는 집 ${[...best.show].sort().join('·')}순위 ${state.matches.length.toLocaleString()}곳` : `조건에 맞는 단지 ${state.matches.length.toLocaleString()}곳`;
     if (!state.matches.length) { ol.innerHTML = state.all.length ? '<li class="none">고른 가격 구간이 없습니다. 오른쪽 아래 가격 범례의 칸을 눌러 보고 싶은 구간을 켜 주세요.</li>' : '<li class="none">조건에 맞는 단지가 없습니다. 최대 통근시간이나 예산을 늘려 보세요.</li>'; $('apt-more').hidden = true; return; }
     // 경로 상자는 단지 카드 안으로 옮겨 쓰므로, 목록을 다시 그리기 전에 원래 자리로 돌려 둠
     const rt = $('route'); if (rt.parentElement !== $('ro-sec')) $('ro-sec').appendChild(rt);
@@ -312,7 +312,7 @@
   // rLoan: 한국은행 예금은행 주택담보대출 금리(신규취급액, 2026년 9월) / rDep: 같은 달 저축성 수신금리 / wage: 2026년 최저임금 시급 / fare: 수도권 지하철 기본요금
   const BEST_DEF = { wt: 1 / 3, wc: 1 / 3, wy: 1 / 3, small: 1 }; // small: 1이면 소규모 단지 빼기
   const TIER_COL = ['#3B0764', '#7E22CE', '#C084FC'];
-  const best = { ...BEST_DEF, on: false };
+  const best = { ...BEST_DEF, on: false, show: new Set([1, 2, 3]) }; // show: 지도·목록에 보일 순위
   try { const v = JSON.parse(localStorage.getItem('commute-best4') || '{}'); for (const k of Object.keys(BEST_DEF)) if (v[k] != null) best[k] = v[k]; } catch (e) { /* 저장 안 됨 */ }
   const thisYear = new Date().getFullYear();
   const man = (v) => `${Math.round(v).toLocaleString()}만`;
@@ -403,12 +403,12 @@
     cand.sort((x, y) => y.rc.score - x.rc.score || y.rc.save - x.rc.save);
     const n = cand.length, cnt = [0, 0, 0];
     cand.forEach((a, i) => { const tier = Math.floor(i * 50 / n) + 1; if (tier <= 3) { a.tier = tier; cnt[tier - 1]++; } });
-    state.matches = cand.filter((a) => a.tier);
+    state.matches = cand.filter((a) => a.tier && best.show.has(a.tier)); // 순위 버튼으로 끈 순위는 숨김
     if (state.sel && !state.matches.includes(state.sel)) state.sel = null;
     if (info) {
       const keys = shownKeys();
       const avg = (t, k) => { const xs = cand.filter((a) => a.tier === t); return xs.length ? xs.reduce((s, a) => s + dval(a.rc, k), 0) / xs.length : 0; };
-      info.innerHTML = [1, 2, 3].map((t) => `<div class="bx-t"><div class="bx-h"><b>${t}순위</b><span>${cnt[t - 1]}곳</span></div><small>${keys.map(({ k }) => `· 평균 ${unitText(k, avg(t, k))}`).join('<br>')}</small></div>`).join('');
+      info.innerHTML = [1, 2, 3].map((t) => `<div class="bx-t${best.show.has(t) ? '' : ' off'}" role="button" tabindex="0" data-t="${t}" aria-pressed="${best.show.has(t)}" title="눌러서 ${t}순위 보이기/숨기기"><div class="bx-h"><b>${t}순위</b><span>${cnt[t - 1]}곳</span></div><small>${keys.map(({ k }) => `· 평균 ${unitText(k, avg(t, k))}`).join('<br>')}</small></div>`).join('');
       const why = $('bx-why'); if (why) why.textContent = `조건에 맞는 ${n.toLocaleString()}곳을 고른 비중대로 줄 세워 상위 2%씩 나눴어요. 주거비는 면적·연식이 비슷한 집, 통근시간·연식은 면적이 비슷한 집의 보통값과 비교했어요. 항목은 비중이 큰 순서로 보여 주고, 연식은 비교한 집들보다 몇 년 더 신축인지예요.${skipText(skip)}`;
     }
   }
@@ -430,6 +430,15 @@
   }
   function saveBest() { try { localStorage.setItem('commute-best4', JSON.stringify({ wt: best.wt, wc: best.wc, wy: best.wy, small: best.small })); } catch (e) { /* 저장 안 됨 */ } }
   function bestUI() {
+    // 순위 버튼: 눌러서 켜고 끄기(하나는 남김)
+    const togT = (e) => {
+      const el = e.target.closest('.bx-t'); if (!el) return;
+      const t = +el.dataset.t;
+      if (best.show.has(t)) { if (best.show.size > 1) best.show.delete(t); } else best.show.add(t);
+      state.showN = 30; refresh();
+    };
+    $('bx-info').addEventListener('click', togT);
+    $('bx-info').addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); togT(e); } });
     const tog = $('bx-tog'); if (!tog) return;
     drawTri();
     const sm = $('bx-small'); if (sm) { sm.checked = !!best.small; sm.addEventListener('change', () => { best.small = sm.checked ? 1 : 0; saveBest(); state.showN = 30; refresh(); }); }

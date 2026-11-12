@@ -142,7 +142,7 @@
     <button type="button" class="bx-tog" id="bx-tog" aria-pressed="false">최적의 집 찾기</button>
     <div class="bx-body" id="bx-body" hidden>
       <form id="bx-form" onsubmit="return false">
-        <p class="bx-d">무엇을 더 중요하게 볼지 삼각형 안의 점을 끌어 정하세요. 잘 맞는 집부터 상위 2%씩 1·2·3순위를 지도에 숫자로 표시해요.</p>
+        <p class="bx-d">무엇을 더 중요하게 볼지 삼각형 안의 점을 끌어 정하세요. 잘 맞는 집부터 상위 2%씩 1·2·3순위를 지도에 숫자로 표시해요. 아래 순위를 누르면 그 순위를 숨기거나 다시 보여요.</p>
         <svg id="bx-tri" class="bx-tri" viewBox="0 0 168 146" role="img" aria-label="통근시간·주거비·연식 비중 고르기"></svg>
         <div class="bx-w" id="bx-w"></div>
         <label class="bx-chk"><input type="checkbox" id="bx-small" checked> 소규모 단지(150세대 미만) 빼기</label>
@@ -163,7 +163,7 @@
   </div>
   <div class="lg-row lg-price" id="lg-price">
     <div class="lg-ph"><span class="lg-title" id="lg-price-title">단지 매매가</span>
-      <span class="lg-btns"><button type="button" class="pmode" id="pick-toggle">전체 해제</button><button type="button" class="pmode" id="pmode" aria-pressed="false" title="지금 조건에 맞는 단지 가격으로 자연 구간(Jenks) 10분위를 나눕니다">자연 구간 10분위</button></span></div>
+      <span class="lg-btns"><button type="button" class="pmode" id="pick-toggle">전체 해제</button><button type="button" class="pmode" id="pmode" aria-pressed="false" title="지금 조건에 맞는 단지 가격으로 자연 구간(Jenks) 10분위를 나눕니다">더 큰 분위 설정</button></span></div>
     <div id="lg-price-body"></div>
   </div>
   <div class="lg-op">
