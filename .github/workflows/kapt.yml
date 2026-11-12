@@ -19,14 +19,25 @@ jobs:
         with:
           python-version: '3.12'
       - run: pip install --quiet pandas requests
+      # 중간 결과(work/)를 캐시에 남겨 시간 초과로 끊겨도 다음 실행이 이어서 받게 함
+      - uses: actions/cache/restore@v4
+        with:
+          path: work
+          key: kapt-work-${{ github.run_id }}
+          restore-keys: kapt-work-
       - name: fetch
         env:
           DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
           NT: '4'
         run: |
           mkdir -p work
-          python tools/commute-prices/kapt_fetch.py tools/commute-prices/codes.txt work
+          timeout 310m python tools/commute-prices/kapt_fetch.py tools/commute-prices/codes.txt work
           cp work/kapt.csv tools/commute-prices/kapt.csv
+      - uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: work
+          key: kapt-work-${{ github.run_id }}
       - name: commit
         run: |
           git config user.name "commute-prices-bot"
