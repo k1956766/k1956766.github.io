@@ -1,0 +1,37 @@
+name: kapt
+# 통근권 집찾기: K-apt 공동주택 단지 기본정보(세대수·분양/임대) 수도권 수집 → tools/commute-prices/kapt.csv
+on:
+  schedule:
+    - cron: '30 17 2 * *'   # 매월 3일 02:30 KST
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: kapt
+  cancel-in-progress: false
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install --quiet pandas requests
+      - name: fetch
+        env:
+          DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
+          NT: '4'
+        run: |
+          mkdir -p work
+          python tools/commute-prices/kapt_fetch.py tools/commute-prices/codes.txt work
+          cp work/kapt.csv tools/commute-prices/kapt.csv
+      - name: commit
+        run: |
+          git config user.name "commute-prices-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add tools/commute-prices/kapt.csv
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "통근권 집찾기: K-apt 단지정보 갱신 $(TZ=Asia/Seoul date +%F)"
+          git pull --rebase -q origin master && git push
