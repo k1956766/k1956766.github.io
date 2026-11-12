@@ -891,9 +891,9 @@
     for (let i = 0; i < g.n; i++) { const k = bkey(g.lat[i], g.lon[i]); (buckets.get(k) || buckets.set(k, []).get(k)).push(i); }
     const outline = L.geoJSON(seoul, { interactive: false, style: { color: '#1F2B3D', weight: 1.5, opacity: 0.55, fill: false } }).addTo(map);
     const narrow = window.innerWidth <= 720;
-    map.fitBounds(outline.getBounds(), narrow
-      ? { paddingTopLeft: [8, 8], paddingBottomRight: [8, Math.round(window.innerHeight * 0.52)] }
-      : { paddingTopLeft: [380, 24], paddingBottomRight: [24, 24] });
+    // 처음 지도: 강남역 중심. 조건 창(왼쪽 / 휴대폰은 아래)에 가리지 않게 보이는 칸 가운데로 옮김
+    map.setView([37.4979, 127.0276], 13, { animate: false });
+    map.panBy(narrow ? [0, Math.round(window.innerHeight * 0.26)] : [-190, 0], { animate: false });
     initOrient(); bestUI();
     $('basis').textContent = '국가교통DB 2025년 3월 평일 시간표, 평일 오전 7시 30분~8시 30분 사이 출발, 보행 시속 4.5km, 지하철 환승은 국가교통DB 환승시간 기준, 버스 구간 시간은 서울시 실측 운행기록(2025년 3월 평일 출근시간)으로 보정. 통근시간은 직장을 고를 때 브라우저에서 바로 계산합니다.';
 
