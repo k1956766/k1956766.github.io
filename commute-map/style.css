@@ -341,3 +341,4 @@ body.picking #map{cursor:crosshair}
 .rk i.t1{background:#3B0764}.rk i.t2{background:#7E22CE}.rk i.t3{background:#C084FC}
 .rk b{font-weight:800}
 @media (max-width:720px){ .bx-tri{width:140px;height:122px} }
+.bx-chk{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;margin:0 0 6px;justify-content:center}

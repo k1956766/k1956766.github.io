@@ -155,7 +155,7 @@
     state.matches = [];
     if (!state.a?.data) return;
     const { pi, ni, wi } = KINDS[state.kind];
-    for (const [seq, name, dong, year, lat, lon, cell, types] of state.apts) {
+    for (const [seq, name, dong, year, lat, lon, cell, types, hh, sale] of state.apts) {
       if (cell < 0) continue;
       const v = metric(cell); if (v == null || v > state.limit) continue;
       let best = null;
@@ -164,7 +164,7 @@
         if (!best || t[pi] < best[pi]) best = t;
       }
       if (!best) continue;
-      state.matches.push({ seq, name, dong, year, lat, lon, cell, v, types, area: best[0], price: best[pi], n: best[ni], w: best[wi], dep: best[7], ym: best[5] });
+      state.matches.push({ seq, name, dong, year, lat, lon, cell, v, types, hh: hh == null ? -1 : hh, sale: sale || 0, flag: best[12] || 0, area: best[0], price: best[pi], n: best[ni], w: best[wi], dep: best[7], ym: best[5] });
     }
     for (const a of state.matches) a.v2 = second(a.cell);
     state.matches.sort((x, y) => x.v - y.v || x.v2 - y.v2 || x.price - y.price);
@@ -261,7 +261,7 @@
         <span class="nm">${a.name}</span><span class="tm">${tm}</span>
         <span class="sub">${a.dong}${a.year ? `, ${a.year}년` : ''}</span>
         <span class="pr">${a.area}㎡ ${kindName} ${won(a.price)} (${a.w ? `최근 ${a.w}개월 ` : ''}${a.n}건)</span>
-        ${best.on && a.rc ? `<span class="rk"><i class="t${a.tier}">${a.tier}순위</i> ${a.rc.save >= 0 ? `비슷한 집보다 월 <b>${man(a.rc.save)}원</b> 절약` : `비슷한 집보다 월 ${man(-a.rc.save)}원 더 듦`}<small>주거비 ${a.rc.dHouse >= 0 ? '−' : '+'}${man(Math.abs(a.rc.dHouse))} · 통근 ${a.rc.dTime >= 0 ? '−' : '+'}${man(Math.abs(a.rc.dTime))}${Math.abs(a.rc.dAge) >= 1 ? ` · ${Math.round(Math.abs(a.rc.dAge))}년 ${a.rc.dAge > 0 ? '새것' : '오래됨'}` : ''}</small></span>` : ''}
+        ${best.on && a.rc ? rankLine(a) : ''}
         <button type="button" class="more-d" data-k="${k}" aria-expanded="${state.open === a.seq}">${state.open === a.seq ? '접기' : '세부정보'}</button>
         ${state.open === a.seq ? detailHTML(a) : ''}</li>`;
     }).join('');
@@ -298,14 +298,16 @@
      계산 기준(고정): 집값·보증금의 절반은 대출(대출금리), 절반은 내 돈(예금금리)으로 보고 월 이자 비용을 주거비로 봄 */
   const CALC = { loan: 0.5, rLoan: 4.88, rDep: 3.45, wage: 10320, days: 21, fare: 1550 };
   // rLoan: 한국은행 예금은행 주택담보대출 금리(신규취급액, 2026년 9월) / rDep: 같은 달 저축성 수신금리 / wage: 2026년 최저임금 시급 / fare: 수도권 지하철 기본요금
-  const BEST_DEF = { wt: 1 / 3, wc: 1 / 3, wy: 1 / 3 };
+  const BEST_DEF = { wt: 1 / 3, wc: 1 / 3, wy: 1 / 3, small: 1 }; // small: 1이면 소규모 단지 빼기
   const TIER_COL = ['#3B0764', '#7E22CE', '#C084FC'];
   const best = { ...BEST_DEF, on: false };
-  try { const v = JSON.parse(localStorage.getItem('commute-best3') || '{}'); for (const k of Object.keys(BEST_DEF)) if (v[k] != null) best[k] = v[k]; } catch (e) { /* 저장 안 됨 */ }
+  try { const v = JSON.parse(localStorage.getItem('commute-best4') || '{}'); for (const k of Object.keys(BEST_DEF)) if (v[k] != null) best[k] = v[k]; } catch (e) { /* 저장 안 됨 */ }
   const thisYear = new Date().getFullYear();
   const man = (v) => `${Math.round(v).toLocaleString()}만`;
   const ageBand = (y) => { const g = thisYear - y; return g <= 5 ? 0 : g <= 10 ? 1 : g <= 20 ? 2 : 3; };
-  const areaBand = (m2) => m2 < 60 ? 0 : m2 < 85 ? 1 : m2 < 115 ? 2 : 3;
+  const areaBand = (m2) => m2 < 40 ? 0 : m2 < 60 ? 1 : m2 < 85 ? 2 : m2 < 115 ? 3 : 4;
+  const KIND_BIT = { sale: 1, jeonse: 2, rent: 4 };
+  const SMALL_HH = 150; // K-apt 의무관리 기준 근처: 이보다 작거나 K-apt에 없으면 소규모
   const RATE = (CALC.loan * CALC.rLoan + (1 - CALC.loan) * CALC.rDep) / 100 / 12; // 월 이자율
   function costOf(a) {
     const house = state.kind === 'rent' ? a.price + (a.dep || 0) * RATE : a.price * RATE; // 만원/월
@@ -323,24 +325,54 @@
     const m = quant(ys, 0.5), iqr = (quant(ys, 0.75) - quant(ys, 0.25)) || (ys[ys.length - 1] - ys[0]) || 1;
     for (const a of list) a.rc['z_' + key] = (m - a.rc[key]) / iqr;
   }
+  const hhText = (a) => a.hh < 0 ? '' : a.hh >= SMALL_HH ? `${a.hh.toLocaleString()}세대` : '소규모';
+  function rankLine(a) {
+    const c = a.rc, gains = [], costs = [];
+    const mins = Math.round(c.dMins), age = Math.round(c.dAge);
+    (c.dHouse >= 0 ? gains : costs).push(`주거비 월 ${man(Math.abs(c.dHouse))}원 ${c.dHouse >= 0 ? '덜' : '더'}`);
+    if (Math.abs(mins) >= 3) (mins > 0 ? gains : costs).push(`통근 ${Math.abs(mins)}분 ${mins > 0 ? '짧음' : '김'}`);
+    if (Math.abs(age) >= 3) (age > 0 ? gains : costs).push(`${Math.abs(age)}년 ${age > 0 ? '새것' : '오래됨'}`);
+    const head = c.save >= 0 ? `비슷한 집보다 실질 월 <b>${man(c.save)}원</b> 아낌` : `비슷한 집보다 실질 월 ${man(-c.save)}원 더 듦`;
+    const rent = state.kind === 'rent' ? `<small>월세 ${won(a.price)} + 보증금 ${won(a.dep || 0)}(이자 월 ${man((a.dep || 0) * RATE)}) = 주거비 월 ${man(c.house)}원</small>` : '';
+    return `<span class="rk"><i class="t${a.tier}">${a.tier}순위</i> ${head}<small>${gains.length ? `얻는 것: ${gains.join(', ')}` : ''}${gains.length && costs.length ? ' · ' : ''}${costs.length ? `내는 것: ${costs.join(', ')}` : ''}${hhText(a) ? ` · ${hhText(a)}` : ''}</small>${rent}</span>`;
+  }
+  function skipText(k) {
+    const xs = [k.small && `소규모 단지 ${k.small}곳`, k.rental && `임대 단지 ${k.rental}곳`, k.chk && `이웃보다 유난히 싸 가격 확인이 필요한 ${k.chk}곳`, k.year && `준공 연도를 모르는 ${k.year}곳`].filter(Boolean);
+    return xs.length ? ` 추천에서 뺀 곳: ${xs.join(', ')}.` : '';
+  }
   function computeBest() {
     for (const a of state.all || []) { a.tier = 0; a.rc = null; }
     const info = $('bx-info');
     if (!best.on || !state.a?.data) { if (info) info.textContent = ''; return; }
-    const cand = []; let unknown = 0;
-    for (const a of state.matches) { if (!a.year) { unknown++; continue; } a.rc = costOf(a); a.rc.ab = ageBand(a.year); a.rc.mb = areaBand(a.area); cand.push(a); }
-    if (!cand.length) { state.matches = []; if (info) info.innerHTML = '<p class="bx-n">조건에 맞는 단지가 없어요.</p>'; return; }
+    const cand = []; const skip = { year: 0, chk: 0, rental: 0, small: 0 };
+    const bit = KIND_BIT[state.kind];
+    for (const a of state.matches) {
+      if (!a.year) { skip.year++; continue; }                 // 준공 연도 모름
+      if (a.sale === 3) { skip.rental++; continue; }           // K-apt상 임대 단지
+      if (a.flag & bit) { skip.chk++; continue; }             // 이웃보다 크게 싸서 가격 확인 필요
+      if (best.small && a.hh >= 0 && a.hh < SMALL_HH) { skip.small++; continue; } // 소규모 단지(-1은 단지정보 수집 전이라 판단 보류)
+      a.rc = costOf(a); a.rc.ab = ageBand(a.year); a.rc.mb = areaBand(a.area); cand.push(a);
+    }
+    if (!cand.length) { state.matches = []; if (info) info.innerHTML = `<p class="bx-n">조건에 맞는 단지가 없어요.${skipText(skip)}</p>`; return; }
     robust(cand, 'house'); robust(cand, 'mins'); robust(cand, 'age');
     // 비슷한 집: 같은 면적대·연식대(5곳 미만이면 같은 면적대 전체)의 중앙값
+    // 비슷한 집: 같은 면적대·연식대 → 5곳 미만이면 인접 연식대까지 → 그래도 부족하면 같은 면적대
     const grp = new Map(), grpA = new Map();
     const add = (m, k, a) => { const g = m.get(k) || []; g.push(a); m.set(k, g); };
     for (const a of cand) { add(grp, a.rc.mb + '_' + a.rc.ab, a); add(grpA, a.rc.mb, a); }
-    const summ = (xs) => ({ n: xs.length, total: median(xs.map((a) => a.rc.total)), house: median(xs.map((a) => a.rc.house)), time: median(xs.map((a) => a.rc.time)), age: median(xs.map((a) => a.rc.age)) });
+    const summ = (xs) => ({ n: xs.length, total: median(xs.map((a) => a.rc.total)), house: median(xs.map((a) => a.rc.house)), time: median(xs.map((a) => a.rc.time)), mins: median(xs.map((a) => a.rc.mins)), age: median(xs.map((a) => a.rc.age)) });
+    const grpN = new Map();
+    for (const a of cand) {
+      const key = a.rc.mb + '_' + a.rc.ab;
+      if (grpN.has(key) || (grp.get(key) || []).length >= 5) continue;
+      grpN.set(key, summ([-1, 0, 1].flatMap((d) => grp.get(a.rc.mb + '_' + (a.rc.ab + d)) || [])));
+    }
     for (const m of [grp, grpA]) for (const [k, xs] of m) m.set(k, summ(xs));
     const sw = best.wt + best.wc + best.wy || 1;
     for (const a of cand) {
-      const g = grp.get(a.rc.mb + '_' + a.rc.ab), p = g.n >= 5 ? g : grpA.get(a.rc.mb);
-      a.rc.save = p.total - a.rc.total; a.rc.dHouse = p.house - a.rc.house; a.rc.dTime = p.time - a.rc.time; a.rc.dAge = p.age - a.rc.age;
+      const key = a.rc.mb + '_' + a.rc.ab, g = grp.get(key), gn = grpN.get(key);
+      const p = g.n >= 5 ? g : gn && gn.n >= 5 ? gn : grpA.get(a.rc.mb);
+      a.rc.save = p.total - a.rc.total; a.rc.dHouse = p.house - a.rc.house; a.rc.dTime = p.time - a.rc.time; a.rc.dMins = p.mins - a.rc.mins; a.rc.dAge = p.age - a.rc.age;
       a.rc.score = (best.wt * a.rc.z_mins + best.wc * a.rc.z_house + best.wy * a.rc.z_age) / sw;
     }
     cand.sort((x, y) => y.rc.score - x.rc.score || y.rc.save - x.rc.save);
@@ -351,7 +383,8 @@
     if (info) {
       const avg = (k) => { const xs = cand.filter((a) => a.tier === k); return xs.length ? xs.reduce((s, a) => s + a.rc.save, 0) / xs.length : 0; };
       info.innerHTML = [1, 2, 3].map((k) => { const v = avg(k); return `<div class="bx-t"><i class="t${k}"></i><b>${k}순위</b><span>${cnt[k - 1]}곳</span><small>평균 월 ${man(Math.abs(v))}원 ${v >= 0 ? '절약' : '더 듦'}</small></div>`; }).join('')
-        + `<p class="bx-n">조건에 맞는 ${n.toLocaleString()}곳을 고른 비중대로 줄 세워 상위 10%씩 나눴어요. 절약액은 면적·연식이 비슷한 집들의 보통 비용과 비교한 값이에요.${unknown ? ` 준공 연도를 모르는 ${unknown}곳은 뺐어요.` : ''}</p>`;
+        + `<p class="bx-n">조건에 맞는 ${n.toLocaleString()}곳을 고른 비중대로 줄 세워 상위 10%씩 나눴어요. 절약액은 면적·연식이 비슷한 집들의 보통 비용과 비교한 값이에요.`
+        + `${skipText(skip)}</p>`;
     }
   }
   // 삼각형 비중 고르기: 꼭짓점 = 통근(위), 주거비(왼쪽 아래), 연식(오른쪽 아래)
@@ -370,10 +403,11 @@
     const s = best.wt + best.wc + best.wy || 1;
     $('bx-w').innerHTML = `통근 <b>${Math.round(100 * best.wt / s)}</b> · 주거비 <b>${Math.round(100 * best.wc / s)}</b> · 연식 <b>${Math.round(100 * best.wy / s)}</b>`;
   }
-  function saveBest() { try { localStorage.setItem('commute-best3', JSON.stringify({ wt: best.wt, wc: best.wc, wy: best.wy })); } catch (e) { /* 저장 안 됨 */ } }
+  function saveBest() { try { localStorage.setItem('commute-best4', JSON.stringify({ wt: best.wt, wc: best.wc, wy: best.wy, small: best.small })); } catch (e) { /* 저장 안 됨 */ } }
   function bestUI() {
     const tog = $('bx-tog'); if (!tog) return;
     drawTri();
+    const sm = $('bx-small'); if (sm) { sm.checked = !!best.small; sm.addEventListener('change', () => { best.small = sm.checked ? 1 : 0; saveBest(); state.showN = 30; refresh(); }); }
     tog.addEventListener('click', () => { best.on = !best.on; tog.setAttribute('aria-pressed', String(best.on)); $('bx-body').hidden = !best.on; state.showN = 30; refresh(); });
     let raf = 0;
     const svg = $('bx-tri');
