@@ -342,3 +342,7 @@ body.picking #map{cursor:crosshair}
 .rk b{font-weight:800}
 @media (max-width:720px){ .bx-tri{width:140px;height:122px} }
 .bx-chk{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;margin:0 0 6px;justify-content:center}
+.rk .rk-l{display:block;padding-left:2px}
+.bx-t{align-items:start}
+.bx-t small{white-space:normal;line-height:1.45}
+.apt .rk{grid-column:1/-1}

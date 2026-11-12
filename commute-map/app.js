@@ -342,9 +342,9 @@
   const dval = (c, k) => k === 'house' ? c.dHouse : k === 'mins' ? hrs(c.dMins) : c.dAge;
   function rankLine(a) {
     const c = a.rc, keys = shownKeys(); // 세 항목 모두, 비중 큰 순서로 / 비중 25% 이상은 굵게
-    const head = keys.map(({ k, main }) => main ? `<b>${unitText(k, dval(c, k))}</b>` : unitText(k, dval(c, k))).join(' · ');
+    const head = keys.map(({ k, main }) => `<span class="rk-l">· ${main ? `<b>${unitText(k, dval(c, k))}</b>` : unitText(k, dval(c, k))}</span>`).join('');
     const rent = state.kind === 'rent' ? `<small>월세 ${won(a.price)} + 보증금 ${won(a.dep || 0)}(이자 월 ${man((a.dep || 0) * RATE)}) = 주거비 월 ${man(c.house)}원</small>` : '';
-    return `<span class="rk"><i class="t${a.tier}">${a.tier}순위</i> ${head}<small>${a.year}년 준공${hhText(a) ? ` · ${hhText(a)}` : ''}</small>${rent}</span>`;
+    return `<span class="rk"><i class="t${a.tier}">${a.tier}순위</i>${head}${hhText(a) ? `<small>${hhText(a)}</small>` : ''}${rent}</span>`;
   }
   function skipText(k) {
     const xs = [k.small && `소규모 단지 ${k.small}곳`, k.rental && `임대 단지 ${k.rental}곳`, k.chk && `이웃보다 유난히 싸 가격 확인이 필요한 ${k.chk}곳`, k.year && `준공 연도를 모르는 ${k.year}곳`].filter(Boolean);
@@ -353,7 +353,7 @@
   function computeBest() {
     for (const a of state.all || []) { a.tier = 0; a.rc = null; }
     const info = $('bx-info');
-    if (!best.on || !state.a?.data) { if (info) info.textContent = ''; return; }
+    if (!best.on || !state.a?.data) { if (info) info.textContent = ''; if ($('bx-why')) $('bx-why').textContent = ''; return; }
     const cand = []; const skip = { year: 0, chk: 0, rental: 0, small: 0 };
     const bit = KIND_BIT[state.kind];
     for (const a of state.matches) {
@@ -396,9 +396,8 @@
     if (info) {
       const keys = shownKeys();
       const avg = (t, k) => { const xs = cand.filter((a) => a.tier === t); return xs.length ? xs.reduce((s, a) => s + dval(a.rc, k), 0) / xs.length : 0; };
-      info.innerHTML = [1, 2, 3].map((t) => `<div class="bx-t"><i class="t${t}"></i><b>${t}순위</b><span>${cnt[t - 1]}곳</span><small>평균 ${keys.map(({ k }) => unitText(k, avg(t, k))).join(' · ')}</small></div>`).join('')
-        + `<p class="bx-n">조건에 맞는 ${n.toLocaleString()}곳을 고른 비중대로 줄 세워 상위 5%씩 나눴어요. 주거비는 면적·연식이 비슷한 집, 통근시간·연식은 면적이 비슷한 집의 보통값과 비교했어요. 항목은 비중이 큰 순서로 보여 주고, 연식은 비교한 집들보다 몇 년 더 새 집인지예요.`
-        + `${skipText(skip)}</p>`;
+      info.innerHTML = [1, 2, 3].map((t) => `<div class="bx-t"><i class="t${t}"></i><b>${t}순위</b><span>${cnt[t - 1]}곳</span><small>${keys.map(({ k }) => `· 평균 ${unitText(k, avg(t, k))}`).join('<br>')}</small></div>`).join('');
+      const why = $('bx-why'); if (why) why.textContent = `조건에 맞는 ${n.toLocaleString()}곳을 고른 비중대로 줄 세워 상위 5%씩 나눴어요. 주거비는 면적·연식이 비슷한 집, 통근시간·연식은 면적이 비슷한 집의 보통값과 비교했어요. 항목은 비중이 큰 순서로 보여 주고, 연식은 비교한 집들보다 몇 년 더 새 집인지예요.${skipText(skip)}`;
     }
   }
   // 삼각형 비중 고르기: 꼭짓점 = 통근(위), 주거비(왼쪽 아래), 연식(오른쪽 아래)
