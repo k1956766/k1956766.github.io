@@ -10,9 +10,9 @@
   const range = (a, b, s) => { const o = []; for (let v = a; v <= b + 1e-9; v += s) o.push(Math.round(v)); return o; };
   // pi/ni/wi: apts.json types 안 가격·건수·기간(최근 3/6/12개월) 위치. 금액 단위는 만원.
   const KINDS = {
-    sale:   { name: '매매', pi: 1, ni: 2, wi: 9, bud: { min: 1, max: 40, step: 0.5, mul: 10000 }, fixed: range(10000, 150000, 10000), round: 1000 },
-    jeonse: { name: '전세', pi: 3, ni: 4, wi: 10, bud: { min: 1, max: 20, step: 0.5, mul: 10000 }, fixed: range(5000, 60000, 5000), round: 1000 },
-    rent:   { name: '월세', pi: 6, ni: 8, wi: 11, bud: { min: 10, max: 300, step: 10, mul: 1 }, fixed: range(50, 150, 10), round: 5 },
+    sale:   { name: '매매', pi: 1, ni: 2, wi: 9, bud: { min: 1, max: 20.5, step: 0.5, mul: 10000 }, fixed: range(10000, 150000, 10000), round: 1000 },
+    jeonse: { name: '전세', pi: 3, ni: 4, wi: 10, bud: { min: 1, max: 10.5, step: 0.5, mul: 10000 }, fixed: range(5000, 60000, 5000), round: 1000 },
+    rent:   { name: '월세', pi: 6, ni: 8, wi: 11, bud: { min: 10, max: 210, step: 10, mul: 1 }, fixed: range(50, 150, 10), round: 5 },
   };
   const hex = (h) => [1, 3, 5].map((k) => parseInt(h.slice(k, k + 2), 16));
   function rampN(n) { // RAMP을 n칸으로 보간
@@ -694,6 +694,8 @@
   $('lim').addEventListener('input', (e) => { state.limit = +e.target.value; syncHash(); refresh(); });
   function setBudgetUI() {
     const B = KINDS[state.kind].bud, s = $('bud');
+    // 예산 막대 맨 끝 = 제한 없음(바로 앞 칸: 매매 20억·전세 10억·월세 200만). 그보다 큰 예산(옛 링크)은 제한 없음으로
+    if (state.budget !== Infinity && state.budget / B.mul >= B.max) state.budget = Infinity;
     s.min = B.min; s.max = B.max; s.step = B.step;
     s.value = state.budget === Infinity ? B.max : Math.min(B.max, Math.max(B.min, state.budget / B.mul));
     $('bud-label').textContent = state.kind === 'rent' ? '월세 예산' : '예산';
