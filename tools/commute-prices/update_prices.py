@@ -111,6 +111,9 @@ def refetch():
 SALE_CODE = {'분양': 1, '혼합': 2, '임대': 3}
 
 
+KAPT_DONE = False
+
+
 def kapt_join(t, r):
     """K-apt 단지정보(kapt.csv)를 법정동코드+지번으로 실거래 단지와 연결 → {aptSeq: (세대수, 분양형태 1분양·2혼합·3임대)}.
     K-apt에 없는 단지(대개 의무관리 대상이 아닌 소규모)는 (0, 0)."""
@@ -148,7 +151,11 @@ def kapt_join(t, r):
         c = max(cs, key=lambda x: difflib.SequenceMatcher(None, str(x.kaptName), str(nm)).ratio())
         hh = pd.to_numeric(c.kaptdaCnt, errors='coerce')
         out[seq] = (0 if pd.isna(hh) else int(hh), SALE_CODE.get(str(c.codeSaleNm), 0))
-    print('K-apt 연결', len(out), '/', len(loc), flush=True)
+    # 수집이 덜 끝났으면(목록 대비 98% 미만) K-apt에 없는 단지를 소규모로 단정하지 않음
+    lf = os.path.join(HERE, 'kapt_work', 'list.csv')
+    global KAPT_DONE
+    KAPT_DONE = not os.path.exists(lf) or len(k) >= 0.98 * len(pd.read_csv(lf, dtype=str))
+    print('K-apt 연결', len(out), '/', len(loc), '수집 완료' if KAPT_DONE else '수집 중(나머지는 판단 보류)', flush=True)
     return out
 
 

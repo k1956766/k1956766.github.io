@@ -6,11 +6,14 @@ import os, sys, csv, time, requests, json
 K = os.environ['DATA_GO_KR_KEY']; S = requests.Session()
 codes = [c.strip() for c in open(sys.argv[1]) if c.strip()]
 D = sys.argv[2]; LF = os.path.join(D, 'list.csv'); BF = os.path.join(D, 'basis.csv')
-fails = [0]
+fails = [0]; STOP = [False]  # STOP: 일일 호출 한도(429) → 오늘은 그만, 다음 실행이 이어서
 def get(url, params):
     for i in range(8):
+        if STOP[0]: return None
         try:
             r = S.get(url, params={'serviceKey': K, '_type': 'json', **params}, timeout=30)
+            if r.status_code == 429 or 'LIMITED_NUMBER_OF_SERVICE_REQUESTS' in r.text:
+                STOP[0] = True; print('일일 호출 한도 도달 — 다음 실행에서 이어서', flush=True); return None
             if r.status_code == 200 and '"response"' in r.text:
                 fails[0] = 0; return r.json()
         except Exception: pass
@@ -50,6 +53,7 @@ lock = threading.Lock(); cnt = [0]
 f = open(BF, 'a', newline='', encoding='utf-8'); w = csv.DictWriter(f, fieldnames=F)
 if new: w.writeheader()
 def one(c):
+    if STOP[0]: return
     j = get('https://apis.data.go.kr/1613000/AptBasisInfoServiceV5/getAphusBassInfoV5', {'kaptCode': c})
     it = (j or {}).get('response', {}).get('body', {}).get('item') or {}
     with lock:
@@ -61,4 +65,4 @@ f.close()
 import pandas as pd
 b = pd.read_csv(BF, dtype=str).drop_duplicates('kaptCode', keep='last')
 b.to_csv(os.path.join(D, 'kapt.csv'), index=False)
-print('끝, kapt.csv', len(b))
+print('끝' if not STOP[0] else '중간 저장', 'kapt.csv', len(b), '/', len(lst), flush=True)

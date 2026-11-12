@@ -2,7 +2,7 @@ name: kapt
 # 통근권 집찾기: K-apt 공동주택 단지 기본정보(세대수·분양/임대) 수도권 수집 → tools/commute-prices/kapt.csv
 on:
   schedule:
-    - cron: '30 17 2 * *'   # 매월 3일 02:30 KST
+    - cron: '30 17 * * *'   # 매일 02:30 KST — 공공데이터포털 일일 호출 한도 때문에 며칠에 나눠 받음(받은 것은 건너뜀)
   workflow_dispatch:
 permissions:
   contents: write
@@ -19,30 +19,20 @@ jobs:
         with:
           python-version: '3.12'
       - run: pip install --quiet pandas requests
-      # 중간 결과(work/)를 캐시에 남겨 시간 초과로 끊겨도 다음 실행이 이어서 받게 함
-      - uses: actions/cache/restore@v4
-        with:
-          path: work
-          key: kapt-work-${{ github.run_id }}
-          restore-keys: kapt-work-
       - name: fetch
         env:
           DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
           NT: '4'
         run: |
-          mkdir -p work
-          timeout 310m python tools/commute-prices/kapt_fetch.py tools/commute-prices/codes.txt work
-          cp work/kapt.csv tools/commute-prices/kapt.csv
-      - uses: actions/cache/save@v4
-        if: always()
-        with:
-          path: work
-          key: kapt-work-${{ github.run_id }}
+          W=tools/commute-prices/kapt_work; mkdir -p $W
+          timeout 300m python tools/commute-prices/kapt_fetch.py tools/commute-prices/codes.txt $W || true
+          [ -f $W/kapt.csv ] && cp $W/kapt.csv tools/commute-prices/kapt.csv || true
       - name: commit
+        if: always()
         run: |
           git config user.name "commute-prices-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add tools/commute-prices/kapt.csv
+          git add tools/commute-prices/kapt_work; [ -f tools/commute-prices/kapt.csv ] && git add tools/commute-prices/kapt.csv || true
           if git diff --cached --quiet; then exit 0; fi
           git commit -m "통근권 집찾기: K-apt 단지정보 갱신 $(TZ=Asia/Seoul date +%F)"
           git pull --rebase -q origin master && git push
