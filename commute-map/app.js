@@ -106,22 +106,43 @@
       // 최적의 집 찾기: 순위 숫자 배지. 3→2→1 순서로 그려 1순위가 위에 오게
       const list = tiered ? state.matches.slice().sort((x, y) => (y.tier || 9) - (x.tier || 9)) : state.matches;
       const R = z >= 14 ? 11 : z >= 12 ? 9.5 : 8;
+      const tierPts = [];
       for (const a of list) {
         if (a.lat < b.getSouth() || a.lat > b.getNorth() || a.lon < b.getWest() || a.lon > b.getEast()) continue;
         const p = m.latLngToContainerPoint([a.lat, a.lon]);
         ctx.globalAlpha = state.sel && a !== state.sel ? 0.25 : 1; // 단지를 고르면 나머지는 흐리게
-        if (tiered && a.tier) {
-          const rr = a === state.sel ? R + 2 : R;
-          ctx.beginPath(); ctx.arc(p.x, p.y, rr, 0, 7);
-          ctx.fillStyle = state.priceColors[a.cls]; ctx.fill();
-          ctx.strokeStyle = '#000'; ctx.lineWidth = a === state.sel ? 2.5 : 1.2; ctx.stroke();
-          ctx.font = `800 ${Math.round(rr * 1.15)}px Pretendard, system-ui, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-          ctx.lineWidth = 3; ctx.strokeStyle = '#fff'; ctx.strokeText(a.tier, p.x, p.y + 0.5); ctx.fillStyle = '#111'; ctx.fillText(a.tier, p.x, p.y + 0.5);
-          continue;
-        }
+        if (tiered && a.tier) { tierPts.push({ a, x: p.x, y: p.y }); continue; } // 순위 배지는 아래에서 묶어 그림
         ctx.beginPath(); ctx.arc(p.x, p.y, a === state.sel ? r + 3 : r, 0, 7);
         ctx.fillStyle = state.priceColors[a.cls]; ctx.fill();
         ctx.strokeStyle = '#000'; ctx.lineWidth = a === state.sel ? 2.5 : (z >= 12 ? 1.2 : 0.8); ctx.stroke();
+      }
+      // 순위 배지: 같은 순위끼리 화면에서 겹치면 하나로 묶고 'n곳' 꼬리표. 1순위가 맨 위
+      state.clusters = [];
+      if (tierPts.length) {
+        const D2 = (R * 1.7) ** 2, used = new Set();
+        for (const t of [1, 2, 3]) for (const q of tierPts) {
+          if (q.a.tier !== t || used.has(q)) continue;
+          const mem = tierPts.filter((o) => o.a.tier === t && !used.has(o) && (o.x - q.x) ** 2 + (o.y - q.y) ** 2 < D2);
+          mem.forEach((o) => used.add(o));
+          const sel = mem.find((o) => o.a === state.sel);
+          const c = sel || mem.reduce((m, o) => (o.a.rc.score > m.a.rc.score ? o : m), mem[0]); // 대표: 가장 점수 높은 단지 위치·가격 색
+          state.clusters.push({ tier: t, x: c.x, y: c.y, a: c.a, members: mem.map((o) => o.a) });
+        }
+        for (const cl of state.clusters.slice().reverse()) { // 3→1 순서로 그려 1순위가 위
+          const a = cl.a, rr = a === state.sel ? R + 2 : R, n = cl.members.length;
+          ctx.globalAlpha = state.sel && !cl.members.includes(state.sel) ? 0.25 : 1;
+          ctx.beginPath(); ctx.arc(cl.x, cl.y, rr, 0, 7);
+          ctx.fillStyle = state.priceColors[a.cls]; ctx.fill();
+          ctx.strokeStyle = '#000'; ctx.lineWidth = a === state.sel ? 2.5 : 1.2; ctx.stroke();
+          ctx.font = `800 ${Math.round(rr * 1.15)}px Pretendard, system-ui, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+          ctx.lineWidth = 3; ctx.strokeStyle = '#fff'; ctx.strokeText(cl.tier, cl.x, cl.y + 0.5); ctx.fillStyle = '#111'; ctx.fillText(cl.tier, cl.x, cl.y + 0.5);
+          if (n > 1) { // 꼬리표 'n곳'
+            const txt = `${n}곳`; ctx.font = '700 11px Pretendard, system-ui, sans-serif';
+            const w = ctx.measureText(txt).width + 8, hx = cl.x + rr * 0.55, hy = cl.y - rr - 2;
+            ctx.beginPath(); ctx.roundRect ? ctx.roundRect(hx, hy - 7, w, 14, 7) : ctx.rect(hx, hy - 7, w, 14);
+            ctx.fillStyle = '#1F2B3D'; ctx.fill(); ctx.fillStyle = '#fff'; ctx.textAlign = 'left'; ctx.fillText(txt, hx + 4, hy + 0.5);
+          }
+        }
       }
       ctx.globalAlpha = 1;
       if (state.sel && !(best.on && state.sel.tier)) { const a = state.sel, p = m.latLngToContainerPoint([a.lat, a.lon]); ctx.beginPath(); ctx.arc(p.x, p.y, r + 3, 0, 7); ctx.fillStyle = state.priceColors[a.cls]; ctx.fill(); ctx.strokeStyle = '#1F2B3D'; ctx.lineWidth = 2.5; ctx.stroke(); }
@@ -473,7 +494,7 @@
 
   /* ---------- 직장 칸 자료: 64칸 묶음 파일에서 꺼내기 ---------- */
   /* 직장 칸을 고르면 브라우저(웹 워커)에서 바로 계산. 같은 칸은 기억해 둠 */
-  const worker = new Worker('worker.js'); let qid = 0; const pending = new Map(), cache = new Map();
+  const worker = new Worker('worker.js?v=2'); let qid = 0; const pending = new Map(), cache = new Map();
   worker.onmessage = (e) => {
     const m = e.data;
     if (m.type === 'progress') { busy(`계산 자료 받는 중 ${Math.round((m.got / m.total) * 100)}% (처음 한 번만)`); return; }
@@ -530,7 +551,20 @@
 
   /* ---------- 직장 지정 ---------- */
   const markers = {};
-  async function setWorkplace(key, lat, lon, label) {
+  // 직장을 정한 뒤 통근권(조건에 맞는 단지)과 직장이 한눈에 보이게 지도 맞추기. 패널·범례·아래 창에 가리지 않게 여백
+  function focusShed() {
+    const pts = [];
+    for (const k of ['a', 'b']) if (state[k]) pts.push([state[k].lat, state[k].lon]);
+    for (const a of state.matches || []) pts.push([a.lat, a.lon]);
+    if (!pts.length) return;
+    let b = L.latLngBounds(pts);
+    if (pts.length < 3) b = b.pad(0.5);
+    const mob = mobile();
+    const tl = mob ? [16, 70] : [(panelEl.getBoundingClientRect().right || 0) + 16, 20];
+    const br = mob ? [16, (sheetH || window.innerHeight * 0.5) + 16] : [24, 20]; // 범례는 오른쪽 아래 구석만 가려서 여백에서 뺌
+    map.flyToBounds(b, { paddingTopLeft: tl, paddingBottomRight: br, maxZoom: 14, duration: 0.6 });
+  }
+  async function setWorkplace(key, lat, lon, label, focus) {
     const i = nearestCell(lat, lon);
     if (i < 0) { toast('서울·인천·경기 안의 사람 사는 곳을 골라 주세요.'); return; }
     let data;
@@ -549,6 +583,7 @@
     { const q = $(`q-${key}`); if (!label) { q.value = ''; q.placeholder = '지도에서 고른 곳'; } else if (!q.value) q.value = label; }
     if (key === 'b') $('clear-b').hidden = false;
     syncHash(); refresh();
+    if (focus) focusShed();
   }
   function clearB() {
     state.b = null; markers.b?.remove(); delete markers.b;
@@ -560,7 +595,7 @@
   /* ---------- 판독창 ---------- */
   function renderReadout(i) {
     if (!state.a) { $('ro').hidden = true; $('ro-empty').hidden = false; $('ro-empty').textContent = '먼저 직장 A를 정해 주세요. 역 이름으로 찾거나 지도에서 고를 수 있어요.'; return; }
-    if (i < 0) { $('ro').hidden = true; $('ro-empty').hidden = false; $('ro-empty').textContent = '지도 위에 커서를 올리거나 눌러 보세요. 그 자리에 살 때 통근시간이 여기에 나옵니다.'; return; }
+    if (i < 0) { $('ro').hidden = true; $('ro-empty').hidden = false; $('ro-empty').textContent = (mobile() ? '지도를 눌러 보세요' : '지도 위에 커서를 올리거나 눌러 보세요') + '. 그 자리에 살 때 통근시간이 여기에 나옵니다.'; return; }
     $('ro').hidden = false; $('ro-empty').hidden = true;
     for (const k of ['a', 'b']) {
       const wrap = k === 'a' ? document.querySelector('.ro-item.a') : $('ro-b-wrap');
@@ -633,6 +668,12 @@
     if (state.picking) { const k = state.picking; setPicking(k); setWorkplace(k, e.latlng.lat, e.latlng.lng); return; }
     if (!state.a) { setWorkplace('a', e.latlng.lat, e.latlng.lng); return; }
     const cp = map.latLngToContainerPoint(e.latlng); let hit = null, hd = 12 * 12;
+    if (best.on && state.clusters) { // 묶인 배지를 누르면 그 단지들이 보이게 확대, 하나면 그 단지 선택
+      let cl = null, cd = 14 * 14;
+      for (const c of state.clusters) { const d = (c.x - cp.x) ** 2 + (c.y - cp.y) ** 2; if (d < cd) { cd = d; cl = c; } }
+      if (cl && cl.members.length > 1) { map.flyToBounds(L.latLngBounds(cl.members.map((a) => [a.lat, a.lon])).pad(0.6), { maxZoom: Math.min(17, map.getZoom() + 3), duration: 0.5 }); return; }
+      if (cl) { selectApt(cl.a, false); return; }
+    }
     for (const a of state.matches) { const p = map.latLngToContainerPoint([a.lat, a.lon]); const d = (p.x - cp.x) ** 2 + (p.y - cp.y) ** 2; if (d < hd) { hd = d; hit = a; } }
     if (hit) { selectApt(hit, false); return; }
     if (state.sel) { state.sel = null; renderList(); }
@@ -687,7 +728,7 @@
   let autoLg = false;
   function setLegendMin(min) {
     $('legend').classList.toggle('min', min);
-    const t = $('lg-tog'); t.textContent = min ? '범례 보기' : '숨기기';
+    const t = $('lg-tog'); t.textContent = min ? '범례 · 최적의 집 찾기' : '숨기기';
     t.setAttribute('aria-expanded', String(!min)); t.setAttribute('aria-label', min ? '범례 보기' : '범례 숨기기');
   }
   function setSheet(min) { setSheetH(min ? sheetLim().min : sheetLim().def); if (min) panelEl.scrollTop = 0; }
@@ -808,6 +849,18 @@
     } catch (e) { /* 표시 자료가 없어도 지도는 동작 */ }
   }
 
+  // apts.json v2(열 단위) → 원래 행 모양 [seq, 이름, 동, 연도, 위도, 경도, 칸, 면적형들, 세대수, 분양형태]
+  function unpackApts(c) {
+    const n = c.seq.length, out = new Array(n); let la = 0, lo = 0, r = 0;
+    const nt = c.t.length;
+    for (let i = 0; i < n; i++) {
+      la += c.lat[i]; lo += c.lon[i];
+      const ty = [];
+      for (let k = 0; k < c.tn[i]; k++, r++) { const row = new Array(nt); for (let j = 0; j < nt; j++) row[j] = c.t[j][r]; ty.push(row); }
+      out[i] = [c.seq[i], c.name[i], c.dong[i], c.year[i], la / 1e5, lo / 1e5, c.cell[i], ty, c.hh[i], c.sale[i]];
+    }
+    return out;
+  }
   /* ---------- 시작 ---------- */
   (async () => {
     const [g, apts, stations, seoul] = await Promise.all([
@@ -816,10 +869,24 @@
       fetch('data/stations.json').then((r) => r.json()),
       fetch('data/region.geojson').then((r) => r.json()),
     ]);
-    state.grid = g; state.apts = apts;
+    state.grid = g; state.apts = apts && apts.v === 2 ? unpackApts(apts) : apts;
+    // 자료 기준일: 제목 아래 한 줄 — 실거래가 갱신일 · 대중교통 시간표
+    Promise.all([fetch('data/apts_meta.json').then((r) => (r.ok ? r.json() : null)).catch(() => null), fetch('data/rt2/meta.json').then((r) => (r.ok ? r.json() : null)).catch(() => null)]).then(([pm, rm]) => {
+      const d = (s) => { const [y, mo, da] = s.split('-').map(Number); return `${y}년 ${mo}월 ${da}일`; };
+      const gt = rm && rm.gtfs ? rm.gtfs.replace(/^KTDB (\d{4})-(\d{2}) (.*)$/, (_, y, mo, w) => `${y}년 ${+mo}월 ${w}`) : '';
+      const parts = [pm && pm.updated ? `실거래가 ${d(pm.updated)} 갱신` : '', gt ? `대중교통 시간표 ${gt}` : ''].filter(Boolean);
+      if ($('asof')) $('asof').textContent = parts.length ? `자료 기준 · ${parts.join(' · ')}` : '';
+    });
     fetch('data/apts_meta.json').then((r) => (r.ok ? r.json() : null)).then((m) => { if (m && $('price-basis')) $('price-basis').textContent = `${m.from.slice(0, 4)}년 ${+m.from.slice(4)}월~${m.to.slice(0, 4)}년 ${+m.to.slice(4)}월, ${m.updated} 갱신`; }).catch(() => {});
-    { const S = g.size_m || 250, pos = new Map(g.ids.map((id, i) => [id, i]));
-      nb = g.ids.map((id) => { const [x, y] = id.split('_').map(Number); const f = (dx, dy) => pos.get(`${x + dx}_${y + dy}`) ?? -1; return [f(0, S), f(0, -S), f(-S, 0), f(S, 0)]; }); }
+    { // grid.json v2: 칸 번호(gx,gy)·좌표(1e-5도)가 앞 값과의 차이로 들어 있음 → 풀기
+      let gx, gy;
+      if (g.v === 2) {
+        const un = (d, f) => { const o = new Float64Array(d.length); let v = 0; for (let i = 0; i < d.length; i++) { v += d[i]; o[i] = v * f; } return o; };
+        gx = un(g.gx, 1); gy = un(g.gy, 1); g.lat = un(g.lat, 1e-5); g.lon = un(g.lon, 1e-5);
+      } else { const S = g.size_m || 250; gx = g.ids.map((id) => +id.split('_')[0] / S); gy = g.ids.map((id) => +id.split('_')[1] / S); }
+      const key = (x, y) => x * 100000 + y, pos = new Map();
+      for (let i = 0; i < g.n; i++) pos.set(key(gx[i], gy[i]), i);
+      nb = Array.from({ length: g.n }, (_, i) => { const f = (dx, dy) => pos.get(key(gx[i] + dx, gy[i] + dy)) ?? -1; return [f(0, 1), f(0, -1), f(-1, 0), f(1, 0)]; }); }
     for (let i = 0; i < g.n; i++) { const k = bkey(g.lat[i], g.lon[i]); (buckets.get(k) || buckets.set(k, []).get(k)).push(i); }
     const outline = L.geoJSON(seoul, { interactive: false, style: { color: '#1F2B3D', weight: 1.5, opacity: 0.55, fill: false } }).addTo(map);
     const narrow = window.innerWidth <= 720;
@@ -867,8 +934,7 @@
       };
       const choose = (x) => {
         if (!x) return; close(); input.value = x.name;
-        setWorkplace(k, x.lat, x.lon, x.kind === 'st' ? x.name : `${x.name}${x.sub && x.kind === 'place' ? ` (${x.sub})` : ''}`);
-        map.flyTo([x.lat, x.lon], Math.max(map.getZoom(), 13), { duration: 0.6 });
+        setWorkplace(k, x.lat, x.lon, x.kind === 'st' ? x.name : `${x.name}${x.sub && x.kind === 'place' ? ` (${x.sub})` : ''}`, true);
       };
       const run = async () => {
         const q = input.value.trim(); const my = ++seq;
@@ -909,10 +975,11 @@
     if (['eq', 'a', 'b'].includes(p.get('pr'))) setPrio(p.get('pr'));
     if (p.get('x')) { state.extra = Math.min(60, Math.max(0, +p.get('x') || 0)); $('extra').value = state.extra; }
     setBudgetUI(); renderLegend(); renderReadout(-1); renderList();
+    if (mobile()) setLegendMin(true); // 휴대폰은 범례를 접은 채로 시작 → 지도를 넓게
     $('legend').classList.toggle('empty', !state.a);
     for (const k of ['a', 'b']) {
       const v = p.get(k); if (!v) continue;
-      const [la, lo] = v.split(',').map(Number); if (isFinite(la) && isFinite(lo)) await setWorkplace(k, la, lo);
+      const [la, lo] = v.split(',').map(Number); if (isFinite(la) && isFinite(lo)) await setWorkplace(k, la, lo, null, true);
     }
   })();
 })();

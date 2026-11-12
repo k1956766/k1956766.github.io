@@ -114,6 +114,16 @@ SALE_CODE = {'분양': 1, '혼합': 2, '임대': 3}
 KAPT_DONE = False
 
 
+def nice_name(nm, dong):
+    """이름이 지번뿐인 단지('(139-14)', '(1546-0)')는 '가산동 139-14'처럼 동 이름 + 지번으로."""
+    import re
+    m = re.fullmatch(r'\s*\(?\s*(\d+)(?:-(\d+))?\s*\)?\s*', str(nm))
+    if not m:
+        return nm
+    bu = (m.group(2) or '0').lstrip('0')
+    return f"{dong} {m.group(1)}{'-' + bu if bu else ''}"
+
+
 def kapt_join(t, r):
     """K-apt 단지정보(kapt.csv)를 법정동코드+지번으로 실거래 단지와 연결 → {aptSeq: (세대수, 분양형태 1분양·2혼합·3임대)}.
     K-apt에 없는 단지(대개 의무관리 대상이 아닌 소규모)는 (0, 0)."""
@@ -160,6 +170,17 @@ def kapt_join(t, r):
 
 
 num = lambda s: pd.to_numeric(s.astype(str).str.replace(',', '').str.strip(), errors='coerce')
+
+
+def columnar(rows):
+    """apts.json v2: 단지 행 대신 항목별 열로(같은 종류 값끼리 모여 압축이 잘 됨). 좌표는 1e-5도 정수 차이.
+    t는 면적형 행을 펼친 열들, tn은 단지마다 면적형 수. app.js가 원래 행 모양으로 되돌려 씀."""
+    dl = lambda v: [v[0]] + [v[i] - v[i - 1] for i in range(1, len(v))] if v else []
+    flat = [r for x in rows for r in x[7]]
+    return {'v': 2, 'seq': [x[0] for x in rows], 'name': [x[1] for x in rows], 'dong': [x[2] for x in rows], 'year': [x[3] for x in rows],
+            'lat': dl([round(x[4] * 1e5) for x in rows]), 'lon': dl([round(x[5] * 1e5) for x in rows]), 'cell': [x[6] for x in rows],
+            'hh': [x[8] for x in rows], 'sale': [x[9] for x in rows], 'tn': [len(x[7]) for x in rows],
+            't': [list(c) for c in zip(*flat)] if flat else []}
 
 
 def build():
@@ -246,9 +267,9 @@ def build():
         if not types:
             continue
         nm = info.loc[a.aptSeq]
-        out.append([a.aptSeq, nm.aptNm, nm.umdNm, int(nm.buildYear) if str(nm.buildYear).isdigit() else None,
+        out.append([a.aptSeq, nice_name(nm.aptNm, nm.umdNm), nm.umdNm, int(nm.buildYear) if str(nm.buildYear).isdigit() else None,
                     round(a.lat, 5), round(a.lon, 5), int(a.cell), types, *(kapt.get(a.aptSeq, (0, 0) if KAPT_DONE else (-1, 0)) if kapt else (-1, 0))])  # 세대수(-1=단지정보 수집 전, 0=K-apt 미등록), 분양형태
-    json.dump(out, open(os.path.join(SITE, 'apts.json'), 'w'), ensure_ascii=False, separators=(',', ':'))
+    json.dump(columnar(out), open(os.path.join(SITE, 'apts.json'), 'w'), ensure_ascii=False, separators=(',', ':'))
     json.dump({'from': MS[-1], 'to': MS[0], 'updated': today.isoformat(), 'complexes': len(out)},
               open(os.path.join(SITE, 'apts_meta.json'), 'w'), ensure_ascii=False)
     # 좌표 없는 단지(새 단지) — PC에서 주소정보 좌표 API로 채울 목록

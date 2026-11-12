@@ -1,7 +1,7 @@
 /* 통근시간 계산 워커: 시간표·보행표를 한 번 받아 두고, 직장 칸을 받으면 [보통|최적] 분 배열과 경로를 돌려줌 */
 importScripts('engine.js');
 const TA = { uint16: Uint16Array, int32: Int32Array, uint8: Uint8Array, float32: Float32Array };
-let ready = null, base = 'data/rt/', names = null, routes = null, patCat = null, D = null;
+let ready = null, base = 'data/rt2/', names = null, routes = null, patCat = null, D = null;
 async function bytes(url) {
   const r = await fetch(url); if (!r.ok) throw new Error(url + ' ' + r.status);
   const buf = new Uint8Array(await r.arrayBuffer());
@@ -11,14 +11,33 @@ async function bytes(url) {
   }
   return buf;
 }
+// pack_rt.py로 묶은 배열 풀기: s 바이트 평면 되돌리기, d/g:X 차이 누적, v 운행 간 차이 누적(times)
+function unshuf(b, w) {
+  if (w === 1) return b;
+  const n = b.length / w, o = new Uint8Array(b.length);
+  for (let j = 0; j < w; j++) { const p = j * n; for (let i = 0; i < n; i++) o[i * w + j] = b[p + i]; }
+  return o;
+}
+function cum(a, off) { // 2^bits 나머지 누적. off가 있으면 구간마다 새로 시작
+  const U = a.BYTES_PER_ELEMENT === 4 ? new Uint32Array(a.buffer, a.byteOffset, a.length) : a.BYTES_PER_ELEMENT === 2 ? new Uint16Array(a.buffer, a.byteOffset, a.length) : new Uint8Array(a.buffer, a.byteOffset, a.length);
+  if (!off) { for (let i = 1; i < U.length; i++) U[i] = U[i] + U[i - 1]; return; }
+  for (let c = 0; c < off.length - 1; c++) for (let i = off[c] + 1; i < off[c + 1]; i++) U[i] = U[i] + U[i - 1];
+}
 async function init() {
   const M = await (await fetch(base + 'meta.json')).json(); D = { S: M.S };
   let got = 0; const keys = Object.keys(M.types);
   await Promise.all(keys.map(async (k) => {
-    const b = await bytes(`${base}${k}.bin.gz`), T = TA[M.types[k]];
+    const T = TA[M.types[k]], e = (M.enc || {})[k] || 'o';
+    let b = await bytes(`${base}${k}.bin.gz`);
+    if (e !== 'o') b = unshuf(b, T.BYTES_PER_ELEMENT);
+    if (b.byteOffset % T.BYTES_PER_ELEMENT) b = b.slice();
     D[k] = new T(b.buffer, b.byteOffset, b.byteLength / T.BYTES_PER_ELEMENT);
     postMessage({ type: 'progress', got: ++got, total: keys.length + 1 });
   }));
+  const E = M.enc || {};
+  for (const k of Object.keys(E)) if (E[k] === 'd') cum(D[k]);            // 오프셋 배열 먼저
+  for (const k of Object.keys(E)) if (E[k].startsWith('g:')) cum(D[k], D[E[k].slice(2)]);
+  if (E.times === 'v') { const t = D.times; for (let p = 0; p < D.pto.length - 1; p++) { const w = 2 * (D.pso[p + 1] - D.pso[p]); for (let o = D.pto[p] + w; o < D.pto[p + 1]; o++) t[o] = (t[o] + t[o - w]) & 0xffff; } }
   if (M.timesDelta) { const t = D.times; for (let p = 0; p < D.pto.length - 1; p++) { const ns = D.pso[p + 1] - D.pso[p]; for (let o = D.pto[p]; o < D.pto[p + 1]; o += 2 * ns) for (let i = 1; i < 2 * ns; i++) t[o + i] = (t[o + i - 1] + t[o + i]) & 0xffff; } }
   routes = await (await fetch(base + 'routes.json')).json();
   patCat = new Uint8Array(D.pto.length - 1); for (let p = 0; p < patCat.length; p++) patCat[p] = routes[D.patRoute[p]][1];
