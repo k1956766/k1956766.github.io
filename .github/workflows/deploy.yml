@@ -101,6 +101,18 @@ jobs:
         run: |
           npm install -g purgecss
           purgecss -c purgecss.config.js
+      - name: 통근권 집찾기에 브이월드 키 넣기 🗺️
+        # 저장소에는 키를 두지 않고, 배포할 때 비밀값 VWORLD_KEY를 넣는다(없으면 OSM 지도·역 검색으로 동작)
+        env:
+          K: ${{ secrets.VWORLD_KEY }}
+        run: |
+          K=$(printf '%s' "$K" | tr -d '[:space:]')
+          if [ -n "$K" ] && [ -f _site/commute-map/app.js ]; then
+            sed -i -E "s/const VW_KEY = '[^']*'/const VW_KEY = '${K}'/" _site/commute-map/app.js
+            echo "브이월드 키 넣음"
+          else
+            echo "키 없음: OSM으로 동작"
+          fi
       - name: Deploy 🚀
         if: github.event_name != 'pull_request'
         uses: JamesIves/github-pages-deploy-action@v4
