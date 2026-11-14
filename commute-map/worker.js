@@ -1,7 +1,7 @@
 /* 통근시간 계산 워커: 시간표·보행표를 한 번 받아 두고, 직장 칸을 받으면 [보통|최적] 분 배열과 경로를 돌려줌 */
 importScripts('engine.js');
-const TA = { uint16: Uint16Array, int32: Int32Array, uint8: Uint8Array, float32: Float32Array };
-let ready = null, base = 'data/rt2/', names = null, routes = null, patCat = null, D = null;
+const TA = { uint16: Uint16Array, uint32: Uint32Array, int32: Int32Array, uint8: Uint8Array, float32: Float32Array };
+let ready = null, base = 'data/rt3/', names = null, routes = null, patCat = null, D = null;
 async function bytes(url) {
   const r = await fetch(url); if (!r.ok) throw new Error(url + ' ' + r.status);
   const buf = new Uint8Array(await r.arrayBuffer());

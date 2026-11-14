@@ -511,7 +511,7 @@
 
   /* ---------- 직장 칸 자료: 64칸 묶음 파일에서 꺼내기 ---------- */
   /* 직장 칸을 고르면 브라우저(웹 워커)에서 바로 계산. 같은 칸은 기억해 둠 */
-  const worker = new Worker('worker.js?v=2'); let qid = 0; const pending = new Map(), cache = new Map();
+  const worker = new Worker('worker.js?v=3'); let qid = 0; const pending = new Map(), cache = new Map();
   worker.onmessage = (e) => {
     const m = e.data;
     if (m.type === 'progress') { busy(`계산 자료 받는 중 ${Math.round((m.got / m.total) * 100)}% (처음 한 번만)`); return; }
@@ -583,7 +583,7 @@
   }
   async function setWorkplace(key, lat, lon, label, focus) {
     const i = nearestCell(lat, lon);
-    if (i < 0) { toast('서울·인천·경기 안의 사람 사는 곳을 골라 주세요.'); return; }
+    if (i < 0) { toast('서울·인천·경기·강원 안의 사람 사는 곳을 골라 주세요.'); return; }
     let data;
     busy('통근시간 계산 중…');
     let med;
@@ -900,7 +900,7 @@
     ]);
     state.grid = g; state.apts = apts && apts.v === 2 ? unpackApts(apts) : apts;
     // 자료 기준일: 제목 아래 한 줄 — 실거래가 갱신일 · 대중교통 시간표
-    Promise.all([fetch('data/apts_meta.json').then((r) => (r.ok ? r.json() : null)).catch(() => null), fetch('data/rt2/meta.json').then((r) => (r.ok ? r.json() : null)).catch(() => null)]).then(([pm, rm]) => {
+    Promise.all([fetch('data/apts_meta.json').then((r) => (r.ok ? r.json() : null)).catch(() => null), fetch('data/rt3/meta.json').then((r) => (r.ok ? r.json() : null)).catch(() => null)]).then(([pm, rm]) => {
       const d = (s) => { const [y, mo, da] = s.split('-').map(Number); return `${y}년 ${mo}월 ${da}일`; };
       const gt = rm && rm.gtfs ? rm.gtfs.replace(/^KTDB (\d{4})-(\d{2}) (.*)$/, (_, y, mo, w) => `${y}년 ${+mo}월 ${w}`) : '';
       const parts = [pm && pm.updated ? `실거래가 ${d(pm.updated)} 갱신` : '', gt ? `대중교통 시간표 ${gt}` : ''].filter(Boolean);
@@ -927,7 +927,7 @@
 
     /* ---------- 직장 검색: 역 → 장소(회사·건물) → 주소 ---------- */
     // 브이월드 검색 API(JSONP): 장소(회사·건물) + 도로명·지번 주소
-    const BBOX = '126.10,36.89,127.86,38.30'; // 서울·인천·경기
+    const BBOX = '126.10,36.89,129.62,38.66'; // 서울·인천·경기·강원
     const norm = (s) => s.replace(/\s+/g, '');
     let jsonpN = 0;
     const jsonp = (url) => new Promise((res) => {
