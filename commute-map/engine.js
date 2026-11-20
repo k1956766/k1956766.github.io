@@ -9,7 +9,7 @@ function makeEngine(D, opt) {
   const LD = new Float64Array(SN), markS = new Uint8Array(SN), markP = new Int32Array(P).fill(-1), touched = [], oldv = new Float64Array(SN);
   // 경로 되짚기용(필요할 때만 기록): 종류 0=직장까지 걷기, 1=차량, 2=환승 걷기
   const pK = new Int8Array(SN), pA = new Int32Array(SN), pB = new Int32Array(SN), pC = new Int32Array(SN);
-  let mask = null, rides = O.rounds, track = false;
+  let mask = null, rides = O.rounds, track = false, walkMax = Infinity; // walkMax: 집에서 첫 정류장까지(또는 직장까지 바로) 걷는 시간 상한(초)
   const deadlines = () => { const As = []; for (let a = O.t0 + O.step; a <= O.t0 + O.win * 60 + O.maxMin * 60; a += O.step) As.push(a); return As; };
   // 07:30보다 이른 출발시각은 쓸모없으므로(집 출발은 07:30 이후) 퍼뜨리지 않음 → 결과는 같고 계산은 줄어듦
   function back(cell, A) {
@@ -61,7 +61,7 @@ function makeEngine(D, opt) {
       marked = nm.concat(relax(nm));
     }
   }
-  function setOpts(o) { mask = (o && o.mask) || null; rides = Math.min(O.rounds, (o && o.rides) || O.rounds); }
+  function setOpts(o) { mask = (o && o.mask) || null; rides = Math.min(O.rounds, (o && o.rides) || O.rounds); walkMax = o && o.walk > 0 ? o.walk : Infinity; }
   // 직장 칸 → { data: [보통(C) | 최적(C)] 분(255 = 150분 안에 못 감), med: 칸별 '보통' 출발이 맞춘 마감 번호 }
   function query(cell, o) {
     setOpts(o); track = false;
@@ -69,7 +69,7 @@ function makeEngine(D, opt) {
     LD.fill(NEG);
     const snap = new Float32Array(As.length * SN), cx = cxy[2 * cell], cy = cxy[2 * cell + 1];
     for (let i = 0; i < As.length; i++) { back(cell, As[i]); snap.set(LD, i * SN); }
-    const f = (c, i, wk) => { const A = As[i], base = i * SN; let m = A - wk; for (let j = cOff[c]; j < cOff[c + 1]; j++) { const v = snap[base + cStop[j]] - cW[j] * 60; if (v > m) m = v; } return m; };
+    const f = (c, i, wk) => { const A = As[i], base = i * SN; let m = wk > walkMax ? NEG : A - wk; for (let j = cOff[c]; j < cOff[c + 1]; j++) { if (cW[j] * 60 > walkMax) continue; const v = snap[base + cStop[j]] - cW[j] * 60; if (v > m) m = v; } return m; };
     const out = new Uint8Array(2 * C), med = new Uint8Array(C).fill(255), n = O.win, tt = new Float64Array(n), ai = new Int32Array(n), ord = Array.from({ length: n }, (_, k) => k), last = As.length - 1;
     const enc = (v) => (v >= maxT ? 255 : Math.min(254, Math.floor(v / 60)));
     for (let c = 0; c < C; c++) {
@@ -85,6 +85,20 @@ function makeEngine(D, opt) {
     }
     return { data: out, med };
   }
+  // 같은 노선(갈래 패턴 포함)이 같은 정류장에서 dep 다음에 떠나는 가장 이른 시각(초). 시간표 범위(~11시) 안에 없으면 -1
+  let byRoute = null;
+  function nextDep(p, s, s2, dep) { // s2: 그 노선에서 s 다음 정류장(같은 방향 차만 보려고)
+    if (!D.patRoute) return -1;
+    if (!byRoute) { byRoute = new Map(); for (let q = 0; q < P; q++) { const r = D.patRoute[q]; if (!byRoute.has(r)) byRoute.set(r, []); byRoute.get(r).push(q); } }
+    let best = -1;
+    for (const q of byRoute.get(D.patRoute[p])) {
+      const so = pso[q], ns = pso[q + 1] - so, to = pto[q], nt = (pto[q + 1] - to) / (2 * ns);
+      for (let k = 0; k < ns - 1; k++) if (patStops[so + k] === s && patStops[so + k + 1] === s2) {
+        for (let tr = 0; tr < nt; tr++) { const d = times[to + tr * 2 * ns + 2 * k + 1]; if (d > dep && (best < 0 || d < best)) { best = d; break; } }
+      }
+    }
+    return best;
+  }
   // 대표 경로: 직장 칸 work, 집 칸 home, 마감 번호 ai(query의 med) → 구간 목록
   function path(work, home, ai, o) {
     setOpts(o); track = true;
@@ -92,8 +106,8 @@ function makeEngine(D, opt) {
     const legs = [];
     // 집에서 나설 수 있는 가장 늦은 시각을 주는 정류장(또는 직접 걷기)
     const wk = Math.hypot(cxy[2 * home] - cxy[2 * work], cxy[2 * home + 1] - cxy[2 * work + 1]) * O.detour / 75 * 60;
-    let best = A - wk, s0 = -1, w0 = 0;
-    for (let j = cOff[home]; j < cOff[home + 1]; j++) { const v = LD[cStop[j]] - cW[j] * 60; if (v > best) { best = v; s0 = cStop[j]; w0 = cW[j] * 60; } }
+    let best = wk > walkMax ? NEG : A - wk, s0 = -1, w0 = 0;
+    for (let j = cOff[home]; j < cOff[home + 1]; j++) { if (cW[j] * 60 > walkMax) continue; const v = LD[cStop[j]] - cW[j] * 60; if (v > best) { best = v; s0 = cStop[j]; w0 = cW[j] * 60; } }
     if (s0 < 0) return { depart: Math.round(A - wk), arrive: A, legs: [{ k: 'walk', sec: Math.round(wk), to: 'work' }] };
     legs.push({ k: 'walk', sec: w0, to: s0 });
     let s = s0, guard = 0, arrive = A;
@@ -103,7 +117,8 @@ function makeEngine(D, opt) {
       const p = pA[s], trip = pB[s], e = pC[s], so = pso[p], ns = pso[p + 1] - so, to = pto[p];
       let kb = -1; for (let k = 0; k <= e; k++) if (patStops[so + k] === s) kb = k;
       const es = patStops[so + e];
-      legs.push({ k: 'ride', p, from: s, to: es, dep: times[to + trip * 2 * ns + 2 * kb + 1], arr: times[to + trip * 2 * ns + 2 * e], stops: e - kb });
+      const dep = times[to + trip * 2 * ns + 2 * kb + 1];
+      legs.push({ k: 'ride', p, from: s, to: es, dep, arr: times[to + trip * 2 * ns + 2 * e], stops: e - kb, next: nextDep(p, s, patStops[so + kb + 1], dep) });
       if (es === s) break; s = es;
     }
     return { depart: Math.round(best), arrive, legs };

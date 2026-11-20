@@ -1,5 +1,5 @@
 /* 통근시간 계산 워커: 시간표·보행표를 한 번 받아 두고, 직장 칸을 받으면 [보통|최적] 분 배열과 경로를 돌려줌 */
-importScripts('engine.js');
+importScripts('engine.js?v=6');
 const TA = { uint16: Uint16Array, uint32: Uint32Array, int32: Int32Array, uint8: Uint8Array, float32: Float32Array };
 let ready = null, base = 'data/rt5/', names = null, routes = null, patCat = null, D = null;
 async function bytes(url) {
@@ -46,8 +46,9 @@ async function init() {
 }
 // 조건 → 엔진 옵션. modes: '1111' = [지하철·전철, 기차, 광역·시외버스, 시내·마을버스], tr: 최대 환승(-1 = 제한 없음)
 const maskCache = new Map();
-function opts(modes, tr) {
+function opts(modes, tr, walk) {
   const o = {};
+  if (walk > 0) o.walk = walk * 60;
   if (modes && modes !== '1111') {
     if (!maskCache.has(modes)) { const m = new Uint8Array(patCat.length); for (let p = 0; p < m.length; p++) m[p] = modes[patCat[p] - 1] === '1' ? 1 : 0; maskCache.set(modes, m); }
     o.mask = maskCache.get(modes);
@@ -62,15 +63,15 @@ onmessage = async (e) => {
     if (!ready) ready = init();
     const E = await ready;
     if (m.type === 'query') {
-      const t = performance.now(); const r = E.query(m.cell, opts(m.modes, m.tr));
+      const t = performance.now(); const r = E.query(m.cell, opts(m.modes, m.tr, m.walk));
       postMessage({ type: 'result', id: m.id, ms: Math.round(performance.now() - t), data: r.data, med: r.med }, [r.data.buffer, r.med.buffer]);
     } else if (m.type === 'path') {
-      const N = await stopNames(); const r = E.path(m.work, m.home, m.ai, opts(m.modes, m.tr));
+      const N = await stopNames(); const r = E.path(m.work, m.home, m.ai, opts(m.modes, m.tr, m.walk));
       // 걷기 구간 합치고(0분 걷기 생략), 차량 구간에 노선 이름·종류·정류장 이름 붙이기
       const legs = [];
       for (const l of r.legs) {
         if (l.k === 'walk') { const last = legs[legs.length - 1]; if (last && last.k === 'walk') last.sec += l.sec; else legs.push({ k: 'walk', sec: l.sec }); }
-        else { const [name, cat] = routes[D.patRoute[l.p]]; legs.push({ k: 'ride', name, cat, from: N[l.from], to: N[l.to], dep: l.dep, arr: l.arr, stops: l.stops }); }
+        else { const [name, cat] = routes[D.patRoute[l.p]]; legs.push({ k: 'ride', name, cat, from: N[l.from], to: N[l.to], dep: l.dep, arr: l.arr, stops: l.stops, next: l.next }); }
       }
       const out = legs.filter((l) => l.k === 'ride' || l.sec >= 30);
       let arrive = r.depart; for (const l of r.legs) arrive = l.k === 'ride' ? l.arr : arrive + l.sec;

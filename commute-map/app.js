@@ -37,7 +37,7 @@
   const $ = (id) => document.getElementById(id);
 
   const state = { grid: null, a: null, b: null, limit: 50, picking: null, hover: -1,
-    opacity: 0.55, priceMode: 'fixed', pick: null, modes: '1111', tr: -1, routeCell: -1, all: [], open: null, apts: [], kind: 'sale', budget: Infinity, minArea: 59, minN: 2, prio: 'eq', extra: 15, matches: [], showN: 30, sel: null };
+    opacity: 0.55, priceMode: 'fixed', pick: null, modes: '1111', tr: -1, walk: 0, routeCell: -1, all: [], open: null, apts: [], kind: 'sale', budget: Infinity, minArea: 59, minN: 2, prio: 'eq', extra: 15, matches: [], showN: 30, sel: null };
 
   let buckets = new Map();
 
@@ -204,7 +204,7 @@
         if (!best || pv < priceOf(best, pi)) best = t;
       }
       if (!best) continue;
-      state.matches.push({ seq, name, dong, year, lat, lon, cell, v, types, hh: hh == null ? -1 : hh, sale: sale || 0, flag: best[12] || 0, area: best[0], price: priceOf(best, pi), n: best[ni], w: best[wi], mr: best[6], dep: best[7], eq: eq0(best), ym: best[5] });
+      state.matches.push({ seq, name, dong, year, lat, lon, cell, v, types, hh: hh == null ? -1 : hh, sale: sale || 0, flag: best[12] || 0, area: best[0], price: priceOf(best, pi), n: best[ni], w: best[wi], mr: best[6], dep: best[7], eq: eq0(best), ym: best[5], jr: best[1] > 0 && best[3] > 0 ? best[3] / best[1] : null, sp: best[1] });
     }
     for (const a of state.matches) a.v2 = second(a.cell);
     state.matches.sort((x, y) => x.v - y.v || x.v2 - y.v2 || x.price - y.price);
@@ -301,7 +301,7 @@
         <span class="nm">${a.name}</span><span class="tm">${tm}</span>
         <span class="sub">${a.dong}${a.year ? `, ${a.year}년` : ''}</span>
         <span class="pr${state.kind === 'rent' ? ' rent' : ''}">${state.kind === 'rent' ? `${a.area}㎡ 월세 ${won(a.mr)} · 보증금 ${won(a.dep || 0)}` : `${a.area}㎡ ${kindName} ${won(a.price)}`} (${a.w ? `최근 ${a.w}개월 ` : ''}${a.n}건)</span>
-        ${state.kind === 'rent' ? `<span class="pr2">${rentNote(a)}</span>` : ''}
+        ${state.kind === 'rent' ? `<span class="pr2">${rentNote(a)}</span>` : ''}${state.kind === 'jeonse' ? jrNote(a) : ''}
         ${best.on && a.rc ? rankLine(a) : ''}
         <button type="button" class="more-d" data-k="${k}" aria-expanded="${state.open === a.seq}">${state.open === a.seq ? '접기' : '세부정보'}</button>
         ${state.open === a.seq ? detailHTML(a) : ''}</li>`;
@@ -317,18 +317,26 @@
     const adj = D && (a.dep || 0) > D ? ' · 보증금을 줄이는 셈이라 집주인 동의 필요' : '';
     return `${base} 월 <b>${won(a.price)}</b>${adj}`;
   }
+  // 전세가율: 같은 면적형의 전세 중위값 ÷ 매매 중위값. 80% 이상 주의, 90% 이상 위험(보증금을 못 돌려받을 위험이 커짐)
+  const jrCls = (r) => (r >= 0.9 ? 'jr-h' : r >= 0.8 ? 'jr-m' : 'jr-l');
+  function jrNote(a) {
+    if (a.jr == null) return '<span class="pr2 jr">전세가율 – <small>(같은 면적 매매 거래가 없어요)</small></span>';
+    const p = Math.round(a.jr * 100), tag = a.jr >= 0.9 ? ' 위험' : a.jr >= 0.8 ? ' 주의' : '';
+    return `<span class="pr2 jr">전세가율 <b class="${jrCls(a.jr)}">${p}%${tag}</b> <small>(같은 면적 매매 ${won(a.sp)})</small></span>`;
+  }
   function detailHTML(a) {
     const K = KINDS[state.kind];
     const rows = a.types.filter((t) => t[K.pi] != null).map((t) => {
       const pv = priceOf(t, K.pi);
-      const extra = state.kind === 'rent' ? `<td>${t[7] != null ? won(t[7]) : '–'}</td><td>${pv != null ? won(pv) : '–'}</td>` : '';
+      const jr = state.kind === 'jeonse' && t[1] > 0 ? t[3] / t[1] : null;
+      const extra = state.kind === 'rent' ? `<td>${t[7] != null ? won(t[7]) : '–'}</td><td>${pv != null ? won(pv) : '–'}</td>` : state.kind === 'jeonse' ? `<td>${jr == null ? '–' : `<span class="${jrCls(jr)}">${Math.round(jr * 100)}%</span>`}</td>` : '';
       const ok = t[0] >= state.minArea && pv != null && pv <= state.budget && t[K.ni] >= state.minN;
       return `<tr class="${ok ? '' : 'dim'}"><td>${t[0]}㎡</td><td>${won(t[K.pi])}</td>${extra}<td>${t[K.wi] ? `${t[K.wi]}개월 ` : ''}${t[K.ni]}건</td></tr>`;
     }).join('');
-    const head = state.kind === 'rent' ? `<th>면적</th><th>월세</th><th>보증금</th><th>${state.myDep ? '내 보증금 기준' : '모두 월세로'}</th><th>거래</th>` : `<th>면적</th><th>${K.name}</th><th>거래</th>`;
+    const head = state.kind === 'rent' ? `<th>면적</th><th>월세</th><th>보증금</th><th>${state.myDep ? '내 보증금 기준' : '모두 월세로'}</th><th>거래</th>` : state.kind === 'jeonse' ? `<th>면적</th><th>전세</th><th>전세가율</th><th>거래</th>` : `<th>면적</th><th>${K.name}</th><th>거래</th>`;
     const last = a.ym ? `최근 거래 ${a.ym.slice(0, 4)}년 ${+a.ym.slice(4)}월` : '';
     return `<div class="detail"><table><thead><tr>${head}</tr></thead><tbody>${rows}</tbody></table>
-      <p>가격은 최근 3개월에 거래가 2건 이상이면 3개월, 아니면 6개월, 그래도 없으면 12개월 거래의 중위값입니다(해제된 거래 제외). ${state.kind === 'rent' ? '월세·보증금은 같은 면적형 계약을 보증금까지 월세로 바꿔(전환율 연 5%) 줄 세웠을 때 가운데 계약의 값입니다. ' : ''}흐린 줄은 지금 조건(면적·예산·거래 수)에 안 맞는 면적형입니다. ${last}</p></div>`;
+      <p>가격은 최근 3개월에 거래가 2건 이상이면 3개월, 아니면 6개월, 그래도 없으면 12개월 거래의 중위값입니다(해제된 거래 제외). ${state.kind === 'rent' ? '월세·보증금은 같은 면적형 계약을 보증금까지 월세로 바꿔(전환율 연 5%) 줄 세웠을 때 가운데 계약의 값입니다. ' : ''}${state.kind === 'jeonse' ? '전세가율은 같은 면적형의 전세 중위값을 매매 중위값으로 나눈 값이에요. 80% 이상이면 집값이 조금만 내려도 보증금을 돌려받기 어려울 수 있어 주의가 필요해요(매매 거래가 적으면 오차가 커요). ' : ''}흐린 줄은 지금 조건(면적·예산·거래 수)에 안 맞는 면적형입니다. ${last}</p></div>`;
   }
   function selectApt(a, fly) {
     state.sel = a; state.hover = a.cell;
@@ -511,7 +519,7 @@
 
   /* ---------- 직장 칸 자료: 64칸 묶음 파일에서 꺼내기 ---------- */
   /* 직장 칸을 고르면 브라우저(웹 워커)에서 바로 계산. 같은 칸은 기억해 둠 */
-  const worker = new Worker('worker.js?v=5'); let qid = 0; const pending = new Map(), cache = new Map();
+  const worker = new Worker('worker.js?v=6'); let qid = 0; const pending = new Map(), cache = new Map();
   worker.onmessage = (e) => {
     const m = e.data;
     if (m.type === 'progress') { busy(`계산 자료 받는 중 ${Math.round((m.got / m.total) * 100)}% (처음 한 번만)`); return; }
@@ -520,12 +528,12 @@
     if (m.type === 'error') p.reject(new Error(m.msg)); else { if (m.ms != null) console.info(`통근시간 계산 ${m.ms}ms`); p.resolve(m.med ? { data: m.data, med: m.med } : m.data); }
   };
   worker.postMessage({ type: 'init' }); // 페이지 열 때 미리 자료 받기 시작
-  const optKey = () => `${state.modes}|${state.tr}`;
+  const optKey = () => `${state.modes}|${state.tr}|${state.walk}`;
   function ask(msg) { const id = ++qid; const p = new Promise((resolve, reject) => pending.set(id, { resolve, reject })); worker.postMessage({ ...msg, id }); return p; }
   function loadWork(i) {
     const key = `${i}|${optKey()}`;
     if (cache.has(key)) return cache.get(key);
-    const p = ask({ type: 'query', cell: i, modes: state.modes, tr: state.tr });
+    const p = ask({ type: 'query', cell: i, modes: state.modes, tr: state.tr, walk: state.walk });
     cache.set(key, p); p.catch(() => cache.delete(key));
     return p;
   }
@@ -542,6 +550,13 @@
   const hhmm = (s) => `${String(Math.floor(s / 3600)).padStart(2, '0')}:${String(Math.floor((s % 3600) / 60)).padStart(2, '0')}`;
   const esc = (x) => String(x).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   let routeSeq = 0;
+  // 배차 간격: 같은 노선이 같은 정류장에서 다음에 떠나는 차까지(분). 시간표(~11시) 안에 없으면 Infinity
+  const GAP_SHOW = 15, GAP_WARN = 30;
+  const gapMin = (l) => (l.next == null ? 0 : l.next < 0 ? Infinity : Math.round((l.next - l.dep) / 60));
+  function gapText(l) {
+    const g = gapMin(l); if (g < GAP_SHOW) return '';
+    return `<span class="rt-gap${g >= GAP_WARN ? ' warn' : ''}">${g === Infinity ? '이 차를 놓치면 11시 전에는 다음 차가 없어요' : `다음 차는 ${g}분 뒤${g >= GAP_WARN ? ' — 놓치면 크게 늦어요' : ''}`}</span>`;
+  }
   async function showRoute(cell) {
     state.routeCell = cell; const el = $('route'); const my = ++routeSeq;
     if (cell < 0 || !state.a) { el.hidden = true; return; }
@@ -551,14 +566,16 @@
       const w = state[k]; if (!w?.med) continue;
       const ai = w.med[cell];
       if (ai === 255) { parts.push(`<div class="rt"><div class="rt-h"><b>${k.toUpperCase()}까지</b> 150분 안에 갈 수 없음</div></div>`); continue; }
-      let r; try { r = await ask({ type: 'path', work: w.idx, home: cell, ai, modes: state.modes, tr: state.tr }); } catch (e) { continue; }
+      let r; try { r = await ask({ type: 'path', work: w.idx, home: cell, ai, modes: state.modes, tr: state.tr, walk: state.walk }); } catch (e) { continue; }
       if (my !== routeSeq) return;
       const rides = r.legs.filter((l) => l.k === 'ride');
       const sum = rides.length ? `${rides.map((l) => CAT[l.cat][0]).filter((v, i, a) => a.indexOf(v) === i).join('+')}, 환승 ${rides.length - 1}회` : '걸어서';
       const li = r.legs.map((l) => l.k === 'walk'
         ? `<li class="rt-walk">도보 ${Math.max(1, Math.round(l.sec / 60))}분</li>`
-        : `<li class="rt-ride ${CAT[l.cat][1]}"><span class="rt-tag">${CAT[l.cat][0]}</span> <b>${esc(l.name)}</b><br><span class="rt-st">${esc(l.from)} ${hhmm(l.dep)} → ${esc(l.to)} ${hhmm(l.arr)} · ${l.stops}정거장</span></li>`).join('');
-      parts.push(`<div class="rt"><div class="rt-h"><b>${k.toUpperCase()}까지</b> ${hhmm(r.depart)} 출발 → ${hhmm(r.arrive)} 도착 <span class="rt-sum">${sum}</span></div><ol>${li}</ol></div>`);
+        : `<li class="rt-ride ${CAT[l.cat][1]}"><span class="rt-tag">${CAT[l.cat][0]}</span> <b>${esc(l.name)}</b><br><span class="rt-st">${esc(l.from)} ${hhmm(l.dep)} → ${esc(l.to)} ${hhmm(l.arr)} · ${l.stops}정거장</span>${gapText(l)}</li>`).join('');
+      const gaps = rides.map(gapMin).filter((g) => g >= GAP_WARN);
+      const warn = gaps.length ? `<div class="rt-warn">⚠ 배차 간격이 긴 노선이 있어요. 놓치면 ${gaps.some((g) => g === Infinity) ? '11시 전에는 다음 차가 없어요' : `최대 ${Math.max(...gaps)}분 더 기다려요`}.</div>` : '';
+      parts.push(`<div class="rt"><div class="rt-h"><b>${k.toUpperCase()}까지</b> ${hhmm(r.depart)} 출발 → ${hhmm(r.arrive)} 도착 <span class="rt-sum">${sum}</span></div>${warn}<ol>${li}</ol></div>`);
     }
     if (my !== routeSeq) return;
     el.innerHTML = parts.join('') + '<p class="rt-note">보통 걸리는 시각에 나섰을 때의 예시 경로입니다. 나서는 시각에 따라 경로가 달라질 수 있어요.</p>';
@@ -666,7 +683,7 @@
     p.set('t', state.limit); p.set('k', state.kind); if (state.priceMode === 'jenks') p.set('pb', 'j'); if (state.pick) p.set('pc', [...state.pick].sort((a, b) => a - b).join('.') || 'none'); p.set('m', state.minArea); p.set('n', state.minN); if (state.b) { p.set('pr', state.prio); p.set('x', state.extra); }
     if (state.budget !== Infinity) p.set('p', state.budget);
     if (state.kind === 'rent' && state.myDep) p.set('d', state.myDep);
-    if (state.modes !== '1111') p.set('md', state.modes); if (state.tr >= 0) p.set('tr', state.tr);
+    if (state.modes !== '1111') p.set('md', state.modes); if (state.tr >= 0) p.set('tr', state.tr); if (state.walk > 0) p.set('wk', state.walk);
     history.replaceState(null, '', '#' + p.toString());
     renderLegend();
   }
@@ -794,7 +811,7 @@
   // 버튼 3개(버스·지하철·기차) ↔ 내부 수단 4가지 [지하철·전철, 기차, 광역·시외버스, 시내·마을버스]
   function setModesUI() {
     document.querySelectorAll('#modes button').forEach((b) => b.setAttribute('aria-pressed', String([...b.dataset.bits].some((i) => state.modes[+i] === '1'))));
-    $('trmax').value = String(state.tr);
+    $('trmax').value = String(state.tr); $('walkmax').value = String(state.walk);
   }
   $('modes').addEventListener('click', (e) => {
     const b = e.target.closest('button'); if (!b) return;
@@ -804,6 +821,7 @@
     state.modes = m.join(''); setModesUI(); recompute();
   });
   $('trmax').addEventListener('change', (e) => { state.tr = +e.target.value; recompute(); });
+  $('walkmax').addEventListener('change', (e) => { state.walk = +e.target.value; recompute(); });
   $('pick-toggle').addEventListener('click', () => { state.pick = state.pick && state.pick.size === 0 ? null : new Set(); state.anchor = null; state.showN = 30; syncHash(); refresh(); });
   $('lg-price-body').addEventListener('click', (e) => {
     const b = e.target.closest('.pbar button'); if (!b) return; const k = +b.dataset.c;
@@ -996,6 +1014,7 @@
     if (p.get('pb') === 'j') state.priceMode = 'jenks';
     if (/^[01]{4}$/.test(p.get('md') || '') && p.get('md') !== '0000') state.modes = p.get('md');
     if (p.get('tr') != null && /^[0-3]$/.test(p.get('tr'))) state.tr = +p.get('tr');
+    if (['5', '10', '15'].includes(p.get('wk'))) state.walk = +p.get('wk');
     setModesUI();
     if (p.get('pc')) state.pick = new Set(p.get('pc') === 'none' ? [] : p.get('pc').split('.').map(Number).filter((k) => k >= 0 && k < 40));
     if (p.get('m') != null) { state.minArea = +p.get('m') || 0; $('area').value = String(state.minArea); }
