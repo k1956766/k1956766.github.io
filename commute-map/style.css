@@ -258,7 +258,7 @@ body.picking #map{cursor:crosshair}
 .readout.in-one{display:none}
 .home .tr-l{justify-content:flex-start;font-weight:600}
 
-.mode-h{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.mode-h{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
 .mode .chips{flex-wrap:nowrap}
 .mode .chips button{flex:1}
 .mode-h{justify-content:flex-start;gap:14px}
@@ -385,3 +385,12 @@ body.picking .legend{display:none}
 .apt .pr2{grid-column:1/-1;font-size:12px;color:var(--ink-2)}
 .apt .pr2 b{color:var(--ink)}
 .apt .pr.rent{grid-column:1/-1;text-align:left}
+
+/* 배차 간격·전세가율 */
+.rt-gap{display:block;font-size:12px;color:var(--ink-2);margin-top:2px}
+.rt-gap.warn{color:#b45309;font-weight:600}
+.rt-warn{margin:4px 0 6px;padding:6px 8px;border-radius:8px;background:#fff7ed;color:#9a3412;font-size:12.5px}
+.jr-l{color:var(--ink)}
+.jr-m{color:#b45309}
+.jr-h{color:#b91c1c}
+.apt .pr2.jr small{color:var(--ink-2)}
