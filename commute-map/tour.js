@@ -29,6 +29,7 @@
   }
   function key(e) { if (!card) return; if (e.key === 'Escape') end(); else if (e.key === 'ArrowRight') go(i + 1); else if (e.key === 'ArrowLeft') go(i - 1); }
   function end() {
+    if (card) window.dtStats?.ev('tourend', String(i + 1), i >= STEPS.length - 1 ? 'done' : 'closed');
     box?.remove(); card?.remove(); box = card = null;
     document.removeEventListener('keydown', key); window.removeEventListener('resize', place);
     try { localStorage.setItem('commute-tour', '1'); } catch (e) { /* 저장 안 됨 */ }
@@ -37,6 +38,7 @@
   function go(k) {
     if (k >= STEPS.length) { end(); return; }
     i = Math.max(0, k); const s = STEPS[i];
+    window.dtStats?.ev('tour', String(i + 1), null, STEPS.length);
     // 범례 단계: 접혀 있으면 펼침(휴대폰) / 아래 창 단계: 휴대폰에서 창을 올려 보이게
     if (s.legend) { const lg = $('#legend'); if (lg?.classList.contains('min')) $('#lg-tog')?.click(); }
     const el = $(s.sel);
