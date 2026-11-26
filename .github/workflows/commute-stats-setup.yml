@@ -1,22 +1,34 @@
 name: commute-stats-setup
-# 통근권 집찾기 이용 통계: Cloudflare D1 데이터베이스 준비(한 번만 수동 실행)
+# 통근권 집찾기 이용 통계 준비(수동 실행): Cloudflare D1 저장소 만들기·표 만들기·통계 열쇠 넣기
+# 필요: CLOUDFLARE_API_TOKEN에 'Account > D1 > Edit' 권한, 저장소 비밀값 STATS_KEY(통계 화면 열쇠)
 on:
   workflow_dispatch:
     inputs:
       sql:
-        description: '실행할 SQL(비우면 DB 만들기·목록만)'
+        description: '추가로 실행할 SQL(비워 두면 생략)'
         default: ''
 jobs:
   setup:
     runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
     steps:
       - uses: actions/checkout@v4
-      - name: d1
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      - name: create d1
         run: |
-          npx --yes wrangler@3 d1 list || true
           npx --yes wrangler@3 d1 create doorto-stats || true
-          npx --yes wrangler@3 d1 list || true
-          if [ -n "${{ inputs.sql }}" ]; then npx --yes wrangler@3 d1 execute doorto-stats --remote --command "${{ inputs.sql }}"; fi
+          npx --yes wrangler@3 d1 list
+      - name: schema
+        run: |
+          npx --yes wrangler@3 d1 execute doorto-stats --remote --command "CREATE TABLE IF NOT EXISTS ev (ts INTEGER NOT NULL, day TEXT NOT NULL, sid TEXT, site TEXT, name TEXT, a TEXT, b TEXT, n REAL, region TEXT); CREATE INDEX IF NOT EXISTS ev_day ON ev(day, name);"
+      - name: stats key
+        env:
+          K: ${{ secrets.STATS_KEY }}
+        run: |
+          if [ -z "$K" ]; then echo "STATS_KEY 비밀값이 없어 건너뜀"; exit 0; fi
+          printf '%s' "$K" | npx --yes wrangler@3 pages secret put STATS_KEY --project-name doorto
+          printf '%s' "$K" | npx --yes wrangler@3 pages secret put STATS_KEY --project-name doorto --env preview || true
+      - name: extra sql
+        if: inputs.sql != ''
+        run: npx --yes wrangler@3 d1 execute doorto-stats --remote --command "${{ inputs.sql }}"
