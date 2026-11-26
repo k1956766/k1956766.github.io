@@ -1,0 +1,9 @@
+# Cloudflare Pages(doorto) 설정: 이용 통계 저장소(D1) 연결. 배포는 commute-cf.yml이 이 폴더에서 실행
+name = "doorto"
+pages_build_output_dir = "."
+compatibility_date = "2025-07-18"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "doorto-stats"
+database_id = "77b142af-494f-46f6-999d-8b1e2515aaf5"
