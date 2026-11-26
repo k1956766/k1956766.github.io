@@ -339,6 +339,7 @@
       <p>가격은 최근 3개월에 거래가 2건 이상이면 3개월, 아니면 6개월, 그래도 없으면 12개월 거래의 중위값입니다(해제된 거래 제외). ${state.kind === 'rent' ? '월세·보증금은 같은 면적형 계약을 보증금까지 월세로 바꿔(전환율 연 5%) 줄 세웠을 때 가운데 계약의 값입니다. ' : ''}${state.kind === 'jeonse' ? '전세가율은 같은 면적형의 전세 중위값을 매매 중위값으로 나눈 값이에요. 80% 이상이면 집값이 조금만 내려도 보증금을 돌려받기 어려울 수 있어 주의가 필요해요(매매 거래가 적으면 오차가 커요). ' : ''}흐린 줄은 지금 조건(면적·예산·거래 수)에 안 맞는 면적형입니다. ${last}</p></div>`;
   }
   function selectApt(a, fly) {
+    if (state.sel !== a) T('apt', String(a.seq), best.on && a.tier ? `${a.tier}순위` : state.kind, state.matches.indexOf(a) + 1);
     state.sel = a; state.hover = a.cell;
     if (mobile() && sheetH != null && sheetH < 140) setSheet(false); // 접혀 있으면 단지 정보가 보이게 펼침
     if (fly) map.flyTo([a.lat, a.lon], Math.max(map.getZoom(), 15), { duration: 0.6 });
@@ -481,6 +482,7 @@
       const el = e.target.closest('.bx-t'); if (!el) return;
       const t = +el.dataset.t;
       if (best.show.has(t)) { if (best.show.size > 1) best.show.delete(t); } else best.show.add(t);
+      T('tier', [...best.show].sort().join(''));
       state.showN = 30; refresh();
     };
     $('bx-info').addEventListener('click', togT);
@@ -488,7 +490,7 @@
     const tog = $('bx-tog'); if (!tog) return;
     drawTri();
     const sm = $('bx-small'); if (sm) { sm.checked = !!best.small; sm.addEventListener('change', () => { best.small = sm.checked ? 1 : 0; saveBest(); state.showN = 30; refresh(); }); }
-    tog.addEventListener('click', () => { best.on = !best.on; tog.setAttribute('aria-pressed', String(best.on)); $('bx-body').hidden = !best.on; state.showN = 30; refresh(); });
+    tog.addEventListener('click', () => { best.on = !best.on; T('best', best.on ? 'on' : 'off'); tog.setAttribute('aria-pressed', String(best.on)); $('bx-body').hidden = !best.on; state.showN = 30; refresh(); });
     let raf = 0;
     const svg = $('bx-tri');
     const move = (e) => {
@@ -501,7 +503,8 @@
     svg.addEventListener('pointerup', () => saveBest());
   }
 
-  function refresh() { document.body.classList.toggle('has-work', !!state.a); computeMatches(); computeBest(); renderList(); renderPriceLegend(); layer.redraw(); renderReadout(state.hover); $('legend').classList.toggle('empty', !state.a); }
+  function refresh() {
+    if (state.a) window.dtStats?.cond(condSnap()); document.body.classList.toggle('has-work', !!state.a); computeMatches(); computeBest(); renderList(); renderPriceLegend(); layer.redraw(); renderReadout(state.hover); $('legend').classList.toggle('empty', !state.a); }
 
   /* ---------- 격자 찾기 ---------- */
   const bkey = (lat, lon) => `${Math.floor(lat / 0.005)}_${Math.floor(lon / 0.005)}`;
@@ -525,7 +528,7 @@
     if (m.type === 'progress') { busy(`계산 자료 받는 중 ${Math.round((m.got / m.total) * 100)}% (처음 한 번만)`); return; }
     if (m.type === 'ready') return;
     const p = pending.get(m.id); if (!p) return; pending.delete(m.id);
-    if (m.type === 'error') p.reject(new Error(m.msg)); else { if (m.ms != null) console.info(`통근시간 계산 ${m.ms}ms`); p.resolve(m.med ? { data: m.data, med: m.med } : m.data); }
+    if (m.type === 'error') p.reject(new Error(m.msg)); else { if (m.ms != null) { console.info(`통근시간 계산 ${m.ms}ms`); T('calc', null, null, m.ms); } p.resolve(m.med ? { data: m.data, med: m.med } : m.data); }
   };
   worker.postMessage({ type: 'init' }); // 페이지 열 때 미리 자료 받기 시작
   const optKey = () => `${state.modes}|${state.tr}|${state.walk}`;
@@ -578,7 +581,7 @@
       parts.push(`<div class="rt"><div class="rt-h"><b>${k.toUpperCase()}까지</b> ${hhmm(r.depart)} 출발 → ${hhmm(r.arrive)} 도착 <span class="rt-sum">${sum}</span></div>${warn}<ol>${li}</ol></div>`);
     }
     if (my !== routeSeq) return;
-    el.innerHTML = parts.join('') + '<p class="rt-note">보통 걸리는 시각에 나섰을 때의 예시 경로입니다. 나서는 시각에 따라 경로가 달라질 수 있어요.</p>';
+    T('route', parts.some((p) => p.includes('rt-warn')) ? '배차경고' : '-'); el.innerHTML = parts.join('') + '<p class="rt-note">보통 걸리는 시각에 나섰을 때의 예시 경로입니다. 나서는 시각에 따라 경로가 달라질 수 있어요.</p>';
   }
   let busyEl = null;
   function busy(msg) { if (!busyEl) { busyEl = document.createElement('div'); busyEl.className = 'busy'; document.body.appendChild(busyEl); } busyEl.textContent = msg; busyEl.hidden = !msg; }
@@ -598,16 +601,20 @@
     const br = mob ? [16, (sheetH || window.innerHeight * 0.5) + 16] : [24, 20]; // 범례는 오른쪽 아래 구석만 가려서 여백에서 뺌
     map.flyToBounds(b, { paddingTopLeft: tl, paddingBottomRight: br, maxZoom: 14, duration: 0.6 });
   }
-  async function setWorkplace(key, lat, lon, label, focus) {
+  // 익명 이용 통계(stats.js). 없으면 아무 일도 안 함
+  const T = (...x) => window.dtStats?.ev(...x);
+  async function setWorkplace(key, lat, lon, label, focus, how) {
     const i = nearestCell(lat, lon);
-    if (i < 0) { toast('서울·인천·경기·강원 안의 사람 사는 곳을 골라 주세요.'); return; }
+    if (i < 0) { T('outside', how || 'map'); toast('서울·인천·경기·강원 안의 사람 사는 곳을 골라 주세요.'); return; }
     let data;
     busy('통근시간 계산 중…');
     let med;
     try { const r = await loadWork(i); data = r.data; med = r.med; }
-    catch (e) { busy(''); toast('통근시간을 계산하지 못했습니다. 잠시 뒤 다시 골라 주세요.'); return; }
+    catch (e) { busy(''); T('err', 'calc', String(e).slice(0, 50)); toast('통근시간을 계산하지 못했습니다. 잠시 뒤 다시 골라 주세요.'); return; }
     busy('');
     state[key] = { idx: i, lat, lon, label: label || '지도에서 고른 위치', data, med };
+    T('work', key, how === 'st' ? `역:${label}` : `칸:${window.dtStats?.grid(lat, lon)}`, null);
+    T('how', how || 'map', key);
     if (markers[key]) markers[key].remove();
     markers[key] = L.marker([lat, lon], {
       keyboard: false, icon: L.divIcon({ className: '', html: `<div class="wp-marker ${key}">${key.toUpperCase()}</div>`, iconSize: [26, 26], iconAnchor: [13, 13] }),
@@ -676,6 +683,10 @@
   }
 
   /* ---------- 공유용 주소 ---------- */
+  function condSnap() {
+    const bud = state.budget === Infinity ? '제한없음' : String(state.budget);
+    return [state.kind, state.limit, bud, state.minArea, state.minN, state.modes, state.tr, state.walk, state.b ? `B:${state.prio}+${state.extra}` : 'A만', state.priceMode, best.on ? `최적:${Math.round(best.wt * 10)}-${Math.round(best.wc * 10)}-${Math.round(best.wy * 10)}` : '-'].join('|');
+  }
   function syncHash() {
     const p = new URLSearchParams();
     if (state.a) p.set('a', `${state.a.lat.toFixed(5)},${state.a.lon.toFixed(5)}`);
@@ -757,7 +768,7 @@
     clearTimeout(depT); depT = setTimeout(() => { setBudgetUI(); syncHash(); refresh(); }, 250);
   });
   document.querySelectorAll('#kind button').forEach((b) => b.addEventListener('click', () => { setKind(b.dataset.kind); syncHash(); refresh(); }));
-  $('pmode').addEventListener('click', () => { state.priceMode = state.priceMode === 'jenks' ? 'fixed' : 'jenks'; state.pick = null; state.anchor = null; syncHash(); refresh(); });
+  $('pmode').addEventListener('click', () => { T('pmode', state.priceMode === 'jenks' ? 'fixed' : 'jenks'); state.priceMode = state.priceMode === 'jenks' ? 'fixed' : 'jenks'; state.pick = null; state.anchor = null; syncHash(); refresh(); });
   // 가격 범례 칸 누르기: 구간 고르기/해제(여러 개 가능)
   /* 휴대폰: 조건 창 위 손잡이를 끌어 높이 조절, 끝 가까이에서는 위·아래로 붙음 */
   const panelEl = document.querySelector('.panel'), mobile = () => window.matchMedia('(max-width:720px)').matches;
@@ -826,7 +837,7 @@
   $('lg-price-body').addEventListener('click', (e) => {
     const b = e.target.closest('.pbar button'); if (!b) return; const k = +b.dataset.c;
     // 두 번 눌러 범위: 첫 클릭은 그 칸만(시작점), 다음 클릭은 시작점~이 칸 사이 전부, 그다음은 다시 시작점
-    if (state.anchor == null) { state.pick = new Set([k]); state.anchor = k; }
+    if (state.anchor == null) { state.pick = new Set([k]); state.anchor = k; T('legend', 'pick'); }
     else { const lo = Math.min(state.anchor, k), hi = Math.max(state.anchor, k); state.pick = new Set(Array.from({ length: hi - lo + 1 }, (_, i) => lo + i)); state.anchor = null; }
     if (state.pick.size === state.priceColors.length) state.pick = null;
     state.showN = 30; syncHash(); refresh();
@@ -852,7 +863,7 @@
     if (e.target.closest('#apt-back')) { state.sel = null; renderList(); layer.redraw(); showRoute(-1); $('apt-count').scrollIntoView({ block: 'nearest' }); return; }
     if (e.target.closest('.one')) return;
     const btn = e.target.closest('.more-d');
-    if (btn) { const a = state.matches[+btn.dataset.k]; state.open = state.open === a.seq ? null : a.seq; selectApt(a, false); return; }
+    if (btn) { const a = state.matches[+btn.dataset.k]; state.open = state.open === a.seq ? null : a.seq; if (state.open) T('detail', state.kind); selectApt(a, false); return; }
     if (e.target.closest('.detail')) return;
     const li = e.target.closest('.apt'); if (li) selectApt(state.matches[+li.dataset.k], true);
   });
@@ -981,7 +992,7 @@
       };
       const choose = (x) => {
         if (!x) return; close(); input.value = x.name;
-        setWorkplace(k, x.lat, x.lon, x.kind === 'st' ? x.name : `${x.name}${x.sub && x.kind === 'place' ? ` (${x.sub})` : ''}`, true);
+        setWorkplace(k, x.lat, x.lon, x.kind === 'st' ? x.name : `${x.name}${x.sub && x.kind === 'place' ? ` (${x.sub})` : ''}`, true, x.kind);
       };
       const run = async () => {
         const q = input.value.trim(); const my = ++seq;
@@ -995,6 +1006,7 @@
         const seen = new Set(items.map((x) => x.name));
         for (const x of more.sort((a, b) => a.order - b.order)) if (!seen.has(x.name)) { seen.add(x.name); items.push(x); }
         items = items.slice(0, 9); if (active < 0 && items.length) active = 0; render();
+        if (!items.length) T('nofind', /\d/.test(q) ? '숫자포함' : '이름', k);
       };
       input.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(run, 250); });
       input.addEventListener('keydown', (e) => {
@@ -1028,7 +1040,7 @@
     $('legend').classList.toggle('empty', !state.a);
     for (const k of ['a', 'b']) {
       const v = p.get(k); if (!v) continue;
-      const [la, lo] = v.split(',').map(Number); if (isFinite(la) && isFinite(lo)) await setWorkplace(k, la, lo, null, true);
+      const [la, lo] = v.split(',').map(Number); if (isFinite(la) && isFinite(lo)) await setWorkplace(k, la, lo, null, true, 'link');
     }
   })();
 })();
