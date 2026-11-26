@@ -1,0 +1,22 @@
+name: commute-stats-setup
+# 통근권 집찾기 이용 통계: Cloudflare D1 데이터베이스 준비(한 번만 수동 실행)
+on:
+  workflow_dispatch:
+    inputs:
+      sql:
+        description: '실행할 SQL(비우면 DB 만들기·목록만)'
+        default: ''
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: d1
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          npx --yes wrangler@3 d1 list || true
+          npx --yes wrangler@3 d1 create doorto-stats || true
+          npx --yes wrangler@3 d1 list || true
+          if [ -n "${{ inputs.sql }}" ]; then npx --yes wrangler@3 d1 execute doorto-stats --remote --command "${{ inputs.sql }}"; fi
